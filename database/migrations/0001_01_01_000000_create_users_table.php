@@ -13,29 +13,29 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+
             $table->string('name');
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
+
+            // Authentication
             $table->string('password');
+
+            // Roles & account control
+            $table->enum('role', ['admin', 'user'])->default('user');
+            $table->enum('account_status', ['active', 'deactivated'])->default('active');
+
+            // Profile (optional at creation)
+            $table->string('photo')->nullable();
+            $table->string('profession')->nullable();
+            $table->string('designation')->nullable();
+            $table->string('employment_status')->nullable();
+            $table->date('employment_started')->nullable();
+
             $table->rememberToken();
             $table->timestamps();
         });
-
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
-        });
-
-        Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
-        });
     }
+
 
     /**
      * Reverse the migrations.
