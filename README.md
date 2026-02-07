@@ -1,59 +1,333 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 📘 PDU Portal  
+### Project, Task, and Personnel Management System  
+*(MBHTE / BARMM Branded)*
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+The **PDU Portal** is a **Laravel-based web application** designed to manage **projects, tasks, personnel, and activity logs** with strict **role-based access**, **audit trails**, and **government-style reporting**.
 
-## About Laravel
+This system follows **MBHTE / BARMM branding and operational standards**, emphasizing clarity, accountability, and data integrity.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🏛️ Purpose
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+The system is built to:
+- Monitor project implementation and progress
+- Track task execution with full audit history
+- Manage personnel assignments and accountability
+- Preserve historical records through archiving (no hard deletes)
+- Support compliance, reporting, and transparency
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## 🚀 Tech Stack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Backend:** Laravel (latest)
+- **Frontend:** Blade + Bootstrap (latest)
+- **Database:** MySQL
+- **Local Environment:** XAMPP
+- **IDE:** VS Code
+- **Architecture:** MVC with Eloquent ORM
+- **Authentication:** Admin-created accounts only
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🎨 UI & BRANDING (MBHTE / BARMM)
 
-### Premium Partners
+The UI follows **MBHTE / BARMM visual identity guidelines**.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Branding Principles
+- Clean, professional, government-style layout
+- Minimal animations
+- High readability and accessibility
+- Consistent color usage
 
-## Contributing
+### Layout Standards
+- **Top Navbar**
+  - System name / logo (PDU Portal – MBHTE)
+  - User account menu
+- **Left Sidebar**
+  - Role-based navigation
+  - Icon + label menu items
+- **Main Content Area**
+  - Card-based layout
+  - Data tables
+  - Progress bars and status badges
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## 🌐 Public Pages (No Login Required)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Homepage
+- Top navigation bar
+- Hero section:
+  - System title
+  - Short description
+  - Login call-to-action
+- Slideshow of architectural/project images
+  - Managed by Admin via Slideshow Manager
 
-## Security Vulnerabilities
+### Login Page
+- Secure authentication
+- No public registration
+- Clean, official government-style design
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## 🧱 Authenticated Dashboard Layout
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+After login, users access:
+- Top Navbar
+- Left Sidebar (role-based)
+- Main content area
+
+---
+
+## 📌 Sidebar Navigation Structure
+
+### MAIN
+- **Dashboard** (Admin & User)
+
+### PROJECT
+- **Manage Projects**
+  - Admin:
+    - View all projects
+    - Create, edit, archive, restore projects
+    - Access Project Overview (tasks are created here)
+  - User:
+    - View assigned projects only (read-only)
+
+### TASK
+- **Manage Tasks**
+  - Admin:
+    - View all tasks (project tasks + personal tasks)
+  - User:
+    - View assigned tasks
+    - View own personal tasks
+
+### PERSONNEL *(Admin Only)*
+- **Manage Personnel**
+  - Create users
+  - View active and deactivated users
+  - Deactivate / reactivate accounts
+
+### CONTENT *(Admin Only)*
+- **Slideshow Manager**
+  - Manage homepage slideshow images
+  - Image with description
+  - Uses archiving instead of deletion
+
+### ARCHIVES *(Admin Only)*
+- Archived Projects
+- Archived Tasks
+- Deactivated Personnel
+
+### LOGS
+- Project Activity Logs
+- Task Activity Logs
+  - Admin: all logs
+  - User: own-related logs only
+
+### ACCOUNT
+- My Profile
+- Logout
+
+---
+
+## 👤 User / Personnel Management
+
+### User Creation (Admin Only – Minimal Input)
+- Full name
+- Email
+- Role (Admin / User)
+- Account status (Active / Deactivated)
+
+### User Profile (Editable Later)
+- Profile photo
+- Profession
+- Designation
+- Employment status (Permanent, Contractual, Job Order, etc.)
+- Employment start date
+
+---
+
+## 🚫 User Deactivation Rules
+
+- Deactivated users:
+  - Cannot log in
+  - Cannot interact with the system
+- Assigned tasks:
+  - Remain in the system
+  - Progress and history preserved
+  - Assigned user becomes `NULL`
+  - Displayed as `-` in UI
+- Tasks may be reassigned later by Admin
+
+---
+
+## 🗂️ Task Classification
+
+### 1️⃣ Project Tasks (Admin-Created)
+- Must always belong to a project
+- Task type (acts as task name):
+  - Perspective
+  - Architectural
+  - Structural
+  - Mechanical
+  - Electrical
+  - Plumbing
+  - Custom (admin-defined)
+- Can be assigned to users
+- Affects project progress and status
+
+### 2️⃣ Personal Tasks (User-Created)
+- Not attached to any project
+- Task name/type entered freely by user
+- Visible to:
+  - Task owner
+  - Admin
+- Does **not** affect any project
+
+---
+
+## 🏗️ Project Features
+
+Each project includes:
+- Project name
+- Location
+- Sub-sector:
+  - Basic Education
+  - Higher Education
+  - Madaris Education
+  - Technical Education
+  - Others
+- Source of fund
+- Funding year
+- Amount
+- Start date
+- Due date
+- Archived flag
+
+### Auto-Computed
+- **Project Status**
+  - Ongoing → at least one task progress < 100
+  - Completed → all tasks progress = 100
+- **Project Progress**
+  - Average of all project task progress
+
+---
+
+## ✅ Task Fields
+
+- Task type / name
+- Start date
+- Due date
+- Progress (0–100)
+- Status (auto-derived from progress)
+- Assigned user (nullable)
+- Project ID (required for project tasks, null for personal)
+- Created by (user)
+- Archived at
+
+---
+
+## 🔒 Task Progress Rules
+
+- Task status is not manually editable
+- Status is derived strictly from progress
+- Users:
+  - Can only **increase** progress
+  - Cannot decrease or reset progress
+- Admins:
+  - Can increase or decrease progress
+- When progress reaches 100:
+  - Progress update disabled for users
+  - Progress update remains enabled for admins
+
+---
+
+## 💬 Task Remarks / Comments
+
+- Admins and assigned users can add remarks
+- Each remark records:
+  - Comment text
+  - Author
+  - Timestamp
+- Remarks are immutable
+
+---
+
+## 📎 Task File Uploads
+
+- Multiple files per task
+- Supported:
+  - PDF, DOCX, XLSX
+  - Images
+- Files are linked to tasks and logged
+
+---
+
+## 🕒 Task History & Audit Trail
+
+Each task maintains a **complete, immutable history**, including:
+- Assignment changes
+- Progress updates and overrides
+- Completion events
+- File uploads/removals
+- Remarks added
+- Archiving/restoring
+- Actor and timestamp
+
+---
+
+## 🗄️ Archiving Policy
+
+- **No hard deletes**
+- Archiving is used for:
+  - Projects
+  - Tasks
+  - Slideshow content
+- Archived items can be restored by Admin
+
+---
+
+## 📜 Activity Logs
+
+- Automatically recorded
+- Tracks:
+  - User lifecycle events
+  - Task creation, assignment, progress changes
+  - Remarks and file actions
+  - Project/task archive & restore
+- Admin: full access
+- User: own-related logs only
+
+---
+
+## 🗺️ Development Roadmap
+
+Development follows a **strict, phase-based roadmap**:
+1. Phase 0 – Preparation
+2. Phase 1 – Database Schema & Migrations
+3. Phase 2 – Authentication & Roles
+4. Phase 3 – UI Layout (MBHTE Branded)
+5. Phase 4 – Personnel Module
+6. Phase 5 – Project Module
+7. Phase 6 – Task Module
+8. Phase 7 – Archives
+9. Phase 8 – Activity Logs
+10. Phase 9 – Slideshow Manager
+11. Phase 10 – Dashboard & Polish
+12. Phase 11 – Testing & Hardening
+
+---
+
+## 🏁 Final Note
+
+This README serves as the **authoritative system specification** for the PDU Portal.
+
+All rules, roles, UI structure, and behaviors described here must be enforced exactly during development.
+
+---
+
+> **“Build it once. Build it right. Build it compliant.”**  
+> *MBHTE / BARMM*
