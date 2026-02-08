@@ -1,36 +1,106 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<html lang="en">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+<head>
+    <meta charset="UTF-8">
+    <title>@yield('title', 'Planning and Design Unit - Portal')</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    {{-- Bootstrap --}}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
+    {{-- Custom styles (later) --}}
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
 
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
+        .navbar {
+            min-height: 64px;
+            z-index: 1030;
+        }
+
+        .sidebar {
+            width: 260px;
+            min-height: 100vh;
+            background-color: #ffffff;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .sidebar .nav-link {
+            color: #212529;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #f1f3f5;
+        }
+
+        .sidebar .nav-link.active {
+            background-color: #e9f5ee;
+            color: #198754;
+            font-weight: 600;
+        }
+
+        .sidebar h6 {
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .page-wrapper {
+            background-color: #ffffff;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .page-header {
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .page-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+
+    {{-- Top Navbar --}}
+    @include('layouts.navbar')
+
+    <div class="container-fluid">
+        <div class="row">
+            {{-- Sidebar --}}
+            @include('layouts.sidebar')
+
+            {{-- Main Content --}}
+            <main class="col content">
+                @yield('content')
             </main>
         </div>
-    </body>
+    </div>
+
+    {{-- Bootstrap JS --}}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
 </html>
