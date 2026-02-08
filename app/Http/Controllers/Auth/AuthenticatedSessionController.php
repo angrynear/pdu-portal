@@ -26,10 +26,21 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        // BLOCK DEACTIVATED USERS
+        if (!auth()->user()->isActive()) {
+            auth()->logout();
+
+            return redirect()->route('login')
+                ->withErrors([
+                    'email' => 'Your account is deactivated. Please contact the administrator.',
+                ]);
+        }
+
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(RouteServiceProvider::HOME);
     }
+
 
     /**
      * Destroy an authenticated session.

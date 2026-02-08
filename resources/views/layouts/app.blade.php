@@ -99,8 +99,71 @@
         </div>
     </div>
 
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p id="confirmModalMessage" class="mb-0"></p>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+
+                    <form id="confirmActionForm" method="POST">
+                        @csrf
+                        <input type="hidden" name="_method" id="confirmActionMethod">
+                        <button type="submit" class="btn" id="confirmActionButton"></button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     {{-- Bootstrap JS --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Confirmation Modal Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('confirmActionModal');
+
+            modal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+
+                const action = button.getAttribute('data-action');
+                const method = button.getAttribute('data-method');
+                const title = button.getAttribute('data-title');
+                const message = button.getAttribute('data-message');
+                const confirmText = button.getAttribute('data-confirm-text');
+                const confirmClass = button.getAttribute('data-confirm-class');
+
+                // Set modal content
+                document.getElementById('confirmModalTitle').textContent = title;
+                document.getElementById('confirmModalMessage').textContent = message;
+
+                // Set form action & method
+                const form = document.getElementById('confirmActionForm');
+                form.action = action;
+                document.getElementById('confirmActionMethod').value = method;
+
+                // Set button text & style
+                const confirmBtn = document.getElementById('confirmActionButton');
+                confirmBtn.textContent = confirmText;
+                confirmBtn.className = `btn ${confirmClass}`;
+            });
+        });
+    </script>
+
 </body>
 
 </html>

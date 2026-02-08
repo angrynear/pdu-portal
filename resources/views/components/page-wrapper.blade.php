@@ -1,14 +1,21 @@
 <div class="page-wrapper">
 
     {{-- Page Header --}}
-    <div class="page-header">
-        <div class="page-title">
-            {{ $title }}
+    <div class="page-header d-flex justify-content-between align-items-center">
+        <div>
+            <div class="page-title">{{ $title }}</div>
+
+            @isset($subtitle)
+                <div class="page-subtitle">
+                    {{ $subtitle }}
+                </div>
+            @endisset
         </div>
 
-        @isset($subtitle)
-            <div class="page-subtitle">
-                {{ $subtitle }}
+        {{-- Header Actions (buttons, etc.) --}}
+        @isset($actions)
+            <div>
+                {{ $actions }}
             </div>
         @endisset
     </div>

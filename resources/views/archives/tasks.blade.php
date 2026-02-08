@@ -4,7 +4,7 @@
 
 @section('content')
 <x-page-wrapper
-    title="Archived Task List"
+    title="Archived Task"
     alert="Archived module is under development."
     alertType="warning" />
 @endsection

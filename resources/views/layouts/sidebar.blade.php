@@ -44,7 +44,7 @@
     <ul class="nav flex-column">
         <li class="nav-item">
             <a href="{{ route('personnel.index') }}"
-                class="nav-link {{ request()->routeIs('personnel.*') ? 'active' : '' }}">
+                class="nav-link {{ request()->routeIs('personnel.index', 'personnel.create', 'personnel.edit') ? 'active' : '' }}">
                 <i class="bi bi-people me-2"></i>
                 Manage Personnel
             </a>
@@ -81,8 +81,8 @@
             </a>
         </li>
         <li class="nav-item">
-            <a href="{{ route('archives.personnel') }}"
-                class="nav-link {{ request()->routeIs('archives.personnel') ? 'active' : '' }}">
+            <a href="{{ route('personnel.archived') }}"
+                class="nav-link {{ request()->routeIs('personnel.archived') ? 'active' : '' }}">
                 <i class="bi bi-person-x me-2"></i>
                 Deactivated Personnel
             </a>

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
@@ -14,6 +15,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'contact_number',
         'password',
         'role',
         'account_status',
@@ -50,5 +52,10 @@ class User extends Authenticatable
     public function isActive(): bool
     {
         return $this->account_status === 'active';
+    }
+
+    public function tasks()
+    {
+        return $this->hasMany(\App\Models\Task::class, 'assigned_user_id');
     }
 }
