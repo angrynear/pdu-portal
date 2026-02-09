@@ -46,7 +46,7 @@
                                         ? asset('storage/' . $user->photo)
                                         : asset('images/default-avatar.png') }}"
                             alt="Photo"
-                            class="box border"
+                            class="rounded-circle border"
                             style="width: 50px; height: 50px; object-fit: cover;">
                     </td>
 

@@ -27,7 +27,7 @@
                     src="{{ isset($user) && $user->photo
                 ? asset('storage/' . $user->photo)
                 : asset('images/default-avatar.png') }}"
-                    class="border mb-2"
+                    class="rounded-circle border mb-3"
                     style="width: 200px; height: 200px; object-fit: cover;">
 
                 <div>

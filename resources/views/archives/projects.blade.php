@@ -6,5 +6,13 @@
 <x-page-wrapper
     title="Archived Project"
     alert="Archived module is under development."
-    alertType="warning" />
+    alertType="warning">
+
+    <x-slot name="actions">
+        <a href="{{ route('projects.index') }}"
+            class="btn btn-sm btn-secondary">
+            ← Back to Projects
+        </a>
+    </x-slot>
+</x-page-wrapper>
 @endsection

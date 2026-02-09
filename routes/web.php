@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PersonnelController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -46,12 +47,6 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/personnel', [PersonnelController::class, 'store'])
             ->name('personnel.store');
 
-        Route::get('/personnel/{user}/edit', [PersonnelController::class, 'edit'])
-            ->name('personnel.edit');
-
-        Route::put('/personnel/{user}', [PersonnelController::class, 'update'])
-            ->name('personnel.update');
-
         Route::patch('/personnel/{user}/deactivate', [PersonnelController::class, 'deactivate'])
             ->name('personnel.deactivate');
 
@@ -62,6 +57,23 @@ Route::middleware(['auth', 'active'])->group(function () {
             return view('content.slideshow');
         })->name('content.slideshow');
     });
+
+    // My Profile Admin and User
+    Route::get('/my-profile', [\App\Http\Controllers\ProfileController::class, 'show'])
+        ->name('profile.show');
+
+    Route::get('/my-profile/edit', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    Route::put('/my-profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    // My Profile + Admin Edit (controlled in controller)
+    Route::get('/personnel/{user}/edit', [PersonnelController::class, 'edit'])
+        ->name('personnel.edit');
+
+    Route::put('/personnel/{user}', [PersonnelController::class, 'update'])
+        ->name('personnel.update');
 });
 
 
