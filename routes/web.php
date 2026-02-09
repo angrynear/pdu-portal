@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -56,6 +57,42 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/content/slideshow', function () {
             return view('content.slideshow');
         })->name('content.slideshow');
+
+        // List all active projects
+        Route::get('/projects', [ProjectController::class, 'index'])
+            ->name('projects.index');
+
+        // Show create project form
+        Route::get('/projects/create', [ProjectController::class, 'create'])
+            ->name('projects.create');
+
+        // Store new project
+        Route::post('/projects', [ProjectController::class, 'store'])
+            ->name('projects.store');
+
+        // Show project overview (details page)
+        Route::get('/projects/{project}', [ProjectController::class, 'show'])
+            ->name('projects.show');
+
+        // Show edit project form
+        Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])
+            ->name('projects.edit');
+
+        // Update project
+        Route::put('/projects/{project}', [ProjectController::class, 'update'])
+            ->name('projects.update');
+
+        // Archive project (soft action)
+        Route::patch('/projects/{project}/archive', [ProjectController::class, 'archive'])
+            ->name('projects.archive');
+
+        // Archived projects list
+        Route::get('/archives/projects', [ProjectController::class, 'archived'])
+            ->name('projects.archived');
+
+        // Restore archived project
+        Route::patch('/archives/projects/{project}/restore', [ProjectController::class, 'restore'])
+            ->name('projects.restore');
     });
 
     // My Profile Admin and User
