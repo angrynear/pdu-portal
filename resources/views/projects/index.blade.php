@@ -14,19 +14,17 @@
     </x-slot>
 
     <div class="table-responsive">
-        <table class="table align-middle table-projects">
+        <table class="table table-sm align-middle table-projects">
             <thead class="table-light">
                 <tr>
                     <th class="text-center" style="width: 50px;">No.</th>
-                    <th style="width: 250px;">Project Name</th>
-                    <th style="width: 120px;">Sub-sector</th>
+                    <th style="width: 280px;">Project Name</th>
                     <th style="width: 180px;">Location</th>
-                    <th style="width: 200px;">Source of Fund</th>
-                    <th style="width: 160px;">Timeline</th>
-                    <th class="text-center" style="width: 80px;">Task</th>
-                    <th class="text-center" style="width: 100px;">Status</th>
+                    <th style="width: 180px;">Source of Fund</th>
+                    <th class="text-center" style="width: 150px;">Timeline</th>
+                    <th class="text-center" style="width: 50px;">Task</th>
                     <th class="text-center" style="width: 100px;">Progress</th>
-                    <th class="text-center" style="width: 180px;">Actions</th>
+                    <th class="text-center" style="width: 150px;">Actions</th>
                 </tr>
             </thead>
 
@@ -41,11 +39,6 @@
                     {{-- Project Name --}}
                     <td>
                         {{ $project->name }}
-                    </td>
-
-                    {{-- Sub-sector --}}
-                    <td>
-                        {{ ucwords(str_replace('_', ' ', $project->sub_sector)) }}
                     </td>
 
                     {{-- Location --}}
@@ -71,8 +64,8 @@
                         </div>
                     </td>
 
-                    {{-- Date --}}
-                    <td>
+                    {{-- Timeline --}}
+                    <td class="text-center">
                         <div class="small">
                             <div>
                                 <strong>Start Date:</strong>
@@ -86,7 +79,7 @@
                     </td>
 
                     {{-- Task Summary --}}
-                    <td>
+                    <td class="text-center">
                         <div class="small text-center">
                             <div>
                                 {{ $project->completed_tasks_count }} / {{ $project->tasks->count() }}
@@ -94,20 +87,9 @@
                         </div>
                     </td>
 
-                    {{-- Status (Computed) --}}
-                    <td class="text-center">
-                        @if ($project->status === 'Completed')
-                        <span class="badge bg-success">Completed</span>
-                        @elseif ($project->status === 'Ongoing')
-                        <span class="badge bg-warning text-dark">Ongoing</span>
-                        @else
-                        <span class="badge bg-secondary">Not Started</span>
-                        @endif
-                    </td>
-
                     {{-- Progress (Computed) --}}
                     <td class="text-center">
-                        <div class="progress" style="height: 18px;">
+                        <div class="progress" style="height: 6px;">
                             <div
                                 class="progress-bar
                                     {{ $project->progress == 100 ? 'bg-success' : 'bg-primary' }}"
@@ -116,8 +98,10 @@
                                 aria-valuenow="{{ $project->progress }}"
                                 aria-valuemin="0"
                                 aria-valuemax="100">
-                                {{ $project->progress }}%
                             </div>
+                        </div>
+                        <div class="small {{ $project->progress == 100 ? 'text-success fw-semibold' : 'text-muted' }}">
+                            {{ $project->progress }}%
                         </div>
                     </td>
 
@@ -128,13 +112,13 @@
                             View
                         </a>
 
+                        @if (is_null($project->archived_at))
                         <a href="{{ route('projects.edit', $project->id) }}"
                             class="btn btn-sm btn-primary">
                             Edit
                         </a>
 
-                        <button
-                            type="button"
+                        <button type="button"
                             class="btn btn-sm btn-danger"
                             data-bs-toggle="modal"
                             data-bs-target="#confirmActionModal"
@@ -146,6 +130,12 @@
                             data-confirm-class="btn-danger">
                             Archive
                         </button>
+                        @else
+                        <span class="text-muted small">
+                            Archived
+                        </span>
+                        @endif
+
                     </td>
                 </tr>
                 @empty

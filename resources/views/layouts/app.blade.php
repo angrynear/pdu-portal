@@ -79,6 +79,10 @@
             font-size: 0.85rem;
             color: #6c757d;
         }
+
+        .link-hover:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 
@@ -132,7 +136,7 @@
     {{-- Bootstrap JS --}}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Confirmation Modal Script -->
+    {{-- Confirmation Modal Script --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const modal = document.getElementById('confirmActionModal');
@@ -163,6 +167,107 @@
             });
         });
     </script>
+
+    {{-- Add Task Modal Script --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const taskTypeSelect = document.getElementById('taskTypeSelect');
+            const customWrapper = document.getElementById('customTaskWrapper');
+
+            if (!taskTypeSelect) return;
+
+            taskTypeSelect.addEventListener('change', function() {
+                if (this.value === 'Custom') {
+                    customWrapper.classList.remove('d-none');
+                } else {
+                    customWrapper.classList.add('d-none');
+                }
+            });
+        });
+    </script>
+
+    {{-- Edit Task Modal Script --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const modal = document.getElementById('editTaskModal');
+
+            if (!modal) return;
+
+            modal.addEventListener('shown.bs.modal', function(event) {
+                const button = event.relatedTarget;
+
+                // IDs
+                document.getElementById('edit_task_id').value =
+                    button.getAttribute('data-task-id');
+
+                // Assigned user
+                document.getElementById('edit_assigned_user').value =
+                    button.getAttribute('data-assigned');
+
+                // Dates (must be YYYY-MM-DD)
+                document.getElementById('edit_start_date').value =
+                    button.getAttribute('data-start') || '';
+
+                document.getElementById('edit_due_date').value =
+                    button.getAttribute('data-due') || '';
+
+                // Task type (custom logic handled in modal file)
+                if (typeof handleEditTaskType === 'function') {
+                    handleEditTaskType(button.getAttribute('data-task-type'));
+                }
+            });
+
+        });
+    </script>
+
+    {{-- AUTO-DETECT CUSTOM VS PREDEFINED --}}
+    <script>
+        function handleEditTaskType(taskType) {
+
+            const select = document.getElementById('editTaskTypeSelect');
+            const customWrapper = document.getElementById('editCustomTaskWrapper');
+            const customInput = document.getElementById('edit_custom_task_name');
+
+            const predefined = [
+                'Perspective', 'Architectural', 'Structural',
+                'Mechanical', 'Electrical', 'Plumbing'
+            ];
+
+            if (predefined.includes(taskType)) {
+                select.value = taskType;
+                customWrapper.classList.add('d-none');
+                customInput.value = '';
+            } else {
+                select.value = 'Custom';
+                customWrapper.classList.remove('d-none');
+                customInput.value = taskType;
+            }
+        }
+    </script>
+
+    {{-- TOGGLE CUSTOM FIELD ON CHANGE --}}
+    <script>
+        document.getElementById('editTaskTypeSelect')
+            .addEventListener('change', function() {
+
+                const wrapper = document.getElementById('editCustomTaskWrapper');
+                const input = document.getElementById('edit_custom_task_name');
+
+                if (this.value === 'Custom') {
+                    wrapper.classList.remove('d-none');
+                    input.focus();
+                } else {
+                    wrapper.classList.add('d-none');
+                    input.value = '';
+                }
+            });
+    </script>
+
+
+
+    @stack('scripts')
+
 
 </body>
 

@@ -15,7 +15,7 @@
     </x-slot>
 
     <div class="table-responsive">
-        <table class="table align-middle table-projects">
+        <table class="table table-sm align-middle table-projects">
             <thead class="table-light">
                 <tr>
                     <th class="text-center" style="width: 60px;">No.</th>

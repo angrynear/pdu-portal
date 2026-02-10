@@ -24,6 +24,7 @@ class User extends Authenticatable
         'designation',
         'employment_status',
         'employment_started',
+        'deactivated_at',
     ];
 
     protected $hidden = [
@@ -33,6 +34,8 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'deactivated_at' => 'datetime',
+
     ];
 
     /* =====================
@@ -52,6 +55,8 @@ class User extends Authenticatable
     public function isActive(): bool
     {
         return $this->account_status === 'active';
+
+        return is_null($this->deactivated_at);
     }
 
     public function tasks()

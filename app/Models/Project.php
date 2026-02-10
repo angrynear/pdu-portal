@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class Project extends Model
 {
+
     use HasFactory;
 
     /**
@@ -75,7 +76,7 @@ class Project extends Model
         }
 
         // If all tasks are completed
-        if ($tasks->every(fn ($task) => $task->progress === 100)) {
+        if ($tasks->every(fn($task) => $task->progress === 100)) {
             return 'Completed';
         }
 

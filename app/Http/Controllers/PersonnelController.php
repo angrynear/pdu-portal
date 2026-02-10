@@ -157,6 +157,7 @@ class PersonnelController extends Controller
 
         $user->update([
             'account_status' => 'inactive',
+            'deactivated_at' => now(),
         ]);
 
         return redirect()
@@ -176,6 +177,7 @@ class PersonnelController extends Controller
 
         $user->update([
             'account_status' => 'active',
+            'deactivated_at' => null,
         ]);
 
         return redirect()

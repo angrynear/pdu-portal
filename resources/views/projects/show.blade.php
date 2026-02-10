@@ -6,8 +6,24 @@
 <x-page-wrapper title="Project Details">
 
     <x-slot name="actions">
-        <a href="{{ route('projects.index') }}" class="btn btn-sm btn-secondary">
-            ← Back to Project
+        @php
+        $from = request('return');
+        $label = 'Projects';
+
+        if ($from) {
+        if (str_contains($from, '/archives/tasks')) {
+        $label = 'Archived Tasks';
+        } elseif (str_contains($from, '/tasks')) {
+        $label = 'Tasks';
+        } elseif (str_contains($from, '/archives/projects')) {
+        $label = 'Archived Projects';
+        }
+        }
+        @endphp
+
+        <a href="{{ $from ?? route('projects.index') }}"
+            class="btn btn-sm btn-secondary">
+            ← Back to {{ $label }}
         </a>
     </x-slot>
 
@@ -48,7 +64,7 @@
     <hr>
 
     {{-- INFO GRID --}}
-    <div class="row mb-3 small">
+    <div class="row mb-3">
         <div class="col-md-4 mb-2">
             <div class="fw-semibold">Source of Fund</div>
             <div>{{ $project->source_of_fund }}</div>
@@ -65,13 +81,27 @@
         </div>
 
         <div class="col-md-4 mb-2">
+            <div class="fw-semibold">Sub-Sector</div>
+            <div>{{ ucwords(str_replace('_', ' ', $project->sub_sector)) ?? '—' }}</div>
+        </div>
+
+        <div class="col-md-4 mb-2">
             <div class="fw-semibold">Date Started</div>
-            <div>{{ $project->start_date?->format('M d, Y') ?? '—' }}</div>
+            <div>{{ $project->start_date?->format('F j, Y') ?? '—' }}</div>
         </div>
 
         <div class="col-md-4 mb-2">
             <div class="fw-semibold">Target Completion</div>
-            <div>{{ $project->due_date?->format('M d, Y') ?? '—' }}</div>
+            <div>{{ $project->due_date?->format('F j, Y') ?? '—' }}</div>
+        </div>
+
+        <div class="col-md-4 mb-2">
+            <div class="fw-semibold">Task</div>
+            <div> Completed: {{ $project->completed_tasks_count ?? 0 }}
+                /
+                Total: {{ $project->total_tasks_count ?? 0 }}
+            </div>
+
         </div>
 
         <div class="col-md-4 mb-2">
@@ -92,15 +122,6 @@
             </div>
         </div>
 
-        <div class="col-md-4 mb-2">
-            <div class="fw-semibold">Task</div>
-            <div> Completed: {{ $project->completed_tasks_count ?? 0 }}
-                /
-                Total: {{ $project->total_tasks_count ?? 0 }}
-            </div>
-
-        </div>
-
         {{-- DESCRIPTION --}}
         <div>
             <div class="fw-semibold mb-1">Description</div>
@@ -108,6 +129,180 @@
                 {{ $project->description ?: 'No description provided.' }}
             </div>
         </div>
+
+        {{-- PROJECT TASKS --}}
+        <div class="mt-4">
+
+            {{-- ADD TASK BUTTON --}}
+            <div class="mt-4 text-end">
+                @if (is_null($project->archived_at))
+                <button class="btn btn-sm btn-success mb-2"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addTaskModal">
+                    + Add Task
+                </button>
+                @else
+                <button class="btn btn-sm btn-secondary mb-2" disabled
+                    title="This project is archived and cannot be modified">
+                    Project Archived
+                </button>
+                @endif
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center" style="width:50px;">No.</th>
+                            <th style="width:200px;">Task Name</th>
+                            <th style="width:200px;">Assigned To</th>
+                            <th style="width:100px;">Start Date</th>
+                            <th style="width:100px;">Due Date</th>
+                            <th class="text-center" style="width:100px;">Progress</th>
+                            <th class="text-center" style="width:80px;">Status</th>
+                            <th class="text-center" style="width:120px;">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @forelse ($project->tasks as $task)
+                        <tr>
+
+                            {{-- No. --}}
+                            <td class="text-center">
+                                {{ $loop->iteration }}
+                            </td>
+
+                            {{-- Task Type --}}
+                            <td>
+                                {{ ucfirst($task->task_type) }}
+                            </td>
+
+                            {{-- Assigned User --}}
+                            <td>
+                                {{ $task->assignedUser->name ?? '—' }}
+                            </td>
+
+                            {{-- Start Date --}}
+                            <td>
+                                {{ $task->start_date?->format('F d, Y') ?? '—' }}
+                            </td>
+
+                            {{-- Due Date --}}
+                            <td>
+                                {{ $task->due_date?->format('F d, Y') ?? '—' }}
+                            </td>
+
+                            {{-- Progress --}}
+                            <td class="text-center">
+                                <div class="progress" style="height: 6px;">
+                                    <div
+                                        class="progress-bar
+                                {{ $task->progress == 100 ? 'bg-success' : 'bg-primary' }}"
+                                        style="width: {{ $task->progress }}%">
+                                    </div>
+                                </div>
+                                <div class="small {{ $task->progress == 100 ? 'text-success fw-semibold' : 'text-muted' }}">
+                                    {{ $task->progress }}%
+                                </div>
+                            </td>
+
+                            {{-- Status --}}
+                            <td class="text-center">
+                                @if ($task->progress == 0)
+                                <span class="badge bg-secondary">Not Started</span>
+                                @elseif ($task->progress < 100)
+                                    <span class="badge bg-warning text-dark">Ongoing</span>
+                                    @else
+                                    <span class="badge bg-success">Completed</span>
+                                    @endif
+                            </td>
+
+                            {{-- Actions --}}
+                            <td class="text-center">
+
+                                {{-- Edit Task --}}
+                                @if (is_null($project->archived_at) && is_null($task->archived_at))
+                                <button class="btn btn-sm btn-secondary" disabled>
+                                    View
+                                </button>
+
+                                <button
+                                    class="btn btn-sm btn-primary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editTaskModal"
+                                    data-task-id="{{ $task->id }}"
+                                    data-task-type="{{ $task->task_type }}"
+                                    data-assigned="{{ $task->assigned_user_id }}"
+                                    data-start="{{ optional($task->start_date)->format('Y-m-d') }}"
+                                    data-due="{{ optional($task->due_date)->format('Y-m-d') }}">
+
+                                    Edit
+                                </button>
+
+                                {{-- Archive Task --}}
+                                <button
+                                    class="btn btn-sm btn-danger ms-1"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#confirmActionModal"
+                                    data-action="{{ route('tasks.archive', $task->id) }}"
+                                    data-method="PATCH"
+                                    data-title="Archive Task"
+                                    data-message="Are you sure you want to archive this task?"
+                                    data-confirm-text="Archive"
+                                    data-confirm-class="btn-danger">
+                                    Archive
+                                </button>
+                                @else
+                                <span class="text-muted small">
+                                    {{ $project->archived_at ? 'Project Archived' : 'Task Archived' }}
+                                </span>
+                                @endif
+
+                            </td>
+
+
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">
+                                No tasks added to this project yet.
+                            </td>
+                        </tr>
+                        @endforelse
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- ADD TASK MODAL --}}
+        @include('projects.partials.add-task-modal')
+
+        {{-- EDIT TASK MODAL --}}
+        @include('projects.partials.edit-task-modal')
+
+        
+        @if (session('form_context') === 'add_task')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                new bootstrap.Modal(
+                    document.getElementById('addTaskModal')
+                ).show();
+            });
+        </script>
+        @endif
+
+        @if (session('form_context') === 'edit_task')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                new bootstrap.Modal(
+                    document.getElementById('editTaskModal')
+                ).show();
+            });
+        </script>
+        @endif
+
 
 </x-page-wrapper>
 @endsection

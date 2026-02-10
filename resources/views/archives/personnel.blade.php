@@ -13,8 +13,13 @@
         </a>
     </x-slot>
 
+    @if ($users->isEmpty())
+    <div class="text-center text-muted">
+        No deactivated user found.
+    </div>
+    @else
     <div class="table-responsive">
-        <table class="table align-middle table-projects">
+        <table class="table table-sm align-middle table-projects">
             <thead class="table-light">
                 <tr>
                     <th class="text-center" style="width: 60px;">No.</th>
@@ -25,7 +30,7 @@
                     <th style="width: 100px;">Contact No.</th>
                     <th class="text-center" style="width: 90px;">Role</th>
                     <th class="text-center" style="width: 100px;">Tasks</th>
-                    <th class="text-center" style="width: 90px;">Status</th>
+                    <th class="text-center" style="width: 90px;">Deactivated At</th>
                     <th class="text-center" style="width: 120px;">Actions</th>
                 </tr>
             </thead>
@@ -45,7 +50,7 @@
                                         ? asset('storage/' . $user->photo)
                                         : asset('images/default-avatar.png') }}"
                             alt="Photo"
-                            class="box border"
+                            class="rounded-circle border"
                             style="width: 50px; height: 50px; object-fit: cover;">
                     </td>
 
@@ -84,13 +89,9 @@
                         </div>
                     </td>
 
-                    {{-- Status --}}
+                    {{-- Deactivated At --}}
                     <td class="text-center">
-                        @if($user->account_status === 'active')
-                        <span class="badge bg-success">Active</span>
-                        @else
-                        <span class="badge bg-secondary">Inactive</span>
-                        @endif
+                        {{ $user->deactivated_at?->format('F d, Y') }}
                     </td>
 
                     {{-- Actions --}}
@@ -112,16 +113,12 @@
 
                     </td>
                 </tr>
-                @empty
-                <tr>
-                    <td colspan="10" class="text-center text-muted">
-                        No deactivate personnel found.
-                    </td>
-                </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
     </div>
+    @endif
+
 </x-page-wrapper>
 
 @endsection

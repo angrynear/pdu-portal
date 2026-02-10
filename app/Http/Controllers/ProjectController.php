@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use Illuminate\Http\Request;
+use App\Models\User;
+
 
 class ProjectController extends Controller
 {
@@ -12,17 +14,22 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $projects = Project::active()
+        $projects = Project::whereNull('archived_at')
             ->withCount([
-                'tasks as total_tasks_count',
+                'tasks as total_tasks_count' => function ($query) {
+                    $query->whereNull('archived_at');
+                },
                 'tasks as not_started_tasks_count' => function ($query) {
-                    $query->where('progress', 0);
+                    $query->where('progress', 0)
+                        ->whereNull('archived_at');
                 },
                 'tasks as ongoing_tasks_count' => function ($query) {
-                    $query->whereBetween('progress', [1, 99]);
+                    $query->whereBetween('progress', [1, 99])
+                        ->whereNull('archived_at');
                 },
                 'tasks as completed_tasks_count' => function ($query) {
-                    $query->where('progress', 100);
+                    $query->where('progress', 100)
+                        ->whereNull('archived_at');
                 },
             ])
             ->latest()
@@ -87,7 +94,22 @@ class ProjectController extends Controller
      */
     public function show(Project $project)
     {
-        return view('projects.show', compact('project'));
+
+        $project->load([
+            'tasks.assignedUser', // optional, if relation exists
+        ])->loadCount([
+            'tasks as total_tasks_count',
+            'tasks as completed_tasks_count' => function ($q) {
+                $q->where('progress', 100);
+            },
+        ]);
+
+        // Get active personnel only
+        $users = User::where('account_status', 'active')
+            ->orderBy('name')
+            ->get();
+
+        return view('projects.show', compact('project', 'users'));
     }
 
     /**
@@ -146,20 +168,27 @@ class ProjectController extends Controller
      */
     public function archive(Project $project)
     {
-        $project->archive();
+        // Archive ALL tasks under the project
+        $project->tasks()->update([
+            'archived_at' => now(),
+        ]);
+
+        // Archive the project itself
+        $project->update([
+            'archived_at' => now(),
+        ]);
 
         return redirect()
             ->route('projects.index')
-            ->with('success', 'Project archived successfully.');
+            ->with('success', 'Project and its tasks have been archived.');
     }
-
     /**
      * Display archived projects.
      */
     public function archived()
     {
-        $projects = Project::archived()
-            ->latest()
+        $projects = Project::whereNotNull('archived_at')
+            ->latest('archived_at')
             ->get();
 
         return view('archives.projects', compact('projects'));
@@ -168,12 +197,17 @@ class ProjectController extends Controller
     /**
      * Restore an archived project.
      */
-    public function restore(Project $project)
+    public function restore($id)
     {
-        $project->restore();
+        $project = Project::whereNotNull('archived_at')
+            ->findOrFail($id);
+
+        $project->update([
+            'archived_at' => null,
+        ]);
 
         return redirect()
             ->route('projects.archived')
-            ->with('success', 'Project restored successfully.');
+            ->with('success', 'Project has been restored.');
     }
 }

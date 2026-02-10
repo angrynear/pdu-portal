@@ -1,4 +1,4 @@
-<aside class="col-auto sidebar p-3">
+<aside class="col-auto sidebar p-2">
 
     {{-- MAIN --}}
     <h6 class="text-uppercase text-muted">Main</h6>
@@ -17,7 +17,7 @@
     <ul class="nav flex-column">
         <li class="nav-item">
             <a href="{{ route('projects.index') }}"
-                class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}">
+                class="nav-link {{ request()->routeIs('projects.*') && !request()->routeIs('projects.archived') ? 'active' : '' }}">
                 <i class="bi bi-kanban me-2"></i>
                 Manage Projects
             </a>
@@ -29,7 +29,7 @@
     <ul class="nav flex-column">
         <li class="nav-item">
             <a href="{{ route('tasks.index') }}"
-                class="nav-link {{ request()->routeIs('tasks.*') ? 'active' : '' }}">
+                class="nav-link {{ request()->routeIs('tasks.*') && !request()->routeIs('tasks.archived') ? 'active' : '' }}">
                 <i class="bi bi-list-check me-2"></i>
                 Manage Tasks
             </a>
@@ -55,7 +55,7 @@
     <h6 class="text-uppercase text-muted">Content</h6>
     <ul class="nav flex-column">
         <li class="nav-item">
-            <a href="{{ route('content.slideshow') }}"
+            <a href="#"
                 class="nav-link {{ request()->routeIs('content.*') ? 'active' : '' }}">
                 <i class="bi bi-images me-2"></i>
                 Slideshow Manager
@@ -67,18 +67,19 @@
     <h6 class="text-uppercase text-muted">Archives</h6>
     <ul class="nav flex-column">
         <li class="nav-item">
-            <a href="{{ route('archives.projects') }}"
-                class="nav-link {{ request()->routeIs('archives.projects') ? 'active' : '' }}">
+            <a href="{{ route('projects.archived') }}"
+                class="nav-link {{ request()->routeIs('projects.archived') ? 'active' : '' }}">
                 <i class="bi bi-archive me-2"></i>
                 Archived Projects
             </a>
         </li>
         <li class="nav-item">
-            <a href="{{ route('archives.tasks') }}"
-                class="nav-link {{ request()->routeIs('archives.tasks') ? 'active' : '' }}">
-                <i class="bi bi-archive-fill me-2"></i>
+            <a href="{{ route('tasks.archived') }}"
+                class="nav-link {{ request()->routeIs('tasks.archived') ? 'active' : '' }}">
+                <i class="bi bi-archive me-2"></i>
                 Archived Tasks
             </a>
+
         </li>
         <li class="nav-item">
             <a href="{{ route('personnel.archived') }}"
