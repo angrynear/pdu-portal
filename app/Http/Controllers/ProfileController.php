@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use App\Support\FlashMessage;
 
 class ProfileController extends Controller
 {
@@ -41,23 +42,23 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'profession' => ['nullable', 'string', 'max:255'],
             'designation' => ['nullable', 'string', 'max:255'],
             'contact_number' => ['nullable', 'string', 'max:50'],
             'photo' => ['nullable', 'image', 'max:2048'],
 
-            // password fields
+            // Password fields
             'current_password' => ['nullable'],
             'password' => ['nullable', 'confirmed', 'min:8'],
         ]);
 
-        /**
-         * 🔒 PASSWORD INTENT VALIDATION (ALL-OR-NOTHING RULE)
-         * --------------------------------------------------
-         * Prevent:
-         * - current password only
-         * - new password only
-         */
+        /*
+    |--------------------------------------------------------------------------
+    | 🔒 PASSWORD INTENT VALIDATION (ALL-OR-NOTHING RULE)
+    |--------------------------------------------------------------------------
+    */
+
         if ($request->filled('current_password') && !$request->filled('password')) {
             return back()
                 ->withErrors([
@@ -74,40 +75,56 @@ class ProfileController extends Controller
                 ->withInput();
         }
 
-        /**
-         * 🔐 PASSWORD HARDENING LOGIC
-         */
+        /*
+    |--------------------------------------------------------------------------
+    | 🔐 PASSWORD HARDENING LOGIC
+    |--------------------------------------------------------------------------
+    */
+
         if (!empty($validated['password'])) {
 
-            // Current password must be correct
             if (!\Hash::check($validated['current_password'], $user->password)) {
                 return back()
-                    ->withErrors(['current_password' => 'Current password is incorrect.'])
+                    ->withErrors([
+                        'current_password' => 'Current password is incorrect.',
+                    ])
                     ->withInput();
             }
 
-            // Hash the new password
             $validated['password'] = \Hash::make($validated['password']);
         } else {
-            // No password change intended
             unset($validated['password']);
         }
 
-        // Remove current_password from update data
         unset($validated['current_password']);
 
-        /**
-         * 📸 Photo upload (optional)
-         */
+        /*
+    |--------------------------------------------------------------------------
+    | 📸 Photo Upload
+    |--------------------------------------------------------------------------
+    */
+
         if ($request->hasFile('photo')) {
-            $validated['photo'] = $request->file('photo')->store('profile-photos', 'public');
+            $validated['photo'] = $request->file('photo')
+                ->store('profile-photos', 'public');
         }
 
-        $user->update($validated);
+        /*
+    |--------------------------------------------------------------------------
+    | 📧 EMAIL CHANGE DETECTION (TEST-SAFE & LARAVEL-STYLE)
+    |--------------------------------------------------------------------------
+    */
 
-        return redirect()
-            ->route('profile.show')
-            ->with('success', 'Your profile has been updated successfully.');
+        $user->fill($validated);
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        return redirect('/profile')
+            ->with('success', FlashMessage::success('profile_updated'));
     }
 
 

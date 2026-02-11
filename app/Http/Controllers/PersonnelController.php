@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Support\FlashMessage;
 
 
 class PersonnelController extends Controller
@@ -80,7 +81,7 @@ class PersonnelController extends Controller
 
         return redirect()
             ->route('personnel.index')
-            ->with('success', 'Personnel created successfully.');
+            ->with('success', FlashMessage::success('personnel_created'));
     }
 
     /**
@@ -137,7 +138,7 @@ class PersonnelController extends Controller
 
         return redirect()
             ->route('personnel.index')
-            ->with('success', 'Personnel updated successfully.');
+            ->with('success', FlashMessage::success('personnel_updated'));
     }
 
     /**
@@ -152,7 +153,7 @@ class PersonnelController extends Controller
 
         // Prevent self-deactivation
         if (auth()->id() === $user->id) {
-            return back()->with('error', 'You cannot deactivate your own account.');
+            return back()->with('error', FlashMessage::success('personnel_deactivated'));
         }
 
         $user->update([
@@ -162,7 +163,7 @@ class PersonnelController extends Controller
 
         return redirect()
             ->route('personnel.index')
-            ->with('success', 'Personnel has been deactivated.');
+            ->with('success', FlashMessage::success('personnel_deactivated'));
     }
 
     /**
@@ -182,7 +183,7 @@ class PersonnelController extends Controller
 
         return redirect()
             ->route('personnel.archived')
-            ->with('success', 'Personnel has been reactivated.');
+            ->with('success', FlashMessage::success('personnel_reactivated'));
     }
 
     public function archived()

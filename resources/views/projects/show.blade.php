@@ -154,12 +154,12 @@
                     <thead class="table-light">
                         <tr>
                             <th class="text-center" style="width:50px;">No.</th>
-                            <th style="width:200px;">Task Name</th>
+                            <th style="width:150px;">Task Name</th>
                             <th style="width:200px;">Assigned To</th>
                             <th style="width:100px;">Start Date</th>
                             <th style="width:100px;">Due Date</th>
-                            <th class="text-center" style="width:100px;">Progress</th>
-                            <th class="text-center" style="width:80px;">Status</th>
+                            <th class="text-center" style="width:80px;">Progress</th>
+                            <th class="text-center" style="width:150px;">Remarks</th>
                             <th class="text-center" style="width:120px;">Actions</th>
                         </tr>
                     </thead>
@@ -207,15 +207,9 @@
                                 </div>
                             </td>
 
-                            {{-- Status --}}
-                            <td class="text-center">
-                                @if ($task->progress == 0)
-                                <span class="badge bg-secondary">Not Started</span>
-                                @elseif ($task->progress < 100)
-                                    <span class="badge bg-warning text-dark">Ongoing</span>
-                                    @else
-                                    <span class="badge bg-success">Completed</span>
-                                    @endif
+                            {{-- Remarks --}}
+                            <td>
+                                {{ Str::limit($task->latestRemark->remark ?? '—', 50) }}
                             </td>
 
                             {{-- Actions --}}
@@ -282,27 +276,32 @@
         {{-- EDIT TASK MODAL --}}
         @include('projects.partials.edit-task-modal')
 
-        
-        @if (session('form_context') === 'add_task')
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                new bootstrap.Modal(
-                    document.getElementById('addTaskModal')
-                ).show();
-            });
-        </script>
-        @endif
-
-        @if (session('form_context') === 'edit_task')
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                new bootstrap.Modal(
-                    document.getElementById('editTaskModal')
-                ).show();
-            });
-        </script>
-        @endif
-
-
 </x-page-wrapper>
+
+@push('scripts')
+@if ($errors->any() && session('form_context') === 'add_task')
+<script>
+    window.addEventListener('load', function() {
+        const modalEl = document.getElementById('addTaskModal');
+        if (modalEl) {
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+    });
+</script>
+@endif
+
+@if ($errors->any() && session('form_context') === 'edit_task')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        new bootstrap.Modal(
+            document.getElementById('editTaskModal')
+        ).show();
+    });
+</script>
+@endif
+
+
+@endpush
+
 @endsection

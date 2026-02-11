@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Support\FlashMessage;
 
 
 class ProjectController extends Controller
@@ -86,7 +87,7 @@ class ProjectController extends Controller
 
         return redirect()
             ->route('projects.index')
-            ->with('success', 'Project has been created successfully.');
+            ->with('success', FlashMessage::success('project_created'));
     }
 
     /**
@@ -160,7 +161,7 @@ class ProjectController extends Controller
 
         return redirect()
             ->route('projects.index')
-            ->with('success', 'Project has been updated successfully.');
+            ->with('success', FlashMessage::success('project_updated'));
     }
 
     /**
@@ -180,7 +181,7 @@ class ProjectController extends Controller
 
         return redirect()
             ->route('projects.index')
-            ->with('success', 'Project and its tasks have been archived.');
+            ->with('success', FlashMessage::success('project_archived'));
     }
     /**
      * Display archived projects.
@@ -208,6 +209,6 @@ class ProjectController extends Controller
 
         return redirect()
             ->route('projects.archived')
-            ->with('success', 'Project has been restored.');
+            ->with('success', FlashMessage::success('project_restored'));
     }
 }

@@ -7,6 +7,9 @@
             @csrf
             @method('PUT')
 
+            <input type="hidden" id="has_old_input"
+                value="{{ old('task_id') ? '1' : '0' }}">
+
             <input type="hidden" name="form_context" value="edit_task">
 
             <input type="hidden" name="task_id" id="edit_task_id">
@@ -38,8 +41,14 @@
                         <input type="text"
                             name="custom_task_name"
                             id="edit_custom_task_name"
-                            class="form-control"
-                            placeholder="Enter custom task name">
+                            class="form-control @error('custom_task_name') is-invalid @enderror"
+                            value="{{ old('custom_task_name') }}">
+
+                        @error('custom_task_name')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                        @enderror
                     </div>
 
                     {{-- Assigned User --}}
@@ -58,16 +67,34 @@
 
                     <div class="col-md-3">
                         <label class="form-label">Start Date</label>
-                        <input type="date" name="start_date"
+                        <input type="date"
+                            name="start_date"
                             id="edit_start_date"
-                            class="form-control">
+                            class="form-control @error('start_date') is-invalid @enderror"
+                            value="{{ old('start_date') }}">
+
+                        @error('start_date')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                        @enderror
+
                     </div>
 
                     <div class="col-md-3">
                         <label class="form-label">Due Date</label>
-                        <input type="date" name="due_date"
+                        <input type="date"
+                            name="due_date"
                             id="edit_due_date"
-                            class="form-control">
+                            class="form-control @error('due_date') is-invalid @enderror"
+                            value="{{ old('due_date') }}">
+
+                        @error('due_date')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                        @enderror
+
                     </div>
                 </div>
             </div>

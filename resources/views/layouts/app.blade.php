@@ -88,6 +88,48 @@
 
 <body>
 
+    {{-- Toast Container --}}
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100">
+        @if (session('success'))
+        <div class="toast align-items-center text-bg-success border-0"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            data-bs-delay="2000">
+
+            <div class="d-flex">
+                <div class="toast-body">
+                    {{ session('success') }}
+                </div>
+                <button type="button"
+                    class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast"
+                    aria-label="Close">
+                </button>
+            </div>
+        </div>
+        @endif
+
+        @if (session('error'))
+        <div class="toast align-items-center text-bg-danger border-0"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            data-bs-delay="2000">
+
+            <div class="d-flex">
+                <div class="toast-body">
+                    {{ session('error') }}
+                </div>
+                <button type="button"
+                    class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast">
+                </button>
+            </div>
+        </div>
+        @endif
+    </div>
+
     {{-- Top Navbar --}}
     @include('layouts.navbar')
 
@@ -98,12 +140,15 @@
 
             {{-- Main Content --}}
             <main class="col content">
+
+                {{-- Page Content --}}
                 @yield('content')
+
             </main>
         </div>
     </div>
 
-    <!-- Confirmation Modal -->
+    {{-- Confirmation Modal --}}
     <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -191,30 +236,35 @@
         document.addEventListener('DOMContentLoaded', function() {
 
             const modal = document.getElementById('editTaskModal');
-
             if (!modal) return;
 
             modal.addEventListener('shown.bs.modal', function(event) {
+
+                const hasOldInput = document.getElementById('has_old_input')?.value === '1';
                 const button = event.relatedTarget;
 
-                // IDs
+                // Always set task ID
                 document.getElementById('edit_task_id').value =
-                    button.getAttribute('data-task-id');
+                    hasOldInput ? "{{ old('task_id') }}" : button.getAttribute('data-task-id');
 
                 // Assigned user
                 document.getElementById('edit_assigned_user').value =
-                    button.getAttribute('data-assigned');
+                    hasOldInput ? "{{ old('assigned_user_id') }}" : button.getAttribute('data-assigned');
 
-                // Dates (must be YYYY-MM-DD)
+                // Dates
                 document.getElementById('edit_start_date').value =
-                    button.getAttribute('data-start') || '';
+                    hasOldInput ? "{{ old('start_date') }}" : (button.getAttribute('data-start') ?? '');
 
                 document.getElementById('edit_due_date').value =
-                    button.getAttribute('data-due') || '';
+                    hasOldInput ? "{{ old('due_date') }}" : (button.getAttribute('data-due') ?? '');
 
-                // Task type (custom logic handled in modal file)
+                // Task type (custom logic)
+                const taskType = hasOldInput ?
+                    "{{ old('custom_task_name') ?: old('task_type_select') }}" :
+                    button.getAttribute('data-task-type');
+
                 if (typeof handleEditTaskType === 'function') {
-                    handleEditTaskType(button.getAttribute('data-task-type'));
+                    handleEditTaskType(taskType);
                 }
             });
 
@@ -264,10 +314,18 @@
             });
     </script>
 
-
+    {{-- Toast Container Script --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            toastElList.forEach(function(toastEl) {
+                const toast = new bootstrap.Toast(toastEl);
+                toast.show();
+            });
+        });
+    </script>
 
     @stack('scripts')
-
 
 </body>
 

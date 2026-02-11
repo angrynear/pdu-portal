@@ -10,12 +10,12 @@
             <thead class="table-light">
                 <tr>
                     <th class="text-center" style="width: 50px;">No.</th>
-                    <th style="width: 150px;">Task</th>
-                    <th style="width: 150px;">Project Title</th>
+                    <th style="width: 120px;">Task</th>
+                    <th style="width: 180px;">Project Title</th>
                     <th style="width: 130px;">Assigned Personnel</th>
-                    <th style="width: 120px;">Timeline</th>
-                    <th class="text-center" style="width: 80px;">Progress</th>
-                    <th class="text-center" style="width: 100px;">Remarks</th>
+                    <th style="width: 100px;">Timeline</th>
+                    <th class="text-center" style="width: 70px;">Progress</th>
+                    <th class="text-center" style="width: 130px;">Remarks</th>
                     <th style="width: 130px;" class="text-center">Actions</th>
                 </tr>
             </thead>
@@ -65,7 +65,7 @@
                         </div>
                     </td>
 
-                    <td class="small text-muted">
+                    <td>
                         {{ Str::limit($task->latestRemark->remark ?? '—', 50) }}
                     </td>
 
@@ -179,7 +179,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         Cancel
                     </button>
                     <button class="btn btn-primary">

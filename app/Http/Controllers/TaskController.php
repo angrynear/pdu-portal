@@ -8,6 +8,8 @@ use App\Models\Project;
 use App\Models\TaskRemark;
 use App\Models\TaskFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use App\Support\FlashMessage;
 
 
 class TaskController extends Controller
@@ -25,18 +27,26 @@ class TaskController extends Controller
 
     public function store(Request $request)
     {
-
         $project = Project::findOrFail($request->project_id);
 
-        if ($project->archived_at !== null) {
+        if ($project->archived_at) {
             abort(403, 'Cannot add tasks to an archived project.');
         }
 
         $validated = $request->validate([
+            'form_context'       => ['required'],
             'project_id'         => ['required', 'exists:projects,id'],
+
             'task_type_select'   => ['required', 'string'],
-            'custom_task_name'   => ['nullable', 'string', 'max:255'],
+            'custom_task_name'   => [
+                'required_if:task_type_select,Custom',
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
             'assigned_user_id'   => ['required', 'exists:users,id'],
+
             'start_date'         => ['required', 'date'],
             'due_date'           => ['required', 'date', 'after_or_equal:start_date'],
         ]);
@@ -45,12 +55,6 @@ class TaskController extends Controller
         $taskType = $validated['task_type_select'] === 'Custom'
             ? $validated['custom_task_name']
             : $validated['task_type_select'];
-
-        if (empty($taskType)) {
-            return back()
-                ->withErrors(['custom_task_name' => 'Custom task name is required.'])
-                ->withInput();
-        }
 
         Task::create([
             'project_id'        => $validated['project_id'],
@@ -62,9 +66,8 @@ class TaskController extends Controller
             'created_by'        => auth()->id(),
         ]);
 
-        return redirect()
-            ->back()
-            ->with('success', 'Task added successfully.');
+        return back()
+            ->with('success', FlashMessage::success('task_created'));
     }
 
     public function archive(Task $task)
@@ -78,7 +81,7 @@ class TaskController extends Controller
             'archived_at' => now(),
         ]);
 
-        return back()->with('success', 'Task archived successfully.');
+        return back()->with('success', FlashMessage::success('task_archived'));
     }
 
     public function archived()
@@ -102,7 +105,7 @@ class TaskController extends Controller
             'archived_at' => null,
         ]);
 
-        return back()->with('success', 'Task restored successfully.');
+        return back()->with('success', FlashMessage::success('task_restored'));
     }
 
     public function updateProgress(Request $request)
@@ -151,11 +154,32 @@ class TaskController extends Controller
 
         return redirect()
             ->route('tasks.index')
-            ->with('success', 'Task progress updated successfully.');
+            ->with('success', FlashMessage::success('task_progress_updated'));
     }
 
     public function update(Request $request)
     {
+
+        $validator = Validator::make($request->all(), [
+            'task_id' => ['required', 'exists:tasks,id'],
+            'task_type_select' => ['required', 'string'],
+            'custom_task_name' => [
+                'required_if:task_type_select,Custom',
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'assigned_user_id' => ['required', 'exists:users,id'],
+            'start_date' => ['nullable', 'date'],
+            'due_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+        ]);
+
+        if ($validator->fails()) {
+            return back()
+                ->withErrors($validator)
+                ->withInput()
+                ->with('form_context', 'edit_task');
+        }
 
         $taskType = $request->task_type_select === 'Custom'
             ? $request->custom_task_name
@@ -164,7 +188,12 @@ class TaskController extends Controller
         $request->validate([
             'task_id' => ['required', 'exists:tasks,id'],
             'task_type_select' => ['required', 'string'],
-            'custom_task_name' => ['nullable', 'string'],
+            'custom_task_name' => [
+                'required_if:task_type_select,Custom',
+                'nullable',
+                'string',
+                'max:255',
+            ],
             'assigned_user_id' => ['required', 'exists:users,id'],
             'start_date' => ['nullable', 'date'],
             'due_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -183,6 +212,6 @@ class TaskController extends Controller
             'due_date' => $request->due_date,
         ]);
 
-        return back()->with('success', 'Task updated successfully.');
+        return back()->with('success', FlashMessage::success('task_updated'));
     }
 }

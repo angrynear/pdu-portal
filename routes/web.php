@@ -112,6 +112,14 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::put('/my-profile', [ProfileController::class, 'update'])
         ->name('profile.update');
+
+
+
+    Route::get('/profile', [ProfileController::class, 'show']);
+
+    Route::patch('/profile', [ProfileController::class, 'update']);
+
+    Route::delete('/profile', [ProfileController::class, 'destroy']);
 });
 
 /*
