@@ -22,8 +22,8 @@
             <thead class="table-light">
                 <tr>
                     <th class="text-center" style="width: 50px;">No.</th>
-                    <th style="width: 160px;">Task</th>
-                    <th style="width: 180px;">Project Title</th>
+                    <th style="width: 130px;">Task</th>
+                    <th style="width: 210px;">Project Title</th>
                     <th style="width: 150px;">Assigned Personnel</th>
                     <th style="width: 130px;">Timeline</th>
                     <th class="text-center" style="width: 80px;">Progress</th>
@@ -40,14 +40,13 @@
                     </td>
 
                     {{-- Task --}}
-                    <td>{{ $task->task_type }}</td>
+                    <td>
+                            {{ $task->task_type }}
+                    </td>
 
                     {{-- Project --}}
                     <td>
-                        <a href="{{ route('projects.show', ['project' => $task->project_id]) }}?return={{ urlencode(url()->current()) }}"
-                            class="text-decoration-none text-dark fw-semibold link-hover">
                             {{ $task->project->name }}
-                        </a>
                     </td>
 
                     {{-- Assigned --}}

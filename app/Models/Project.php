@@ -144,4 +144,9 @@ class Project extends Model
             'archived_at' => null,
         ]);
     }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(ProjectActivityLog::class);
+    }
 }

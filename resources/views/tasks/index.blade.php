@@ -32,7 +32,7 @@
 
                     {{-- Project --}}
                     <td>
-                        <a href="{{ route('projects.show', ['project' => $task->project_id]) }}?return={{ urlencode(url()->current()) }}"
+                        <a href="{{ route('projects.show', $task->project_id) }}?from=tasks"
                             class="text-decoration-none text-dark fw-semibold link-hover">
                             {{ $task->project->name }}
                         </a>

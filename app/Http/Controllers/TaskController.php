@@ -10,11 +10,10 @@ use App\Models\TaskFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Support\FlashMessage;
-
+use App\Models\TaskActivityLog;
 
 class TaskController extends Controller
 {
-
     public function index()
     {
         $tasks = Task::with([
@@ -40,7 +39,6 @@ class TaskController extends Controller
         $validated = $request->validate([
             'form_context'       => ['required'],
             'project_id'         => ['required', 'exists:projects,id'],
-
             'task_type_select'   => ['required', 'string'],
             'custom_task_name'   => [
                 'required_if:task_type_select,Custom',
@@ -48,19 +46,16 @@ class TaskController extends Controller
                 'string',
                 'max:255',
             ],
-
             'assigned_user_id'   => ['required', 'exists:users,id'],
-
             'start_date'         => ['required', 'date'],
             'due_date'           => ['required', 'date', 'after_or_equal:start_date'],
         ]);
 
-        // Resolve final task type
         $taskType = $validated['task_type_select'] === 'Custom'
             ? $validated['custom_task_name']
             : $validated['task_type_select'];
 
-        Task::create([
+        $task = Task::create([
             'project_id'        => $validated['project_id'],
             'task_type'         => $taskType,
             'assigned_user_id'  => $validated['assigned_user_id'],
@@ -70,19 +65,29 @@ class TaskController extends Controller
             'created_by'        => auth()->id(),
         ]);
 
-        return back()
-            ->with('success', FlashMessage::success('task_created'));
+        TaskActivityLog::create([
+            'task_id'   => $task->id,
+            'user_id'   => auth()->id(),
+            'action'    => 'created',
+            'description' => 'Task created',
+        ]);
+
+        return back()->with('success', FlashMessage::success('task_created'));
     }
 
     public function archive(Task $task)
     {
-        // Prevent archiving task if parent project is archived
         if ($task->project->archived_at !== null) {
             abort(403, 'Cannot archive task under an archived project.');
         }
 
-        $task->update([
-            'archived_at' => now(),
+        $task->update(['archived_at' => now()]);
+
+        TaskActivityLog::create([
+            'task_id' => $task->id,
+            'user_id' => auth()->id(),
+            'action'  => 'archived',
+            'description' => 'Task archived',
         ]);
 
         return back()->with('success', FlashMessage::success('task_archived'));
@@ -101,13 +106,17 @@ class TaskController extends Controller
 
     public function restore(Task $task)
     {
-        // Prevent restoring task if parent project is archived
         if ($task->project->archived_at) {
             abort(403, 'Cannot restore task while its project is archived.');
         }
 
-        $task->update([
-            'archived_at' => null,
+        $task->update(['archived_at' => null]);
+
+        TaskActivityLog::create([
+            'task_id' => $task->id,
+            'user_id' => auth()->id(),
+            'action'  => 'restored',
+            'description' => 'Task restored',
         ]);
 
         return back()->with('success', FlashMessage::success('task_restored'));
@@ -141,13 +150,16 @@ class TaskController extends Controller
 
         DB::transaction(function () use ($request, $task, $progressChanged, $hasRemark, $hasFiles) {
 
+            $descriptionParts = [];
+
             if ($progressChanged) {
                 $task->update([
                     'progress' => $request->progress,
                 ]);
+
+                $descriptionParts[] = "Progress updated to {$request->progress}%";
             }
 
-            // Build remark data conditionally
             $remarkData = [
                 'task_id' => $task->id,
                 'user_id' => auth()->id(),
@@ -155,19 +167,20 @@ class TaskController extends Controller
 
             if ($hasRemark) {
                 $remarkData['remark'] = $request->remark;
+                $descriptionParts[] = "Added remark";
             }
 
             if ($progressChanged) {
                 $remarkData['progress'] = $request->progress;
             }
 
-            // Only create history record if something meaningful exists
             if ($hasRemark || $progressChanged || $hasFiles) {
 
                 $remark = TaskRemark::create($remarkData);
 
                 if ($hasFiles) {
                     foreach ($request->file('attachments') as $file) {
+
                         $path = $file->store('task_attachments', 'public');
 
                         $remark->files()->create([
@@ -175,7 +188,16 @@ class TaskController extends Controller
                             'original_name' => $file->getClientOriginalName(),
                         ]);
                     }
+
+                    $descriptionParts[] = "Uploaded file(s)";
                 }
+
+                TaskActivityLog::create([
+                    'task_id'   => $task->id,
+                    'user_id'   => auth()->id(),
+                    'action'    => 'updated',
+                    'description' => implode(', ', $descriptionParts),
+                ]);
             }
         });
 
@@ -187,7 +209,6 @@ class TaskController extends Controller
 
     public function update(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'task_id' => ['required', 'exists:tasks,id'],
             'task_type_select' => ['required', 'string'],
@@ -213,20 +234,6 @@ class TaskController extends Controller
             ? $request->custom_task_name
             : $request->task_type_select;
 
-        $request->validate([
-            'task_id' => ['required', 'exists:tasks,id'],
-            'task_type_select' => ['required', 'string'],
-            'custom_task_name' => [
-                'required_if:task_type_select,Custom',
-                'nullable',
-                'string',
-                'max:255',
-            ],
-            'assigned_user_id' => ['required', 'exists:users,id'],
-            'start_date' => ['nullable', 'date'],
-            'due_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-        ]);
-
         $task = Task::findOrFail($request->task_id);
 
         if ($task->archived_at || $task->project->archived_at) {
@@ -240,27 +247,46 @@ class TaskController extends Controller
             'due_date' => $request->due_date,
         ]);
 
+        TaskActivityLog::create([
+            'task_id' => $task->id,
+            'user_id' => auth()->id(),
+            'action'  => 'details_updated',
+            'description' => 'Task details updated',
+        ]);
+
         return back()->with('success', FlashMessage::success('task_updated'));
     }
 
     public function show(Request $request, Task $task)
     {
-        $task->load([
-            'project',
-            'assignedUser',
-            'remarks' => function ($query) {
-                $query->with(['user', 'files'])
-                    ->latest();
-            },
-        ]);
+        $task->load(['project', 'assignedUser']);
 
         $remarks = $task->remarks()
             ->with(['user', 'files'])
             ->latest()
             ->paginate(5);
 
+        $activityLogs = TaskActivityLog::with('user')
+            ->where('task_id', $task->id)
+            ->latest()
+            ->paginate(5);
+
         $from = $request->query('from');
 
-        return view('tasks.show', compact('task', 'remarks', 'from'));
+        return view('tasks.show', compact(
+            'task',
+            'remarks',
+            'activityLogs',
+            'from'
+        ));
+    }
+
+    public function taskLogs()
+    {
+        $logs = TaskActivityLog::with(['task.project', 'user'])
+            ->latest()
+            ->paginate(20);
+
+        return view('logs.tasks', compact('logs'));
     }
 }

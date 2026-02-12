@@ -7,22 +7,31 @@
 
     <x-slot name="actions">
         @php
-        $from = request('return');
-        $label = 'Projects';
+        $from = request('from');
 
-        if ($from) {
-        if (str_contains($from, '/archives/tasks')) {
-        $label = 'Archived Tasks';
-        } elseif (str_contains($from, '/tasks')) {
+        switch ($from) {
+        case 'tasks':
+        $backUrl = route('tasks.index');
         $label = 'Tasks';
-        } elseif (str_contains($from, '/archives/projects')) {
-        $label = 'Archived Projects';
-        }
+        break;
+
+        case 'task_logs':
+        $backUrl = route('logs.tasks');
+        $label = 'Task Logs';
+        break;
+
+        case 'project_logs':
+        $backUrl = route('logs.projects');
+        $label = 'Project Logs';
+        break;
+
+        default:
+        $backUrl = route('projects.index');
+        $label = 'Projects';
         }
         @endphp
 
-        <a href="{{ $from ?? route('projects.index') }}"
-            class="btn btn-sm btn-secondary">
+        <a href="{{ $backUrl }}" class="btn btn-sm btn-secondary">
             ← Back to {{ $label }}
         </a>
     </x-slot>
@@ -217,7 +226,7 @@
 
                                 {{-- Edit Task --}}
                                 @if (is_null($project->archived_at) && is_null($task->archived_at))
-                                <a href="{{ route('tasks.show', ['task' => $task->id, 'from' => 'project']) }}"
+                                <a href="{{ route('tasks.show', $task->id) }}?from=project"
                                     class="btn btn-sm btn-secondary">
                                     View
                                 </a>

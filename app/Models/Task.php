@@ -58,4 +58,9 @@ class Task extends Model
         return $this->hasMany(TaskFile::class)
             ->latest();
     }
+
+    public function activityLogs()
+    {
+        return $this->hasMany(TaskActivityLog::class)->latest();
+    }
 }

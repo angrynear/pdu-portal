@@ -6,6 +6,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Support\FlashMessage;
+use App\Models\ProjectActivityLog;
 
 
 class ProjectController extends Controller
@@ -77,14 +78,22 @@ class ProjectController extends Controller
             ],
 
             'amount' => ['required', 'numeric', 'min:0'],
-
             'description' => ['nullable', 'string'],
-
             'start_date' => ['required', 'date'],
             'due_date' => ['required', 'date', 'after_or_equal:start_date'],
         ]);
 
+        $project = Project::create($validated);
+
         Project::create($validated);
+
+        ProjectActivityLog::create([
+            'project_id' => $project->id,
+            'user_id' => auth()->id(),
+            'action' => 'created',
+            'description' => 'Project created',
+        ]);
+
 
         return redirect()
             ->route('projects.index')
@@ -130,17 +139,14 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'location' => ['required', 'string', 'max:255'],
-
             'sub_sector' => [
                 'required',
                 'in:basic_education,higher_education,madaris_education,technical_education,others'
             ],
-
             'source_of_fund' => [
                 'required',
                 'in:GAAB,QRF,TDIF,SDF,CF,SB,BEFF,ODA,LOCAL,For Approval'
             ],
-
             'funding_year' => [
                 'required',
                 function ($attribute, $value, $fail) {
@@ -149,16 +155,46 @@ class ProjectController extends Controller
                     }
                 }
             ],
-
             'amount' => ['required', 'numeric', 'min:0'],
-
             'description' => ['nullable', 'string'],
-
             'start_date' => ['required', 'date'],
             'due_date' => ['required', 'date', 'after_or_equal:start_date'],
         ]);
 
+        // 🔎 Capture original values
+        $original = $project->getOriginal();
+
+        // 🧠 Detect changes
+        $changes = [];
+
+        foreach ($validated as $field => $newValue) {
+
+            $oldValue = $original[$field] ?? null;
+
+            if (in_array($field, ['start_date', 'due_date'])) {
+                $oldValue = $oldValue ? \Carbon\Carbon::parse($oldValue)->format('Y-m-d') : null;
+                $newValue = $newValue ? \Carbon\Carbon::parse($newValue)->format('Y-m-d') : null;
+            }
+
+            if ((string) $oldValue !== (string) $newValue) {
+                $changes[$field] = [
+                    'old' => $oldValue,
+                    'new' => $newValue,
+                ];
+            }
+        }
+
+        // ✅ Update project
         $project->update($validated);
+
+        // ✅ Save activity log
+        ProjectActivityLog::create([
+            'project_id' => $project->id,
+            'user_id' => auth()->id(),
+            'action' => 'updated',
+            'description' => 'Project details updated',
+            'changes' => !empty($changes) ? $changes : null,
+        ]);
 
         return redirect()
             ->route('projects.index')
@@ -179,6 +215,14 @@ class ProjectController extends Controller
         $project->update([
             'archived_at' => now(),
         ]);
+
+        ProjectActivityLog::create([
+            'project_id' => $project->id,
+            'user_id' => auth()->id(),
+            'action' => 'archived',
+            'description' => 'Project archived',
+        ]);
+
 
         return redirect()
             ->route('projects.index')
@@ -209,8 +253,26 @@ class ProjectController extends Controller
             'archived_at' => null,
         ]);
 
+        ProjectActivityLog::create([
+            'project_id' => $project->id,
+            'user_id' => auth()->id(),
+            'action' => 'restored',
+            'description' => 'Project restored',
+        ]);
+
+
         return redirect()
             ->route('projects.archived')
             ->with('success', FlashMessage::success('project_restored'));
+    }
+
+    public function activityLogs()
+    {
+        $logs = ProjectActivityLog::with(['project', 'user'])
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('logs.projects', compact('logs'));
     }
 }

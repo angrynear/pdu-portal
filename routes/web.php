@@ -90,13 +90,11 @@ Route::middleware(['auth', 'active'])->group(function () {
             ->name('tasks.updateProgress');
 
         // ===== LOGS =====
-        Route::get('/logs/projects', function () {
-            return view('logs.projects');
-        })->name('logs.projects');
+        Route::get('/logs/projects', [ProjectController::class, 'activityLogs'])
+            ->name('logs.projects');
 
-        Route::get('/logs/tasks', function () {
-            return view('logs.tasks');
-        })->name('logs.tasks');
+        Route::get('/logs/tasks', [TaskController::class, 'taskLogs'])
+            ->name('logs.tasks');
     });
 
     /*

@@ -6,24 +6,29 @@
 <x-page-wrapper title="Task Details">
 
     <x-slot name="actions">
+        @php
+        $from = request('from');
 
-        @if($from === 'project')
-        <a href="{{ route('projects.show', $task->project->id) }}"
-            class="btn btn-secondary btn-sm">
-            ← Back to Project
-        </a>
-        @elseif($from === 'tasks')
-        <a href="{{ route('tasks.index') }}"
-            class="btn btn-secondary btn-sm">
-            ← Back to Task List
-        </a>
-        @else
-        <a href="{{ url()->previous() }}"
-            class="btn btn-secondary btn-sm">
-            ← Back
-        </a>
-        @endif
+        switch ($from) {
+        case 'project':
+        $backUrl = route('projects.show', $task->project_id);
+        $label = 'Project';
+        break;
 
+        case 'task_logs':
+        $backUrl = route('logs.tasks');
+        $label = 'Task Logs';
+        break;
+
+        default:
+        $backUrl = route('tasks.index');
+        $label = 'Tasks';
+        }
+        @endphp
+
+        <a href="{{ $backUrl }}" class="btn btn-sm btn-secondary">
+            ← Back to {{ $label }}
+        </a>
     </x-slot>
 
     <div class="card mb-4">
