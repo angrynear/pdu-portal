@@ -68,11 +68,39 @@
                     </td>
 
                     <td>
-                        @if($task->latestRemark)
-                        {{ Str::limit($task->latestRemark->remark, 50) }}
-                        @else
-                        —
+                        @php
+                        $remark = $task->latestRemark->remark ?? null;
+                        @endphp
+
+                        @if($remark)
+
+                        <div>
+
+                            {{-- Short preview --}}
+                            <span id="preview-{{ $task->id }}">
+                                {{ Str::limit($remark, 30) }}
+                            </span>
+
+                            {{-- Full remark --}}
+                            <span id="full-{{ $task->id }}" class="d-none text-dark">
+                                {{ $remark }}
+                            </span>
+
+                        </div>
+
+                        @if(strlen($remark) > 30)
+                        <button type="button"
+                            class="btn btn-link btn-sm p-0"
+                            onclick="toggleRemark({{ $task->id }})"
+                            id="btn-{{ $task->id }}">
+                            View Full Remarks
+                        </button>
                         @endif
+
+                        @else
+                        <span>—</span>
+                        @endif
+
                     </td>
 
                     {{-- Actions --}}
@@ -114,7 +142,6 @@
                         </span>
                         @endif
                     </td>
-
 
                 </tr>
                 @empty
@@ -208,8 +235,28 @@
         </div>
     </div>
 
-    {{-- Update Task Modal Script --}}
     @push('scripts')
+
+    {{-- View Remarks Script --}}
+    <script>
+        function toggleRemark(id) {
+            const preview = document.getElementById('preview-' + id);
+            const full = document.getElementById('full-' + id);
+            const button = document.getElementById('btn-' + id);
+
+            if (full.classList.contains('d-none')) {
+                preview.classList.add('d-none');
+                full.classList.remove('d-none');
+                button.innerText = 'Hide Remarks';
+            } else {
+                preview.classList.remove('d-none');
+                full.classList.add('d-none');
+                button.innerText = 'View Full Remarks';
+            }
+        }
+    </script>
+
+    {{-- Update Task Modal Script --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 

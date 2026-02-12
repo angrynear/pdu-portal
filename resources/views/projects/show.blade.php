@@ -164,11 +164,11 @@
                         <tr>
                             <th class="text-center" style="width:50px;">No.</th>
                             <th style="width:150px;">Task Name</th>
-                            <th style="width:200px;">Assigned To</th>
+                            <th style="width:150px;">Assigned To</th>
                             <th style="width:100px;">Start Date</th>
                             <th style="width:100px;">Due Date</th>
                             <th class="text-center" style="width:80px;">Progress</th>
-                            <th class="text-center" style="width:150px;">Remarks</th>
+                            <th class="text-center" style="width:200px;">Remarks</th>
                             <th class="text-center" style="width:120px;">Actions</th>
                         </tr>
                     </thead>
@@ -218,7 +218,40 @@
 
                             {{-- Remarks --}}
                             <td>
-                                {{ Str::limit($task->latestRemark->remark ?? '—', 50) }}
+
+                                @php
+                                $remark = $task->latestRemark->remark ?? null;
+                                $collapseId = 'remark-' . $task->id;
+                                @endphp
+
+                                @if($remark)
+
+                                <div>
+
+                                    {{-- Short preview (shown initially) --}}
+                                    <span id="preview-{{ $task->id }}">
+                                        {{ Str::limit($remark, 35) }}
+                                    </span>
+
+                                    {{-- Full remark (hidden initially) --}}
+                                    <span id="full-{{ $task->id }}" class="d-none text-dark">
+                                        {{ $remark }}
+                                    </span>
+
+                                </div>
+
+                                @if(strlen($remark) > 60)
+                                <button type="button"
+                                    class="btn btn-link btn-sm p-0"
+                                    onclick="toggleRemark({{ $task->id }})"
+                                    id="btn-{{ $task->id }}">
+                                    View Full Remarks
+                                </button>
+                                @endif
+
+                                @else
+                                <span>—</span>
+                                @endif
                             </td>
 
                             {{-- Actions --}}
@@ -289,6 +322,26 @@
 </x-page-wrapper>
 
 @push('scripts')
+
+{{-- View full Remarks Script --}}
+<script>
+    function toggleRemark(id) {
+        const preview = document.getElementById('preview-' + id);
+        const full = document.getElementById('full-' + id);
+        const button = document.getElementById('btn-' + id);
+
+        if (full.classList.contains('d-none')) {
+            preview.classList.add('d-none');
+            full.classList.remove('d-none');
+            button.innerText = 'Hide Remarks';
+        } else {
+            preview.classList.remove('d-none');
+            full.classList.add('d-none');
+            button.innerText = 'View Full Remarks';
+        }
+    }
+</script>
+
 @if ($errors->any() && session('form_context') === 'add_task')
 <script>
     window.addEventListener('load', function() {

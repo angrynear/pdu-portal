@@ -11,10 +11,10 @@
                 <tr>
                     <th style="width:160px;">Date & Time</th>
                     <th style="width:180px;">User</th>
-                    <th style="width:250px;">Project</th>
-                    <th style="width:180px;">Task</th>
+                    <th style="width:230px;">Project</th>
+                    <th style="width:160px;">Task</th>
                     <th style="width:70px;">Action</th>
-                    <th style="width:150px;">Description</th>
+                    <th style="width:190px;">Description</th>
                 </tr>
             </thead>
 
