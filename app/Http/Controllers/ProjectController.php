@@ -34,7 +34,8 @@ class ProjectController extends Controller
                 },
             ])
             ->latest()
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return view('projects.index', compact('projects'));
     }
@@ -190,7 +191,8 @@ class ProjectController extends Controller
     {
         $projects = Project::whereNotNull('archived_at')
             ->latest('archived_at')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return view('archives.projects', compact('projects'));
     }

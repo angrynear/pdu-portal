@@ -23,7 +23,9 @@
             <tbody>
                 @forelse ($tasks as $task)
                 <tr>
-                    <td class="text-center">{{ $loop->iteration }}</td>
+                    <td class="text-center">
+                        {{ $tasks->firstItem() + $loop->index }}
+                    </td>
 
                     {{-- Task --}}
                     <td>{{ $task->task_type }}</td>
@@ -66,15 +68,20 @@
                     </td>
 
                     <td>
-                        {{ Str::limit($task->latestRemark->remark ?? '—', 50) }}
+                        @if($task->latestRemark)
+                        {{ Str::limit($task->latestRemark->remark, 50) }}
+                        @else
+                        —
+                        @endif
                     </td>
 
                     {{-- Actions --}}
                     <td class="text-center">
                         {{-- View --}}
-                        <button class="btn btn-sm btn-secondary" disabled>
+                        <a href="{{ route('tasks.show', ['task' => $task->id, 'from' => 'tasks']) }}"
+                            class="btn btn-sm btn-secondary">
                             View
-                        </button>
+                        </a>
 
                         @if (is_null($task->archived_at) && is_null($task->project->archived_at))
                         {{-- Update (future) --}}
@@ -120,6 +127,11 @@
 
             </tbody>
         </table>
+
+        <div class="mt-3">
+            {{ $tasks->links() }}
+        </div>
+
     </div>
 
     {{-- UPDATE TASK MODAL --}}
@@ -163,6 +175,7 @@
                         </label>
 
                         <textarea name="remark"
+                            id="remarkField"
                             class="form-control"
                             rows="3"
                             placeholder="Add remarks if necessary…"></textarea>
@@ -179,6 +192,11 @@
                 </div>
 
                 <div class="modal-footer">
+
+                    <small class="text-muted me-auto">
+                        Only changes will be recorded.
+                    </small>
+
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         Cancel
                     </button>
@@ -196,22 +214,55 @@
         document.addEventListener('DOMContentLoaded', function() {
 
             const modal = document.getElementById('updateTaskProgressModal');
+            const form = modal.querySelector('form');
             const progressInput = document.getElementById('task_progress');
             const progressValue = document.getElementById('progressValue');
             const taskIdInput = document.getElementById('task_id');
+            const remarkField = document.getElementById('remarkField');
+            const saveButton = form.querySelector('button[type="submit"]');
+            const fileInput = form.querySelector('input[type="file"]');
 
+            let originalProgress = 0;
+
+            // When modal opens
             modal.addEventListener('show.bs.modal', function(event) {
+
                 const button = event.relatedTarget;
 
-                const value = button.getAttribute('data-progress') ?? 0;
+                originalProgress = parseInt(button.getAttribute('data-progress')) || 0;
 
                 taskIdInput.value = button.getAttribute('data-task-id');
-                progressInput.value = value;
-                progressValue.textContent = value;
+                progressInput.value = originalProgress;
+                progressValue.textContent = originalProgress;
+
+                remarkField.value = '';
+                fileInput.value = '';
+
+                saveButton.disabled = true; // disable initially
             });
 
+            // Update progress display
             progressInput.addEventListener('input', function() {
                 progressValue.textContent = this.value;
+                checkChanges();
+            });
+
+            remarkField.addEventListener('input', checkChanges);
+            fileInput.addEventListener('change', checkChanges);
+
+            function checkChanges() {
+                const progressChanged = parseInt(progressInput.value) !== originalProgress;
+                const hasRemark = remarkField.value.trim() !== '';
+                const hasFiles = fileInput.files.length > 0;
+
+                saveButton.disabled = !(progressChanged || hasRemark || hasFiles);
+            }
+
+            // Clean empty remark before submit
+            form.addEventListener('submit', function() {
+                if (remarkField.value.trim() === '') {
+                    remarkField.value = null;
+                }
             });
 
         });

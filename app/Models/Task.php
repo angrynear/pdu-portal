@@ -37,13 +37,25 @@ class Task extends Model
         return $this->belongsTo(User::class, 'assigned_user_id');
     }
 
-    public function remarks()
-    {
-        return $this->hasMany(TaskRemark::class);
-    }
-
     public function latestRemark()
     {
-        return $this->hasOne(TaskRemark::class)->latestOfMany();
+        return $this->hasOne(TaskRemark::class)
+            ->where(function ($query) {
+                $query->whereNotNull('remark')
+                    ->where('remark', '!=', '');
+            })
+            ->orderByDesc('id');
+    }
+
+    public function remarks()
+    {
+        return $this->hasMany(TaskRemark::class)
+            ->latest();
+    }
+
+    public function files()
+    {
+        return $this->hasMany(TaskFile::class)
+            ->latest();
     }
 }

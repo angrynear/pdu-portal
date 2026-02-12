@@ -37,7 +37,7 @@
                 <tr class="text-muted">
                     {{-- No. --}}
                     <td class="text-center">
-                        {{ $loop->iteration }}
+                        {{ $projects->firstItem() + $loop->index }}
                     </td>
 
                     {{-- Project Name --}}
@@ -101,6 +101,11 @@
                 @endforeach
             </tbody>
         </table>
+
+        <div class="mt-3">
+            {{ $projects->links() }}
+        </div>
+
     </div>
     @endif
 

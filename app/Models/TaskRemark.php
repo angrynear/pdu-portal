@@ -10,6 +10,7 @@ class TaskRemark extends Model
         'task_id',
         'remark',
         'user_id',
+        'progress',
     ];
 
     public function task()

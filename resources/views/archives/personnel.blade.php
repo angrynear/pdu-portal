@@ -40,7 +40,7 @@
                 <tr>
                     {{-- No. --}}
                     <td class="text-center">
-                        {{ $loop->iteration }}
+                        {{ $users->firstItem() + $loop->index }}
                     </td>
 
                     {{-- Photo --}}
@@ -116,6 +116,11 @@
                 @endforeach
             </tbody>
         </table>
+
+        <div class="mt-3">
+            {{ $users->links() }}
+        </div>
+
     </div>
     @endif
 

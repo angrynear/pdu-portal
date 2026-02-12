@@ -26,7 +26,8 @@ class PersonnelController extends Controller
                 }
             ])
             ->orderBy('name')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return view('personnel.index', compact('users'));
     }
@@ -201,7 +202,8 @@ class PersonnelController extends Controller
                 }
             ])
             ->orderBy('name')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return view('archives.personnel', compact('users'));
     }

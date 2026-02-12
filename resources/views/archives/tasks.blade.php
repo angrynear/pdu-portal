@@ -35,7 +35,9 @@
             <tbody>
                 @foreach ($tasks as $task)
                 <tr class="text-muted">
-                    <td class="text-center">{{ $loop->iteration }}</td>
+                    <td class="text-center">
+                        {{ $tasks->firstItem() + $loop->index }}
+                    </td>
 
                     {{-- Task --}}
                     <td>{{ $task->task_type }}</td>
@@ -107,6 +109,11 @@
                 @endforeach
             </tbody>
         </table>
+
+        <div class="mt-3">
+            {{ $tasks->links() }}
+        </div>
+
     </div>
     @endif
 

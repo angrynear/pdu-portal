@@ -100,27 +100,41 @@ Route::middleware(['auth', 'active'])->group(function () {
     });
 
     /*
-    |--------------------------------------------------------------------------
-    | My Profile (Admin + User)
-    |--------------------------------------------------------------------------
-    */
-    Route::get('/my-profile', [ProfileController::class, 'show'])
+|--------------------------------------------------------------------------
+| Profile (Admin + User)
+|--------------------------------------------------------------------------
+*/
+
+    Route::get('/profile', [ProfileController::class, 'show'])
         ->name('profile.show');
 
-    Route::get('/my-profile/edit', [ProfileController::class, 'edit'])
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])
         ->name('profile.edit');
 
-    Route::put('/my-profile', [ProfileController::class, 'update'])
+    Route::match(['put', 'patch'], '/profile', [ProfileController::class, 'update'])
         ->name('profile.update');
 
-
-
-    Route::get('/profile', [ProfileController::class, 'show']);
-
-    Route::patch('/profile', [ProfileController::class, 'update']);
-
     Route::delete('/profile', [ProfileController::class, 'destroy']);
+
+
+    /*
+|--------------------------------------------------------------------------
+| Task (Admin + User)
+|--------------------------------------------------------------------------
+*/
+
+    Route::get('/tasks/{task}', [TaskController::class, 'show'])
+        ->name('tasks.show');
 });
+
+/*
+|--------------------------------------------------------------------------
+| Backward Friendly URLs
+|--------------------------------------------------------------------------
+*/
+
+Route::redirect('/my-profile', '/profile');
+Route::redirect('/my-profile/edit', '/profile/edit');
 
 /*
 |--------------------------------------------------------------------------

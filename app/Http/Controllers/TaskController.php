@@ -17,10 +17,14 @@ class TaskController extends Controller
 
     public function index()
     {
-        $tasks = Task::with(['project', 'assignedUser'])
+        $tasks = Task::with([
+            'project',
+            'assignedUser',
+            'latestRemark'
+        ])
             ->whereNull('archived_at')
-            ->latest()
-            ->get();
+            ->paginate(20)
+            ->withQueryString();
 
         return view('tasks.index', compact('tasks'));
     }
@@ -89,7 +93,8 @@ class TaskController extends Controller
         $tasks = Task::with(['project', 'assignedUser'])
             ->whereNotNull('archived_at')
             ->latest('archived_at')
-            ->get();
+            ->paginate(20)
+            ->withQueryString();
 
         return view('archives.tasks', compact('tasks'));
     }
@@ -117,44 +122,67 @@ class TaskController extends Controller
             'attachments.*' => ['nullable', 'file', 'max:5120'],
         ]);
 
-        DB::transaction(function () use ($request) {
+        $task = Task::findOrFail($request->task_id);
 
-            $task = Task::findOrFail($request->task_id);
+        if ($task->archived_at || $task->project->archived_at) {
+            abort(403, 'Cannot update archived task.');
+        }
 
-            // Safety check
-            if ($task->archived_at || $task->project->archived_at) {
-                abort(403, 'Cannot update archived task.');
+        $progressChanged = (int)$task->progress !== (int)$request->progress;
+        $hasRemark = $request->filled('remark');
+        $hasFiles = $request->hasFile('attachments');
+
+        if (!$progressChanged && !$hasRemark && !$hasFiles) {
+            return back()->with(
+                'warning',
+                FlashMessage::warning('task_update_no_changes')
+            );
+        }
+
+        DB::transaction(function () use ($request, $task, $progressChanged, $hasRemark, $hasFiles) {
+
+            if ($progressChanged) {
+                $task->update([
+                    'progress' => $request->progress,
+                ]);
             }
 
-            // Update progress on TASK table
-            $task->update([
-                'progress' => $request->progress,
-            ]);
+            // Build remark data conditionally
+            $remarkData = [
+                'task_id' => $task->id,
+                'user_id' => auth()->id(),
+            ];
 
-            // Save remark ONLY if provided
-            if ($request->filled('remark')) {
-                $remark = $task->remarks()->create([
-                    'remark'  => $request->remark,
-                    'user_id' => auth()->id(),
-                ]);
+            if ($hasRemark) {
+                $remarkData['remark'] = $request->remark;
+            }
 
-                // Save attachments if any
-                if ($request->hasFile('attachments')) {
+            if ($progressChanged) {
+                $remarkData['progress'] = $request->progress;
+            }
+
+            // Only create history record if something meaningful exists
+            if ($hasRemark || $progressChanged || $hasFiles) {
+
+                $remark = TaskRemark::create($remarkData);
+
+                if ($hasFiles) {
                     foreach ($request->file('attachments') as $file) {
                         $path = $file->store('task_attachments', 'public');
 
                         $remark->files()->create([
-                            'file_path' => $path,
-                            'file_name' => $file->getClientOriginalName(),
+                            'file_path'     => $path,
+                            'original_name' => $file->getClientOriginalName(),
                         ]);
                     }
                 }
             }
         });
 
-        return redirect()
-            ->route('tasks.index')
-            ->with('success', FlashMessage::success('task_progress_updated'));
+        return back()->with(
+            'success',
+            FlashMessage::success('task_progress_updated')
+        );
     }
 
     public function update(Request $request)
@@ -213,5 +241,26 @@ class TaskController extends Controller
         ]);
 
         return back()->with('success', FlashMessage::success('task_updated'));
+    }
+
+    public function show(Request $request, Task $task)
+    {
+        $task->load([
+            'project',
+            'assignedUser',
+            'remarks' => function ($query) {
+                $query->with(['user', 'files'])
+                    ->latest();
+            },
+        ]);
+
+        $remarks = $task->remarks()
+            ->with(['user', 'files'])
+            ->latest()
+            ->paginate(5);
+
+        $from = $request->query('from');
+
+        return view('tasks.show', compact('task', 'remarks', 'from'));
     }
 }

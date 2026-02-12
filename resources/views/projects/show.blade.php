@@ -217,9 +217,10 @@
 
                                 {{-- Edit Task --}}
                                 @if (is_null($project->archived_at) && is_null($task->archived_at))
-                                <button class="btn btn-sm btn-secondary" disabled>
+                                <a href="{{ route('tasks.show', ['task' => $task->id, 'from' => 'project']) }}"
+                                    class="btn btn-sm btn-secondary">
                                     View
-                                </button>
+                                </a>
 
                                 <button
                                     class="btn btn-sm btn-primary"

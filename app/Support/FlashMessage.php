@@ -21,6 +21,11 @@ class FlashMessage
         return self::message($key, 'error');
     }
 
+    public static function warning(string $key): string
+    {
+        return self::message($key, 'warning');
+    }
+
     protected static function message(string $key, string $type): string
     {
         $messages = [
@@ -56,6 +61,13 @@ class FlashMessage
             'task_restored' => [
                 'success' => [
                     'admin' => 'Task restored successfully.',
+                ],
+            ],
+
+            'task_update_no_changes' => [
+                'warning' => [
+                    'admin' => 'No changes were made.',
+                    'user' => 'No changes were made.',
                 ],
             ],
 

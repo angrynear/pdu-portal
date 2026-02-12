@@ -43,6 +43,22 @@
                 </div>
 
                 <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email"
+                        name="email"
+                        class="form-control @error('email') is-invalid @enderror"
+                        value="{{ old('email', $user->email) }}"
+                        required>
+
+                    @error('email')
+                    <div class="invalid-feedback">
+                        {{ $message }}
+                    </div>
+                    @enderror
+                </div>
+
+
+                <div class="mb-3">
                     <label class="form-label">Profession</label>
                     <input type="text" name="profession" class="form-control"
                         value="{{ old('profession', $user->profession) }}">
@@ -64,37 +80,39 @@
 
                 <h6 class="text-uppercase text-muted mb-2">Change Password</h6>
 
-                <div class="mb-3">
-                    <label class="form-label">Current Password</label>
-                    <input type="password"
-                        name="current_password"
-                        class="form-control @error('current_password') is-invalid @enderror">
+                <div class="row g-3 py-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Current Password</label>
+                        <input type="password"
+                            name="current_password"
+                            class="form-control @error('current_password') is-invalid @enderror">
 
-                    @error('current_password')
-                    <div class="invalid-feedback">
-                        {{ $message }}
+                        @error('current_password')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                        @enderror
                     </div>
-                    @enderror
-                </div>
 
-                <div class="mb-3">
-                    <label class="form-label">New Password</label>
-                    <input type="password"
-                        name="password"
-                        class="form-control @error('password') is-invalid @enderror">
+                    <div class="col-md-4">
+                        <label class="form-label">New Password</label>
+                        <input type="password"
+                            name="password"
+                            class="form-control @error('password') is-invalid @enderror">
 
-                    @error('password')
-                    <div class="invalid-feedback">
-                        {{ $message }}
+                        @error('password')
+                        <div class="invalid-feedback">
+                            {{ $message }}
+                        </div>
+                        @enderror
                     </div>
-                    @enderror
-                </div>
 
-                <div class="mb-4">
-                    <label class="form-label">Confirm New Password</label>
-                    <input type="password"
-                        name="password_confirmation"
-                        class="form-control">
+                    <div class="col-md-4">
+                        <label class="form-label">Confirm New Password</label>
+                        <input type="password"
+                            name="password_confirmation"
+                            class="form-control">
+                    </div>
                 </div>
 
                 <div class="d-flex justify-content-end gap-2">

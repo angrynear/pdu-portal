@@ -14,6 +14,11 @@ class TaskFile extends Model
         'uploaded_by',
     ];
 
+    public function task()
+    {
+        return $this->belongsTo(Task::class);
+    }
+
     public function remark()
     {
         return $this->belongsTo(TaskRemark::class, 'task_remark_id');

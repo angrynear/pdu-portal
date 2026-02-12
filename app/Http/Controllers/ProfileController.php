@@ -38,6 +38,7 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
+
         $user = auth()->user();
 
         $validated = $request->validate([
@@ -123,7 +124,7 @@ class ProfileController extends Controller
 
         $user->save();
 
-        return redirect('/profile')
+        return redirect()->route('profile.show')
             ->with('success', FlashMessage::success('profile_updated'));
     }
 
