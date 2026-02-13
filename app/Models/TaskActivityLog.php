@@ -6,11 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class TaskActivityLog extends Model
 {
+
+    protected $casts = [
+        'changes' => 'array',
+    ];
+
     protected $fillable = [
         'task_id',
         'user_id',
         'action',
         'description',
+        'changes',
     ];
 
     public function task()

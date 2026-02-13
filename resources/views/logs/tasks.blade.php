@@ -67,7 +67,48 @@
 
                     {{-- Description --}}
                     <td>
-                        {{ $log->description }}
+
+                        <div>{{ $log->description }}</div>
+
+                        @if(!empty($log->changes))
+
+                        <button class="btn btn-link btn-sm p-0 mt-1 text-decoration-none"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#taskChanges-{{ $log->id }}">
+                            View Details
+                        </button>
+
+                        <div class="collapse mt-2 small"
+                            id="taskChanges-{{ $log->id }}">
+
+                            @foreach($log->changes as $field => $values)
+
+                            @php
+                            $old = $values['old'] ?? null;
+                            $new = $values['new'] ?? null;
+
+                            $label = ucwords(str_replace('_', ' ', $field));
+
+                            if ($field === 'progress') {
+                            $old .= '%';
+                            $new .= '%';
+                            }
+                            @endphp
+
+                            <div>
+                                <strong>{{ $label }}:</strong>
+                                <span class="text-danger">{{ $old }}</span>
+                                →
+                                <span class="text-success">{{ $new }}</span>
+                            </div>
+
+                            @endforeach
+
+                        </div>
+
+                        @endif
+
                     </td>
                 </tr>
                 @empty

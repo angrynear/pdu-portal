@@ -150,16 +150,29 @@ class TaskController extends Controller
 
         DB::transaction(function () use ($request, $task, $progressChanged, $hasRemark, $hasFiles) {
 
-            $descriptionParts = [];
+            $changes = [];
 
+            // ===== PROGRESS =====
             if ($progressChanged) {
+                $changes['progress'] = [
+                    'old' => $task->progress,
+                    'new' => (int) $request->progress,
+                ];
+
                 $task->update([
                     'progress' => $request->progress,
                 ]);
-
-                $descriptionParts[] = "Progress updated to {$request->progress}%";
             }
 
+            // ===== REMARK =====
+            if ($hasRemark) {
+                $changes['remark'] = [
+                    'old' => optional($task->latestRemark)->remark,
+                    'new' => $request->remark,
+                ];
+            }
+
+            // ===== CREATE TASK REMARK RECORD =====
             $remarkData = [
                 'task_id' => $task->id,
                 'user_id' => auth()->id(),
@@ -167,38 +180,41 @@ class TaskController extends Controller
 
             if ($hasRemark) {
                 $remarkData['remark'] = $request->remark;
-                $descriptionParts[] = "Added remark";
             }
 
             if ($progressChanged) {
                 $remarkData['progress'] = $request->progress;
             }
 
-            if ($hasRemark || $progressChanged || $hasFiles) {
+            $remark = TaskRemark::create($remarkData);
 
-                $remark = TaskRemark::create($remarkData);
+            // ===== FILES =====
+            if ($hasFiles) {
 
-                if ($hasFiles) {
-                    foreach ($request->file('attachments') as $file) {
+                $changes['files'] = [
+                    'old' => null,
+                    'new' => 'File(s) uploaded',
+                ];
 
-                        $path = $file->store('task_attachments', 'public');
+                foreach ($request->file('attachments') as $file) {
 
-                        $remark->files()->create([
-                            'file_path'     => $path,
-                            'original_name' => $file->getClientOriginalName(),
-                        ]);
-                    }
+                    $path = $file->store('task_attachments', 'public');
 
-                    $descriptionParts[] = "Uploaded file(s)";
+                    $remark->files()->create([
+                        'file_path'     => $path,
+                        'original_name' => $file->getClientOriginalName(),
+                    ]);
                 }
-
-                TaskActivityLog::create([
-                    'task_id'   => $task->id,
-                    'user_id'   => auth()->id(),
-                    'action'    => 'updated',
-                    'description' => implode(', ', $descriptionParts),
-                ]);
             }
+
+            // ===== CREATE ACTIVITY LOG =====
+            TaskActivityLog::create([
+                'task_id'    => $task->id,
+                'user_id'    => auth()->id(),
+                'action'     => 'updated',
+                'description' => 'Task updated',
+                'changes'    => $changes,   // ← THIS IS THE KEY FIX
+            ]);
         });
 
         return back()->with(

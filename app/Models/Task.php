@@ -19,6 +19,7 @@ class Task extends Model
         'progress',
         'created_by',
         'archived_at',
+        'description',
     ];
 
     protected $casts = [
