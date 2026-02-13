@@ -198,6 +198,17 @@
                 confirmBtn.textContent = confirmText;
                 confirmBtn.className = `btn ${confirmClass}`;
             });
+
+            // Prevent double submit on confirmation modal
+            const confirmForm = document.getElementById('confirmActionForm');
+            const confirmBtn = document.getElementById('confirmActionButton');
+
+            if (confirmForm && confirmBtn) {
+                confirmForm.addEventListener('submit', function() {
+                    confirmBtn.disabled = true;
+                    confirmBtn.innerText = "Processing...";
+                });
+            }
         });
     </script>
 
@@ -231,22 +242,30 @@
                 const hasOldInput = document.getElementById('has_old_input')?.value === '1';
                 const button = event.relatedTarget;
 
-                // Always set task ID
-                document.getElementById('edit_task_id').value =
-                    hasOldInput ? "{{ old('task_id') }}" : button.getAttribute('data-task-id');
+                const taskId = hasOldInput ? "{{ old('task_id') }}" : button.getAttribute('data-task-id');
+                const assigned = hasOldInput ? "{{ old('assigned_user_id') }}" : button.getAttribute('data-assigned');
+                const startDate = hasOldInput ? "{{ old('start_date') }}" : button.getAttribute('data-start');
+                const dueDate = hasOldInput ? "{{ old('due_date') }}" : button.getAttribute('data-due');
+                const projectStart = button.getAttribute('data-project-start');
+                const projectDue = button.getAttribute('data-project-due');
 
-                // Assigned user
-                document.getElementById('edit_assigned_user').value =
-                    hasOldInput ? "{{ old('assigned_user_id') }}" : button.getAttribute('data-assigned');
+                document.getElementById('edit_task_id').value = taskId;
+                document.getElementById('edit_assigned_user').value = assigned;
 
-                // Dates
-                document.getElementById('edit_start_date').value =
-                    hasOldInput ? "{{ old('start_date') }}" : (button.getAttribute('data-start') ?? '');
+                const startInput = document.getElementById('edit_start_date');
+                const dueInput = document.getElementById('edit_due_date');
 
-                document.getElementById('edit_due_date').value =
-                    hasOldInput ? "{{ old('due_date') }}" : (button.getAttribute('data-due') ?? '');
+                startInput.value = startDate ?? '';
+                dueInput.value = dueDate ?? '';
 
-                // Task type (custom logic)
+                // Apply project date restriction
+                startInput.min = projectStart;
+                startInput.max = projectDue;
+
+                dueInput.min = projectStart;
+                dueInput.max = projectDue;
+
+                // Task type logic (keep your existing logic)
                 const taskType = hasOldInput ?
                     "{{ old('custom_task_name') ?: old('task_type_select') }}" :
                     button.getAttribute('data-task-type');
@@ -254,6 +273,7 @@
                 if (typeof handleEditTaskType === 'function') {
                     handleEditTaskType(taskType);
                 }
+
             });
 
         });

@@ -103,7 +103,7 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     Cancel
                 </button>
-                <button class="btn btn-primary">
+                <button type="submit" id="editTaskBtn" class="btn btn-primary">
                     Save Changes
                 </button>
             </div>

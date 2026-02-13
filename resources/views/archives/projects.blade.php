@@ -74,6 +74,9 @@
                                 style="width: {{ $project->progress }}%">
                             </div>
                         </div>
+                        <div class="small {{ $project->progress == 100 ? 'text-success fw-semibold' : 'text-muted' }}">
+                            {{ $project->progress }}%
+                        </div>
                     </td>
 
                     {{-- Archived At --}}

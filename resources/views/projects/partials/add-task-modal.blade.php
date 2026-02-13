@@ -23,38 +23,38 @@
                         <div class="col-md-6">
                             <label class="form-label">Task Type</label>
                             <select name="task_type_select"
-                                    id="taskTypeSelect"
-                                    class="form-select @error('task_type_select') is-invalid @enderror"
-                                    required>
+                                id="taskTypeSelect"
+                                class="form-select @error('task_type_select') is-invalid @enderror"
+                                required>
                                 <option value="">— Select Task Type —</option>
                                 @foreach (['Perspective','Architectural','Structural','Mechanical','Electrical','Plumbing','Custom'] as $type)
-                                    <option value="{{ $type }}"
-                                        {{ old('task_type_select') === $type ? 'selected' : '' }}>
-                                        {{ $type }}
-                                    </option>
+                                <option value="{{ $type }}"
+                                    {{ old('task_type_select') === $type ? 'selected' : '' }}>
+                                    {{ $type }}
+                                </option>
                                 @endforeach
                             </select>
 
                             @error('task_type_select')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         {{-- Custom Task Name --}}
                         <div class="col-md-6 {{ old('task_type_select') === 'Custom' ? '' : 'd-none' }}"
-                             id="customTaskWrapper">
+                            id="customTaskWrapper">
                             <label class="form-label">
                                 Custom Task Name
                                 <span class="text-danger">*</span>
                             </label>
 
                             <input type="text"
-                                   name="custom_task_name"
-                                   class="form-control @error('custom_task_name') is-invalid @enderror"
-                                   value="{{ old('custom_task_name') }}">
+                                name="custom_task_name"
+                                class="form-control @error('custom_task_name') is-invalid @enderror"
+                                value="{{ old('custom_task_name') }}">
 
                             @error('custom_task_name')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -62,19 +62,19 @@
                         <div class="col-md-6">
                             <label class="form-label">Assign To</label>
                             <select name="assigned_user_id"
-                                    class="form-select @error('assigned_user_id') is-invalid @enderror"
-                                    required>
+                                class="form-select @error('assigned_user_id') is-invalid @enderror"
+                                required>
                                 <option value="">— Select Personnel —</option>
                                 @foreach ($users as $user)
-                                    <option value="{{ $user->id }}"
-                                        {{ old('assigned_user_id') == $user->id ? 'selected' : '' }}>
-                                        {{ $user->name }}
-                                    </option>
+                                <option value="{{ $user->id }}"
+                                    {{ old('assigned_user_id') == $user->id ? 'selected' : '' }}>
+                                    {{ $user->name }}
+                                </option>
                                 @endforeach
                             </select>
 
                             @error('assigned_user_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -82,12 +82,13 @@
                         <div class="col-md-3">
                             <label class="form-label">Start Date</label>
                             <input type="date"
-                                   name="start_date"
-                                   class="form-control @error('start_date') is-invalid @enderror"
-                                   value="{{ old('start_date') }}">
+                                id="add_start_date"
+                                name="start_date"
+                                class="form-control @error('start_date') is-invalid @enderror"
+                                value="{{ old('start_date') }}">
 
                             @error('start_date')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -95,12 +96,13 @@
                         <div class="col-md-3">
                             <label class="form-label">Due Date</label>
                             <input type="date"
-                                   name="due_date"
-                                   class="form-control @error('due_date') is-invalid @enderror"
-                                   value="{{ old('due_date') }}">
+                                id="add_due_date"
+                                name="due_date"
+                                class="form-control @error('due_date') is-invalid @enderror"
+                                value="{{ old('due_date') }}">
 
                             @error('due_date')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -109,12 +111,12 @@
 
                 <div class="modal-footer">
                     <button type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal">
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
                         Cancel
                     </button>
 
-                    <button type="submit" class="btn btn-success">
+                    <button type="submit" id="createTaskBtn" class="btn btn-success">
                         Create Task
                     </button>
                 </div>
@@ -124,3 +126,40 @@
         </div>
     </div>
 </div>
+
+{{-- Create Task Modal Script for Creating...--}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const taskForm = document.querySelector('#addTaskModal form');
+        const submitBtn = document.getElementById('createTaskBtn');
+
+        taskForm.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Creating...";
+        });
+
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const projectStart = "{{ \Carbon\Carbon::parse($project->start_date)->format('Y-m-d') }}";
+        const projectDue = "{{ \Carbon\Carbon::parse($project->due_date)->format('Y-m-d') }}";
+
+        const startInput = document.getElementById('add_start_date');
+        const dueInput = document.getElementById('add_due_date');
+
+        if (startInput && dueInput) {
+
+            startInput.setAttribute('min', projectStart);
+            startInput.setAttribute('max', projectDue);
+
+            dueInput.setAttribute('min', projectStart);
+            dueInput.setAttribute('max', projectDue);
+
+        }
+
+    });
+</script>

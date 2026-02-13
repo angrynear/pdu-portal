@@ -272,8 +272,9 @@
                                     data-task-type="{{ $task->task_type }}"
                                     data-assigned="{{ $task->assigned_user_id }}"
                                     data-start="{{ optional($task->start_date)->format('Y-m-d') }}"
-                                    data-due="{{ optional($task->due_date)->format('Y-m-d') }}">
-
+                                    data-due="{{ optional($task->due_date)->format('Y-m-d') }}"
+                                    data-project-start="{{ $task->project->start_date->format('Y-m-d') }}"
+                                    data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
                                     Edit
                                 </button>
 

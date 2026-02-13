@@ -1,0 +1,55 @@
+1. My profile
+	- edit is working
+	- need to add on edit profile: empoyment status, employment started.
+	- if no changes are made, show toast "No changes has been made".
+	
+2. Manage Project
+	- Creating project works, but there's an issue when clicking "Create Project" button multiple times when it is still loading, it creates multiple projects also.
+	- Editing project works
+	- View Project works (project.show)
+	- Project archive works but still accessible
+	- Add Task (thourgh project.show) works but when clicking "Add Task" multiple times when it is still loading, it creates multiple task also.
+	- Add Task (thourgh project.show) works even without dates
+	- Add Task (thourgh project.show) with dates works, but the issue is that you can select date before and beyond the project dates which is it should not.
+	- Archive task works insde project.show
+	- Archiving project also archives its attached task and it should.
+	
+3. Manage Task
+	- works when creating task from project.show
+	- set date works also, turns to update when dates are set but still the issue is you can set date before and beyond the project dates.
+	- archive works
+	- in update task progress, progress %, remarks, file upload works, but changing dates is not working and a toast is showing no changes were made.
+	- in update task progress, slider is not showing what % you are.
+	- in update task progress, works also when no changes were made and toast is showing.
+	- In update history inside task.show, we'll add progress bar and below it is the percentage.
+	- In update history inside task.show, progress history should be: Progress: 22% (color red) -> 35% (color green).
+	- when assigned personnel is deactivated, assigned personnel column should become "-" and "set date/update" will become assign and a modal for assigning personnel will be made for the admin to assign personnel.
+
+4. Manage Personnel
+	- creating personnel works
+	- edting personnel also works
+	- editing personnel without changes works but toast show Personnel has been successfully updated, which should be a warning "no changes were made".
+	- in editing personnel, we'll add temporary password and confir password, this is for user who forgot thier password and admin can reset it without needing the previous password.
+	- deactivating personnel works
+	- when deactivating personnel, all assigned task to him/her should be become "-" in column, in project.show, manage task since no one is assigned.
+
+5. Archived Projects
+	- list of archived project works
+	- restore project works but its attached task is not restore which is good
+	
+6. Archive Task
+	- works when task is archived from manage task list and task from project.show
+	- work on attached task from project when project is archived
+	- task cannot be restore when its project is archive which is good
+	- when project is restored, task can be restore
+	
+7. Project Activity Log
+	- working when project created
+	- collapsed view changes works and displays all changes
+	
+8. Task Activity Log
+	- working when task is created
+	- works when task is archived from manage task list and task from project.show
+	
+9. Slideshow Manager
+	- still not implemented

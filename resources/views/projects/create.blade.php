@@ -11,7 +11,7 @@
         </a>
     </x-slot>
 
-    <form action="{{ route('projects.store') }}" method="POST">
+    <form id="createProjectForm" action="{{ route('projects.store') }}" method="POST">
         @csrf
 
         <div class="row g-4">
@@ -123,11 +123,30 @@
             <a href="{{ route('projects.index') }}" class="btn btn-secondary">
                 Cancel
             </a>
-            <button type="submit" class="btn btn-success">
+            <button type="submit" id="createProjectBtn" class="btn btn-primary">
                 Create Project
             </button>
         </div>
     </form>
+
+    {{-- Project Create Script for Creating... --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const form = document.getElementById('createProjectForm');
+            const button = document.getElementById('createProjectBtn');
+
+            if (form && button) {
+                form.addEventListener('submit', function() {
+                    button.disabled = true;
+                    button.innerText = "Creating...";
+                });
+            }
+
+        });
+    </script>
+
+
 
 </x-page-wrapper>
 @endsection

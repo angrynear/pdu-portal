@@ -65,7 +65,7 @@
 
             {{-- Contact Number --}}
             <div class="col-md-6">
-                <label class="form-label">Contact Number <span class="text-danger">*</span></label>
+                <label class="form-label">Contact Number</label>
                 <input type="text" name="contact_number"
                     class="form-control @error('contact_number') is-invalid @enderror"
                     value="{{ old('contact_number') }}">

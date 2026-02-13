@@ -47,9 +47,22 @@ class TaskController extends Controller
                 'max:255',
             ],
             'assigned_user_id'   => ['required', 'exists:users,id'],
-            'start_date'         => ['required', 'date'],
-            'due_date'           => ['required', 'date', 'after_or_equal:start_date'],
+            'start_date'         => ['nullable', 'date'],
+            'due_date'           => ['nullable', 'date', 'after_or_equal:start_date'],
         ]);
+
+        // 🔒 ENFORCE PROJECT DATE RANGE
+        if (!empty($validated['start_date']) && $validated['start_date'] < $project->start_date) {
+            return back()
+                ->withErrors(['start_date' => 'Task start date cannot be before project start date.'])
+                ->withInput();
+        }
+
+        if (!empty($validated['due_date']) && $validated['due_date'] > $project->due_date) {
+            return back()
+                ->withErrors(['due_date' => 'Task due date cannot exceed project due date.'])
+                ->withInput();
+        }
 
         $taskType = $validated['task_type_select'] === 'Custom'
             ? $validated['custom_task_name']
@@ -59,8 +72,8 @@ class TaskController extends Controller
             'project_id'        => $validated['project_id'],
             'task_type'         => $taskType,
             'assigned_user_id'  => $validated['assigned_user_id'],
-            'start_date'        => $validated['start_date'],
-            'due_date'          => $validated['due_date'],
+            'start_date'        => $validated['start_date'] ?? null,
+            'due_date'          => $validated['due_date'] ?? null,
             'progress'          => 0,
             'created_by'        => auth()->id(),
         ]);
@@ -74,6 +87,7 @@ class TaskController extends Controller
 
         return back()->with('success', FlashMessage::success('task_created'));
     }
+
 
     public function archive(Task $task)
     {
@@ -129,9 +143,22 @@ class TaskController extends Controller
             'progress'  => ['required', 'integer', 'min:0', 'max:100'],
             'remark'    => ['nullable', 'string'],
             'attachments.*' => ['nullable', 'file', 'max:5120'],
+            'start_date' => 'nullable|date',
+            'due_date' => 'nullable|date|after_or_equal:start_date',
         ]);
 
         $task = Task::findOrFail($request->task_id);
+
+        // If task has no dates yet AND user didn't set them now → block progress update
+        if (
+            (!$task->start_date || !$task->due_date) &&
+            (!$request->start_date || !$request->due_date)
+        ) {
+            return back()->with(
+                'error',
+                'Please set task start and due dates before updating progress.'
+            );
+        }
 
         if ($task->archived_at || $task->project->archived_at) {
             abort(403, 'Cannot update archived task.');
@@ -162,6 +189,15 @@ class TaskController extends Controller
                 $task->update([
                     'progress' => $request->progress,
                 ]);
+            }
+
+            // ===== DATE =====
+            if ($request->filled('start_date')) {
+                $task->start_date = $request->start_date;
+            }
+
+            if ($request->filled('due_date')) {
+                $task->due_date = $request->due_date;
             }
 
             // ===== REMARK =====
@@ -304,5 +340,36 @@ class TaskController extends Controller
             ->paginate(20);
 
         return view('logs.tasks', compact('logs'));
+    }
+
+    public function setDates(Request $request)
+    {
+        $request->validate([
+            'task_id' => 'required|exists:tasks,id',
+            'start_date' => 'required|date',
+            'due_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $task = Task::findOrFail($request->task_id);
+        $project = $task->project;
+
+        if ($request->start_date < $project->start_date) {
+            return back()->withErrors([
+                'start_date' => 'Task start date cannot be before project start date.'
+            ]);
+        }
+
+        if ($request->due_date > $project->due_date) {
+            return back()->withErrors([
+                'due_date' => 'Task due date cannot exceed project due date.'
+            ]);
+        }
+
+        $task->update([
+            'start_date' => $request->start_date,
+            'due_date' => $request->due_date,
+        ]);
+
+        return back()->with('success', 'Task dates successfully set.');
     }
 }
