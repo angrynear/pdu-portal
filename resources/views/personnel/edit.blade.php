@@ -13,7 +13,7 @@
         </a>
     </x-slot>
 
-    <form method="POST" action="{{ route('personnel.update', $user->id) }}" enctype="multipart/form-data">
+    <form method="POST" id="editPersonnelForm" action="{{ route('personnel.update', $user->id) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -118,13 +118,37 @@
             </div>
             @endif
 
+            @if(auth()->user()->isAdmin())
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Temporary Password</label>
+                    <input type="password"
+                        name="password"
+                        class="form-control @error('password') is-invalid @enderror"
+                        placeholder="Optional">
+                    @error('password')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Confirm Temporary Password</label>
+                    <input type="password"
+                        name="password_confirmation"
+                        class="form-control"
+                        placeholder="Optional">
+                </div>
+            </div>
+            @endif
+
         </div>
 
         <div class="mt-4 d-flex justify-content-end gap-2">
             <a href="{{ route('personnel.index') }}" class="btn btn-secondary">
                 Cancel
             </a>
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" id="editPersonnelBtn" class="btn btn-primary">
                 Update
             </button>
         </div>
@@ -145,6 +169,21 @@
             reader.readAsDataURL(input.files[0]);
         }
     }
+</script>
+
+{{-- Edit Personnel Modal Script for Protect...--}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const taskForm = document.querySelector('#editPersonnelForm');
+        const submitBtn = document.getElementById('editPersonnelBtn');
+
+        taskForm.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Updating...";
+        });
+
+    });
 </script>
 
 @endsection

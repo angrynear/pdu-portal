@@ -6,13 +6,12 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Support\FlashMessage;
+use Illuminate\Support\Facades\DB;
+use App\Models\Task;
 
 
 class PersonnelController extends Controller
 {
-    /**
-     * Display a list of personnel (admin only).
-     */
     public function index()
     {
         $users = User::where('account_status', 'active')
@@ -32,17 +31,10 @@ class PersonnelController extends Controller
         return view('personnel.index', compact('users'));
     }
 
-    /**
-     * Show form to create a new personnel.
-     */
     public function create()
     {
         return view('personnel.create');
     }
-
-    /**
-     * Store a newly created personnel.
-     */
 
     public function store(Request $request)
     {
@@ -85,9 +77,6 @@ class PersonnelController extends Controller
             ->with('success', FlashMessage::success('personnel_created'));
     }
 
-    /**
-     * Show form to edit personnel.
-     */
     public function edit(User $user)
     {
         // If not admin, user can edit only their own profile
@@ -98,12 +87,8 @@ class PersonnelController extends Controller
         return view('personnel.edit', compact('user'));
     }
 
-    /**
-     * Update personnel information.
-     */
     public function update(Request $request, User $user)
     {
-        // Authorization check
         if (!auth()->user()->isAdmin() && auth()->id() !== $user->id) {
             abort(403);
         }
@@ -119,62 +104,174 @@ class PersonnelController extends Controller
             'photo' => 'nullable|image|max:2048',
         ];
 
-        // Only admin can update role
         if (auth()->user()->isAdmin()) {
             $rules['role'] = 'required|in:admin,user';
+            $rules['password'] = 'nullable|string|min:8|confirmed';
         }
 
         $validated = $request->validate($rules);
 
-        unset($validated['photo']);
+        // ===============================
+        // ADMIN ROLE PROTECTION
+        // ===============================
 
-        $user->update($validated);
+        if (auth()->user()->isAdmin() && isset($validated['role'])) {
 
-        // Upload Photo
-        if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('personnel', 'public');
-            $user->photo = $photoPath;
-            $user->save();
+            $currentUser = auth()->user();
+
+            // If admin is editing themselves
+            if ($user->id === $currentUser->id && $validated['role'] !== 'admin') {
+
+                return back()->with(
+                    'error',
+                    'You cannot change your own admin role.'
+                );
+            }
+
+            // Prevent removing last admin in system
+            if ($user->role === 'admin' && $validated['role'] !== 'admin') {
+
+                $adminCount = \App\Models\User::where('role', 'admin')
+                    ->where('account_status', 'active')
+                    ->count();
+
+                if ($adminCount <= 1) {
+                    return back()->with(
+                        'error',
+                        'At least one active admin must remain in the system.'
+                    );
+                }
+            }
         }
+
+        $changes = [];
+
+        // ===============================
+        // NORMAL FIELD COMPARISON
+        // ===============================
+
+        foreach ($validated as $field => $value) {
+
+            if ($field === 'password') {
+                continue;
+            }
+
+            $old = $user->$field ?? null;
+
+            if ($field === 'employment_started') {
+                $old = $old ? \Carbon\Carbon::parse($old)->format('Y-m-d') : null;
+            }
+
+            if ((string)$old !== (string)$value) {
+                $changes[$field] = [
+                    'old' => $old,
+                    'new' => $value,
+                ];
+            }
+        }
+
+        // ===============================
+        // ADMIN PASSWORD RESET
+        // ===============================
+
+        if (auth()->user()->isAdmin() && !empty($validated['password'])) {
+
+            $changes['password_reset'] = [
+                'old' => '********',
+                'new' => 'Temporary password set',
+            ];
+        }
+
+        // ===============================
+        // PHOTO CHANGE
+        // ===============================
+
+        if ($request->hasFile('photo')) {
+
+            $changes['photo'] = [
+                'old' => $user->photo,
+                'new' => 'Photo updated',
+            ];
+        }
+
+        if (empty($changes)) {
+            return back()->with('warning', FlashMessage::warning('personnel_updated'));
+        }
+
+        // ===============================
+        // OPTIONAL PASSWORD RESET
+        // ===============================
+
+        if (!empty($request->password)) {
+            $validated['password'] = \Hash::make($request->password);
+        } else {
+            unset($validated['password']); // prevent null overwrite
+        }
+
+        // ===============================
+        // APPLY UPDATE
+        // ===============================
+
+        foreach ($validated as $field => $value) {
+
+            if ($field === 'password' && !empty($value)) {
+                $user->password = Hash::make($value);
+            } elseif ($field !== 'photo') {
+                $user->$field = $value;
+            }
+        }
+
+        if ($request->hasFile('photo')) {
+            $user->photo = $request->file('photo')->store('personnel', 'public');
+        }
+
+        $user->save();
 
         return redirect()
             ->route('personnel.index')
             ->with('success', FlashMessage::success('personnel_updated'));
     }
 
-    /**
-     * Deactivate personnel (soft action).
-     */
+
     public function deactivate(User $user)
     {
-        // Admin only
         if (!auth()->user()->isAdmin()) {
             abort(403);
         }
 
-        // Prevent self-deactivation
         if (auth()->id() === $user->id) {
-            return back()->with('error', FlashMessage::success('personnel_deactivated'));
+            return back()->with('error', FlashMessage::error('personnel_deactivated'));
         }
 
-        $user->update([
-            'account_status' => 'inactive',
-            'deactivated_at' => now(),
-        ]);
+        if ($user->account_status === 'inactive') {
+            return back()->with('warning', FlashMessage::warning('personnel_deactivated'));
+        }
+
+        DB::transaction(function () use ($user) {
+
+            $user->update([
+                'account_status' => 'inactive',
+                'deactivated_at' => now(),
+            ]);
+
+            Task::where('assigned_user_id', $user->id)
+                ->update(['assigned_user_id' => null]);
+        });
 
         return redirect()
             ->route('personnel.index')
             ->with('success', FlashMessage::success('personnel_deactivated'));
     }
 
-    /**
-     * Reactivate personnel.
-     */
     public function reactivate(User $user)
     {
-        // Admin only
         if (!auth()->user()->isAdmin()) {
             abort(403);
+        }
+
+        if ($user->account_status === 'active') {
+            return back()
+                ->with('warning', FlashMessage::warning('personnel_reactivated'));
         }
 
         $user->update([

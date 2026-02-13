@@ -92,6 +92,9 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::patch('/tasks/set-dates', [TaskController::class, 'setDates'])
             ->name('tasks.setDates');
 
+        Route::patch('/tasks/assign', [TaskController::class, 'assign'])
+            ->name('tasks.assign');
+
         // ===== LOGS =====
         Route::get('/logs/projects', [ProjectController::class, 'activityLogs'])
             ->name('logs.projects');

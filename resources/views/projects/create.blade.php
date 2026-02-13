@@ -129,7 +129,7 @@
         </div>
     </form>
 
-    {{-- Project Create Script for Creating... --}}
+    {{-- Project Create Script for protect --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
@@ -145,8 +145,6 @@
 
         });
     </script>
-
-
 
 </x-page-wrapper>
 @endsection

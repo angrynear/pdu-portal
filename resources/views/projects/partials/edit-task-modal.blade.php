@@ -110,3 +110,18 @@
         </form>
     </div>
 </div>
+
+{{-- Edit Task Modal Script for Protect...--}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const taskForm = document.querySelector('#editTaskModal form');
+        const submitBtn = document.getElementById('editTaskBtn');
+
+        taskForm.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Updating...";
+        });
+
+    });
+</script>

@@ -343,6 +343,7 @@
     }
 </script>
 
+{{-- Add Task Modal Script --}}
 @if ($errors->any() && session('form_context') === 'add_task')
 <script>
     window.addEventListener('load', function() {
@@ -355,6 +356,7 @@
 </script>
 @endif
 
+{{-- Edit Task Modal Script --}}
 @if ($errors->any() && session('form_context') === 'edit_task')
 <script>
     document.addEventListener('DOMContentLoaded', function() {

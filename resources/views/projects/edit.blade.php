@@ -11,7 +11,7 @@
         </a>
     </x-slot>
 
-    <form action="{{ route('projects.update', $project) }}" method="POST">
+    <form id="editProjectForm" action="{{ route('projects.update', $project) }}" method="POST">
         @csrf
         @method('PUT')
 
@@ -164,12 +164,30 @@
             <a href="{{ route('projects.index') }}" class="btn btn-secondary">
                 Cancel
             </a>
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" id="editProjectBtn" class="btn btn-primary">
                 Update Project
             </button>
         </div>
 
     </form>
+
+    {{-- Project Edit Script for protect --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const form = document.getElementById('editProjectForm');
+            const button = document.getElementById('editProjectBtn');
+
+            if (form && button) {
+                form.addEventListener('submit', function() {
+                    button.disabled = true;
+                    button.innerText = "Updating...";
+                });
+            }
+
+        });
+    </script>
+
 
 </x-page-wrapper>
 @endsection

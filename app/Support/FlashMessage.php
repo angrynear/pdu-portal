@@ -40,8 +40,12 @@ class FlashMessage
 
             'task_updated' => [
                 'success' => [
-                    'admin' => 'Task updated successfully.',
+                    'admin' => 'Task details updated successfully.',
                     'user'  => 'Your task details were updated.',
+                ],
+                'warning' => [
+                    'admin' => 'No changes were made.',
+                    'user' => 'No changes were made.',
                 ],
             ],
 
@@ -49,6 +53,14 @@ class FlashMessage
                 'success' => [
                     'admin' => 'Task progress updated successfully.',
                     'user'  => 'Your progress update was saved.',
+                ],
+                'warning' => [
+                    'admin' => 'No changes were made.',
+                    'user' => 'No changes were made.',
+                ],
+                'error' => [
+                    'admin' => 'Failed to update task progress.',
+                    'user'  => 'Failed to update your task progress.',
                 ],
             ],
 
@@ -64,10 +76,23 @@ class FlashMessage
                 ],
             ],
 
-            'task_update_no_changes' => [
+            'task_set_dates' => [
+                'success' => [
+                    'admin' => 'Task dates successfully set.',
+                    'user' => 'You have successfully set the task dates.',
+                ],
                 'warning' => [
                     'admin' => 'No changes were made.',
                     'user' => 'No changes were made.',
+                ],
+            ],
+
+            'task_re-assign' => [
+                'success' => [
+                    'admin' => 'Task re-assigned successfully.',
+                ],
+                'warning' => [
+                    'admin' => 'No changes were made.',
                 ],
             ],
 
@@ -81,6 +106,9 @@ class FlashMessage
             'project_updated' => [
                 'success' => [
                     'admin' => 'Project has been successfully updated.',
+                ],
+                'warning' => [
+                    'admin' => 'No changes were made.',
                 ],
             ],
 
@@ -108,11 +136,18 @@ class FlashMessage
                     'admin' => 'Personnel has been successfully updated.',
                     'user' => 'Your details has been successfully updated.',
                 ],
+                'warning' => [
+                    'admin' => 'No changes were made.',
+                    'user' => 'No changes were made.',
+                ],
             ],
 
             'personnel_deactivated' => [
                 'success' => [
                     'admin' => 'Personnel has been deactivated.',
+                ],
+                'warning' => [
+                    'admin' => 'Personnel is already inactive.',
                 ],
                 'error' => [
                     'admin' => 'You cannot deactivate your own account.',
@@ -123,6 +158,9 @@ class FlashMessage
                 'success' => [
                     'admin' => 'Personnel has been reactivated.',
                 ],
+                'warning' => [
+                    'admin' => 'Personnel is already active.',
+                ],
             ],
 
             // ===== PROFILE =====
@@ -130,6 +168,10 @@ class FlashMessage
                 'success' => [
                     'admin' => 'Your profile has been updated successfully.',
                     'user' => 'Your profile has been updated successfully.',
+                ],
+                'warning' => [
+                    'admin' => 'No changes were made.',
+                    'user' => 'No changes were made.',
                 ],
             ],
         ];

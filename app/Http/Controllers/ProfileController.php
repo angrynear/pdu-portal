@@ -38,7 +38,6 @@ class ProfileController extends Controller
 
     public function update(Request $request)
     {
-
         $user = auth()->user();
 
         $validated = $request->validate([
@@ -49,48 +48,61 @@ class ProfileController extends Controller
             'contact_number' => ['nullable', 'string', 'max:50'],
             'photo' => ['nullable', 'image', 'max:2048'],
 
-            // Password fields
             'current_password' => ['nullable'],
             'password' => ['nullable', 'confirmed', 'min:8'],
         ]);
 
-        /*
-    |--------------------------------------------------------------------------
-    | 🔒 PASSWORD INTENT VALIDATION (ALL-OR-NOTHING RULE)
-    |--------------------------------------------------------------------------
-    */
+        // ==========================
+        // PASSWORD INTENT CHECK
+        // ==========================
 
         if ($request->filled('current_password') && !$request->filled('password')) {
-            return back()
-                ->withErrors([
-                    'password' => 'Please enter a new password if you want to change your password.',
-                ])
-                ->withInput();
+            return back()->withErrors([
+                'password' => 'Please enter a new password if you want to change your password.',
+            ])->withInput();
         }
 
         if ($request->filled('password') && !$request->filled('current_password')) {
-            return back()
-                ->withErrors([
-                    'current_password' => 'Current password is required to change your password.',
-                ])
-                ->withInput();
+            return back()->withErrors([
+                'current_password' => 'Current password is required to change your password.',
+            ])->withInput();
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | 🔐 PASSWORD HARDENING LOGIC
-    |--------------------------------------------------------------------------
-    */
+        $changes = [];
+
+        // ==========================
+        // NORMAL FIELD COMPARISON
+        // ==========================
+
+        foreach (['name', 'email', 'profession', 'designation', 'contact_number'] as $field) {
+
+            $old = $user->$field ?? null;
+            $new = $validated[$field] ?? null;
+
+            if ((string)$old !== (string)$new) {
+                $changes[$field] = [
+                    'old' => $old,
+                    'new' => $new,
+                ];
+            }
+        }
+
+        // ==========================
+        // PASSWORD CHANGE
+        // ==========================
 
         if (!empty($validated['password'])) {
 
             if (!\Hash::check($validated['current_password'], $user->password)) {
-                return back()
-                    ->withErrors([
-                        'current_password' => 'Current password is incorrect.',
-                    ])
-                    ->withInput();
+                return back()->withErrors([
+                    'current_password' => 'Current password is incorrect.',
+                ])->withInput();
             }
+
+            $changes['password'] = [
+                'old' => '********',
+                'new' => '********',
+            ];
 
             $validated['password'] = \Hash::make($validated['password']);
         } else {
@@ -99,26 +111,32 @@ class ProfileController extends Controller
 
         unset($validated['current_password']);
 
-        /*
-    |--------------------------------------------------------------------------
-    | 📸 Photo Upload
-    |--------------------------------------------------------------------------
-    */
+        // ==========================
+        // PHOTO CHANGE
+        // ==========================
 
         if ($request->hasFile('photo')) {
+            $changes['photo'] = [
+                'old' => $user->photo,
+                'new' => 'Photo updated',
+            ];
+
             $validated['photo'] = $request->file('photo')
                 ->store('profile-photos', 'public');
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | 📧 EMAIL CHANGE DETECTION (TEST-SAFE & LARAVEL-STYLE)
-    |--------------------------------------------------------------------------
-    */
+        // NO CHANGES
+        if (empty($changes)) {
+            return back()->with('warning', FlashMessage::warning('profile_updated'));
+        }
+
+        // ==========================
+        // APPLY UPDATE
+        // ==========================
 
         $user->fill($validated);
 
-        if ($user->isDirty('email')) {
+        if (isset($changes['email'])) {
             $user->email_verified_at = null;
         }
 
@@ -127,7 +145,6 @@ class ProfileController extends Controller
         return redirect()->route('profile.show')
             ->with('success', FlashMessage::success('profile_updated'));
     }
-
 
     public function destroy(Request $request): RedirectResponse
     {

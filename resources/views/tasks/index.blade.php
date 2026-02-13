@@ -113,7 +113,18 @@
 
                         @if (is_null($task->archived_at) && is_null($task->project->archived_at))
 
-                        @if (!$task->start_date || !$task->due_date)
+                        @if(!$task->assigned_user_id)
+
+                        {{-- Assign --}}
+                        <button
+                            class="btn btn-sm btn-info"
+                            data-bs-toggle="modal"
+                            data-bs-target="#assignTaskModal"
+                            data-task-id="{{ $task->id }}">
+                            Assign
+                        </button>
+
+                        @elseif(!$task->start_date || !$task->due_date)
 
                         {{-- Set Date --}}
                         <button
@@ -141,7 +152,9 @@
                             data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
                             Update
                         </button>
+
                         @endif
+
 
                         {{-- Archive Task --}}
                         <button
@@ -183,154 +196,13 @@
     </div>
 
     {{-- UPDATE TASK MODAL --}}
-    <div class="modal fade" id="updateTaskProgressModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <form method="POST"
-                action="{{ route('tasks.updateProgress') }}"
-                enctype="multipart/form-data"
-                class="modal-content">
-                @csrf
-                @method('PATCH')
+    @include('tasks.partials.update-task-modal')
 
-                <input type="hidden" name="task_id" id="task_id">
-
-                <div class="modal-header">
-                    <h5 class="modal-title">Update Task Progress</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-
-                    {{-- Progress --}}
-                    <div class="mb-3">
-                        <label class="form-label">
-                            Progress: <strong><span id="progressValue">0</span>%</strong>
-                        </label>
-
-                        <input type="range"
-                            name="progress"
-                            id="task_progress"
-                            class="form-range"
-                            min="0"
-                            max="100"
-                            step="1"
-                            value="0">
-                    </div>
-
-                    {{-- Dates --}}
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">
-                                Start Date <span class="text-muted">(optional change)</span>
-                            </label>
-                            <input type="date"
-                                name="start_date"
-                                id="update_start_date"
-                                class="form-control">
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">
-                                Due Date <span class="text-muted">(optional change)</span>
-                            </label>
-                            <input type="date"
-                                name="due_date"
-                                id="update_due_date"
-                                class="form-control">
-                        </div>
-                    </div>
-
-                    {{-- Remarks --}}
-                    <div class="mb-3">
-                        <label class="form-label">
-                            Remarks <span class="text-muted">(optional)</span>
-                        </label>
-
-                        <textarea name="remark"
-                            id="remarkField"
-                            class="form-control"
-                            rows="3"
-                            placeholder="Add remarks if necessary…"></textarea>
-                    </div>
-
-                    {{-- File Upload --}}
-                    <div class="mb-3">
-                        <label class="form-label">Attachment(s)</label>
-                        <input type="file"
-                            name="attachments[]"
-                            class="form-control"
-                            multiple>
-                    </div>
-                </div>
-
-                <div class="modal-footer">
-
-                    <small class="text-muted me-auto">
-                        Only changes will be recorded.
-                    </small>
-
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cancel
-                    </button>
-                    <button type="submit" id="updateProgressBtn" class="btn btn-primary">
-                        Save Update
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+    {{-- ASSIGN TASK MODAL --}}
+    @include('tasks.partials.assign-task-modal')
 
     {{-- SET TASK DATE MODAL --}}
-    <div class="modal fade" id="setTaskDateModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <form method="POST"
-                action="{{ route('tasks.setDates') }}"
-                class="modal-content">
-                @csrf
-                @method('PATCH')
-
-                <input type="hidden" name="task_id" id="set_date_task_id">
-
-                <div class="modal-header">
-                    <h5 class="modal-title">Set Task Dates</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-
-                    <div class="mb-3">
-                        <label class="form-label">Start Date</label>
-                        <input type="date"
-                            name="start_date"
-                            id="set_start_date"
-                            class="form-control"
-                            required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Due Date</label>
-                        <input type="date"
-                            name="due_date"
-                            id="set_due_date"
-                            class="form-control"
-                            required>
-                    </div>
-
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button"
-                        class="btn btn-secondary"
-                        data-bs-dismiss="modal">
-                        Cancel
-                    </button>
-                    <button type="submit" id="setDateBtn" class="btn btn-warning">
-                        Set Dates
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+    @include('tasks.partials.set-task-date-modal')
 
     @push('scripts')
 
@@ -353,15 +225,16 @@
         }
     </script>
 
-    {{-- Set Date and Update Progress Modal Script --}}
+    {{-- Task Modals Script --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
             const updateModal = document.getElementById('updateTaskProgressModal');
             const setDateModal = document.getElementById('setTaskDateModal');
+            const assignModal = document.getElementById('assignTaskModal');
 
             // ================================
-            // UPDATE MODAL
+            // UPDATE PROGRESS MODAL
             // ================================
             if (updateModal) {
                 updateModal.addEventListener('show.bs.modal', function(event) {
@@ -376,8 +249,16 @@
                     const projectDue = button.getAttribute('data-project-due');
 
                     document.getElementById('task_id').value = taskId;
-                    document.getElementById('task_progress').value = progress;
-                    document.getElementById('progressValue').innerText = progress;
+
+                    const slider = document.getElementById('task_progress');
+                    const progressText = document.getElementById('progressValue');
+
+                    slider.value = progress;
+                    progressText.innerText = progress;
+
+                    slider.oninput = function() {
+                        progressText.innerText = this.value;
+                    };
 
                     const startInput = document.getElementById('update_start_date');
                     const dueInput = document.getElementById('update_due_date');
@@ -385,18 +266,12 @@
                     startInput.value = startDate ?? '';
                     dueInput.value = dueDate ?? '';
 
-                    // Apply restriction
+                    // Restrict dates within project schedule
                     startInput.min = projectStart;
                     startInput.max = projectDue;
 
                     dueInput.min = projectStart;
                     dueInput.max = projectDue;
-
-                    // Live slider display
-                    const slider = document.getElementById('task_progress');
-                    slider.oninput = function() {
-                        document.getElementById('progressValue').innerText = this.value;
-                    };
                 });
             }
 
@@ -428,33 +303,18 @@
                 });
             }
 
-        });
-    </script>
+            // ================================
+            // ASSIGN TASK MODAL
+            // ================================
+            if (assignModal) {
+                assignModal.addEventListener('show.bs.modal', function(event) {
 
-{{-- Script for protecting forms from multiple submissions --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
+                    const button = event.relatedTarget;
+                    const taskId = button.getAttribute('data-task-id');
 
-            function protectForm(formSelector, buttonId, loadingText) {
-                const form = document.querySelector(formSelector);
-                const button = document.getElementById(buttonId);
-
-                if (form && button) {
-                    form.addEventListener('submit', function() {
-                        button.disabled = true;
-                        button.innerText = loadingText;
-                    });
-                }
+                    document.getElementById('assign_task_id').value = taskId;
+                });
             }
-
-            // Edit Task
-            protectForm('#editTaskModal form', 'editTaskBtn', 'Saving...');
-
-            // Set Date
-            protectForm('#setTaskDateModal form', 'setDateBtn', 'Saving...');
-
-            // Update Progress
-            protectForm('#updateTaskProgressModal form', 'updateProgressBtn', 'Saving...');
 
         });
     </script>

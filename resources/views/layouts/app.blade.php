@@ -172,9 +172,15 @@
     {{-- Confirmation Modal Script --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
             const modal = document.getElementById('confirmActionModal');
+            const confirmForm = document.getElementById('confirmActionForm');
+            const confirmBtn = document.getElementById('confirmActionButton');
+
+            if (!modal) return;
 
             modal.addEventListener('show.bs.modal', function(event) {
+
                 const button = event.relatedTarget;
 
                 const action = button.getAttribute('data-action');
@@ -184,31 +190,42 @@
                 const confirmText = button.getAttribute('data-confirm-text');
                 const confirmClass = button.getAttribute('data-confirm-class');
 
-                // Set modal content
                 document.getElementById('confirmModalTitle').textContent = title;
                 document.getElementById('confirmModalMessage').textContent = message;
 
-                // Set form action & method
-                const form = document.getElementById('confirmActionForm');
-                form.action = action;
+                confirmForm.action = action;
                 document.getElementById('confirmActionMethod').value = method;
 
-                // Set button text & style
-                const confirmBtn = document.getElementById('confirmActionButton');
                 confirmBtn.textContent = confirmText;
                 confirmBtn.className = `btn ${confirmClass}`;
+                confirmBtn.disabled = false;
             });
 
-            // Prevent double submit on confirmation modal
-            const confirmForm = document.getElementById('confirmActionForm');
-            const confirmBtn = document.getElementById('confirmActionButton');
-
+            // 🔥 Dynamic loading state
             if (confirmForm && confirmBtn) {
                 confirmForm.addEventListener('submit', function() {
+
+                    const originalText = confirmBtn.textContent.trim().toLowerCase();
+
+                    let loadingText = "Processing...";
+
+                    if (originalText.includes('archive')) {
+                        loadingText = "Archiving...";
+                    } else if (originalText.includes('restore')) {
+                        loadingText = "Restoring...";
+                    } else if (originalText.includes('deactivate')) {
+                        loadingText = "Deactivating...";
+                    } else if (originalText.includes('reactivate')) {
+                        loadingText = "Reactivating...";
+                    } else if (originalText.includes('delete')) {
+                        loadingText = "Deleting...";
+                    }
+
                     confirmBtn.disabled = true;
-                    confirmBtn.innerText = "Processing...";
+                    confirmBtn.textContent = loadingText;
                 });
             }
+
         });
     </script>
 

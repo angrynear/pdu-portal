@@ -13,7 +13,7 @@
         </a>
     </x-slot>
 
-    <form method="POST" action="{{ route('personnel.store') }}" enctype="multipart/form-data">
+    <form method="POST" id="createPersonnelForm" action="{{ route('personnel.store') }}" enctype="multipart/form-data">
         @csrf
 
         <div class="row g-3">
@@ -142,7 +142,7 @@
             <a href="{{ route('personnel.index') }}" class="btn btn-secondary">
                 Cancel
             </a>
-            <button type="submit" class="btn btn-success">
+            <button type="submit" id="createPersonnelBtn" class="btn btn-success">
                 Create Personnel
             </button>
         </div>
@@ -163,6 +163,21 @@
             reader.readAsDataURL(input.files[0]);
         }
     }
+</script>
+
+{{-- Create Personnel Modal Script for Protect...--}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const taskForm = document.querySelector('#createPersonnelForm');
+        const submitBtn = document.getElementById('createPersonnelBtn');
+
+        taskForm.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Creating...";
+        });
+
+    });
 </script>
 
 @endsection

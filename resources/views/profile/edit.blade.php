@@ -5,7 +5,7 @@
 @section('content')
 <x-page-wrapper title="Edit My Profile">
 
-    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('profile.update') }}" id="editProfileForm" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -119,7 +119,7 @@
                     <a href="{{ route('profile.show') }}" class="btn btn-secondary">
                         Cancel
                     </a>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" id="editProfileBtn" class="btn btn-primary">
                         Save Changes
                     </button>
                 </div>
@@ -130,6 +130,7 @@
 
 </x-page-wrapper>
 
+{{-- Photo Live Preview Script --}}
 <script>
     function previewPhoto(event) {
         const reader = new FileReader();
@@ -138,5 +139,20 @@
         };
         reader.readAsDataURL(event.target.files[0]);
     }
+</script>
+
+{{-- Edit Profile Script for Protect...--}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const profileForm = document.querySelector('#editProfileForm');
+        const submitBtn = document.getElementById('editProfileBtn');
+
+        profileForm.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Saving...";
+        });
+
+    });
 </script>
 @endsection

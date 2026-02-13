@@ -127,7 +127,7 @@
     </div>
 </div>
 
-{{-- Create Task Modal Script for Creating...--}}
+{{-- Create Task Modal Script for Protect...--}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 

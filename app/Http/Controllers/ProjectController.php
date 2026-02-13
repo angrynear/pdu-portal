@@ -41,17 +41,11 @@ class ProjectController extends Controller
         return view('projects.index', compact('projects'));
     }
 
-    /**
-     * Show the form for creating a new project.
-     */
     public function create()
     {
         return view('projects.create');
     }
 
-    /**
-     * Store a newly created project.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -100,9 +94,6 @@ class ProjectController extends Controller
             ->with('success', FlashMessage::success('project_created'));
     }
 
-    /**
-     * Display the specified project (overview page).
-     */
     public function show(Project $project)
     {
 
@@ -123,17 +114,11 @@ class ProjectController extends Controller
         return view('projects.show', compact('project', 'users'));
     }
 
-    /**
-     * Show the form for editing the specified project.
-     */
     public function edit(Project $project)
     {
         return view('projects.edit', compact('project'));
     }
 
-    /**
-     * Update the specified project.
-     */
     public function update(Request $request, Project $project)
     {
         $validated = $request->validate([
@@ -161,10 +146,7 @@ class ProjectController extends Controller
             'due_date' => ['required', 'date', 'after_or_equal:start_date'],
         ]);
 
-        // 🔎 Capture original values
         $original = $project->getOriginal();
-
-        // 🧠 Detect changes
         $changes = [];
 
         foreach ($validated as $field => $newValue) {
@@ -184,16 +166,22 @@ class ProjectController extends Controller
             }
         }
 
-        // ✅ Update project
+        // PHASE 6.3 ADDITION
+        if (empty($changes)) {
+            return redirect()
+                ->route('projects.index')
+                ->with('warning', FlashMessage::warning('project_updated'));
+        }
+
+        //  Only update if changes exist
         $project->update($validated);
 
-        // ✅ Save activity log
         ProjectActivityLog::create([
             'project_id' => $project->id,
             'user_id' => auth()->id(),
             'action' => 'updated',
             'description' => 'Project details updated',
-            'changes' => !empty($changes) ? $changes : null,
+            'changes' => $changes,
         ]);
 
         return redirect()
@@ -201,9 +189,6 @@ class ProjectController extends Controller
             ->with('success', FlashMessage::success('project_updated'));
     }
 
-    /**
-     * Archive the specified project.
-     */
     public function archive(Project $project)
     {
         // Archive ALL tasks under the project
@@ -228,9 +213,7 @@ class ProjectController extends Controller
             ->route('projects.index')
             ->with('success', FlashMessage::success('project_archived'));
     }
-    /**
-     * Display archived projects.
-     */
+ 
     public function archived()
     {
         $projects = Project::whereNotNull('archived_at')
@@ -241,9 +224,6 @@ class ProjectController extends Controller
         return view('archives.projects', compact('projects'));
     }
 
-    /**
-     * Restore an archived project.
-     */
     public function restore($id)
     {
         $project = Project::whereNotNull('archived_at')
