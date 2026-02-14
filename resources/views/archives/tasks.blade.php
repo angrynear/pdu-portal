@@ -41,12 +41,12 @@
 
                     {{-- Task --}}
                     <td>
-                            {{ $task->task_type }}
+                        {{ $task->task_type }}
                     </td>
 
                     {{-- Project --}}
                     <td>
-                            {{ $task->project->name }}
+                        {{ $task->project->name }}
                     </td>
 
                     {{-- Assigned --}}
@@ -66,14 +66,7 @@
 
                     {{-- Progress --}}
                     <td class="text-center">
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-secondary"
-                                style="width: {{ $task->progress }}%">
-                            </div>
-                        </div>
-                        <div class="small {{ $task->progress == 100 ? 'text-success fw-semibold' : 'text-muted' }}">
-                            {{ $task->progress }}%
-                        </div>
+                        <x-progress-bar :value="$task->progress" />
                     </td>
 
                     {{-- Archived At --}}

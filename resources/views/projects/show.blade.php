@@ -116,19 +116,7 @@
         <div class="col-md-4 mb-2">
             <div class="fw-semibold mb-1">Progress</div>
 
-            <div class="progress" style="height: 6px;">
-                <div class="progress-bar {{ $progressClass }}"
-                    role="progressbar"
-                    style="width: {{ $progress }}%;"
-                    aria-valuenow="{{ $progress }}"
-                    aria-valuemin="0"
-                    aria-valuemax="100">
-                </div>
-            </div>
-
-            <div class="small text-muted mt-1">
-                {{ $progress }}%
-            </div>
+            <x-progress-bar :value="$project->progress" />
         </div>
 
         {{-- DESCRIPTION --}}
@@ -143,6 +131,7 @@
         <div class="mt-4">
 
             {{-- ADD TASK BUTTON --}}
+            @if(auth()->user()->isAdmin())
             <div class="mt-4 text-end">
                 @if (is_null($project->archived_at))
                 <button class="btn btn-sm btn-success mb-2"
@@ -157,6 +146,7 @@
                 </button>
                 @endif
             </div>
+            @endif
 
             <div class="table-responsive">
                 <table class="table align-middle">
@@ -202,42 +192,28 @@
                                 {{ $task->due_date?->format('F d, Y') ?? '—' }}
                             </td>
 
-                            {{-- Progress --}}
+                            {{-- P  rogress --}}
                             <td class="text-center">
-                                <div class="progress" style="height: 6px;">
-                                    <div
-                                        class="progress-bar
-                                {{ $task->progress == 100 ? 'bg-success' : 'bg-primary' }}"
-                                        style="width: {{ $task->progress }}%">
-                                    </div>
-                                </div>
-                                <div class="small {{ $task->progress == 100 ? 'text-success fw-semibold' : 'text-muted' }}">
-                                    {{ $task->progress }}%
-                                </div>
+                                <x-progress-bar :value="$task->progress" />
                             </td>
 
                             {{-- Remarks --}}
                             <td>
 
                                 @php
-                                $remark = $task->latestRemark->remark ?? null;
-                                $collapseId = 'remark-' . $task->id;
+                                $remark = $task->latestRemarkLog->changes['remark']['new'] ?? null;
                                 @endphp
 
                                 @if($remark)
 
                                 <div>
-
-                                    {{-- Short preview (shown initially) --}}
                                     <span id="preview-{{ $task->id }}">
                                         {{ Str::limit($remark, 35) }}
                                     </span>
 
-                                    {{-- Full remark (hidden initially) --}}
                                     <span id="full-{{ $task->id }}" class="d-none text-dark">
                                         {{ $remark }}
                                     </span>
-
                                 </div>
 
                                 @if(strlen($remark) > 60)
@@ -252,18 +228,25 @@
                                 @else
                                 <span>—</span>
                                 @endif
+
                             </td>
 
-                            {{-- Actions --}}
                             <td class="text-center">
 
-                                {{-- Edit Task --}}
-                                @if (is_null($project->archived_at) && is_null($task->archived_at))
+                                @php
+                                $isAdmin = auth()->user()->isAdmin();
+                                $isArchived = !is_null($project->archived_at) || !is_null($task->archived_at);
+                                @endphp
+
+                                {{-- VIEW (Everyone, even archived) --}}
                                 <a href="{{ route('tasks.show', $task->id) }}?from=project"
                                     class="btn btn-sm btn-secondary">
                                     View
                                 </a>
 
+                                @if(!$isArchived && $isAdmin)
+
+                                {{-- EDIT --}}
                                 <button
                                     class="btn btn-sm btn-primary"
                                     data-bs-toggle="modal"
@@ -278,7 +261,7 @@
                                     Edit
                                 </button>
 
-                                {{-- Archive Task --}}
+                                {{-- ARCHIVE --}}
                                 <button
                                     class="btn btn-sm btn-danger ms-1"
                                     data-bs-toggle="modal"
@@ -291,14 +274,16 @@
                                     data-confirm-class="btn-danger">
                                     Archive
                                 </button>
-                                @else
-                                <span class="text-muted small">
+
+                                @elseif($isArchived)
+
+                                <div class="small text-muted mt-1">
                                     {{ $project->archived_at ? 'Project Archived' : 'Task Archived' }}
-                                </span>
+                                </div>
+
                                 @endif
 
                             </td>
-
 
                         </tr>
                         @empty

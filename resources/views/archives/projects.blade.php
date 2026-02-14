@@ -69,14 +69,7 @@
 
                     {{-- Progress --}}
                     <td class="text-center">
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar bg-secondary"
-                                style="width: {{ $project->progress }}%">
-                            </div>
-                        </div>
-                        <div class="small {{ $project->progress == 100 ? 'text-success fw-semibold' : 'text-muted' }}">
-                            {{ $project->progress }}%
-                        </div>
+                        <x-progress-bar :value="$project->progress" />
                     </td>
 
                     {{-- Archived At --}}

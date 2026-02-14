@@ -76,11 +76,11 @@
                     {{-- Tasks --}}
                     <td class="text-center">
                         <div class="small">
-                            <span class="badge bg-warning text-dark me-1">
-                                Ongoing: {{ $user->ongoing_tasks_count }}
+                            <span>
+                                Ongoing: <strong>{{ $user->ongoing_tasks_count }}</strong>
                             </span><br />
-                            <span class="badge bg-primary">
-                                Total: {{ $user->total_tasks_count }}
+                            <span>
+                                Total: <strong>{{ $user->total_tasks_count }}</strong>
                             </span>
                         </div>
                     </td>

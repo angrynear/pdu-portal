@@ -63,4 +63,9 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(\App\Models\Task::class, 'assigned_user_id');
     }
+
+    public function isAssignedTo(Task $task)
+    {
+        return $task->assigned_user_id === $this->id;
+    }
 }

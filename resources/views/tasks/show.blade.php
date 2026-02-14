@@ -60,48 +60,115 @@
             </div>
 
             <div class="mb-0">
-                <strong>Progress:</strong> {{ $task->progress }}%
+                @php
+                $progress = $task->progress;
+
+                if ($progress == 100) {
+                $colorClass = 'text-success';
+                $barColor = 'bg-success';
+                } elseif ($progress >= 70) {
+                $colorClass = 'text-primary';
+                $barColor = 'bg-primary';
+                } elseif ($progress >= 31) {
+                $colorClass = 'text-warning';
+                $barColor = 'bg-warning';
+                } else {
+                $colorClass = 'text-danger';
+                $barColor = 'bg-danger';
+                }
+                @endphp
+
+                <strong>Progress:</strong>
+                <span class="{{ $colorClass }} fw-semibold">
+                    {{ $progress }}%
+                </span>
+                <div class="progress mt-1" style="height:6px;">
+                    <div class="progress-bar {{ $barColor }}"
+                        style="width: {{ $progress }}%">
+                    </div>
+                </div>
             </div>
 
         </div>
     </div>
 
-    <h6 class="text-uppercase text-muted mb-3">Update History</h6>
+    <h6 class="text-muted mb-3">Task Activity</h6>
 
-    @foreach($remarks as $remark)
+    @forelse($activityLogs as $log)
+
     <div class="card mb-3">
         <div class="card-body">
 
             <div class="d-flex justify-content-between">
-                <strong>{{ $remark->user->name }}</strong>
+                <strong>{{ $log->user->name ?? 'System' }}</strong>
                 <small class="text-muted">
-                    {{ $remark->created_at->diffForHumans() }}
+                    {{ $log->created_at->diffForHumans() }}
                 </small>
             </div>
 
             {{-- Progress --}}
-            <div class="mt-2 mb-1">
-                @if(!is_null($remark->progress))
-                <div>
-                    <strong>Progress:</strong> {{ $remark->progress }}%
-                </div>
+            @if(isset($log->changes['progress']))
+
+            @php
+            $old = $log->changes['progress']['old'] ?? null;
+            $new = $log->changes['progress']['new'] ?? null;
+
+            // Determine new progress color
+            if ($new == 100) {
+            $barColor = 'bg-success';
+            $textColor = 'text-success';
+            } elseif ($new >= 70) {
+            $barColor = 'bg-primary';
+            $textColor = 'text-primary';
+            } elseif ($new >= 31) {
+            $barColor = 'bg-warning';
+            $textColor = 'text-warning';
+            } else {
+            $barColor = 'bg-danger';
+            $textColor = 'text-danger';
+            }
+            @endphp
+
+            <div class="mt-1 small">
+
+                <strong>Progress:</strong>
+
+                @if(!is_null($old))
+                <span class="text-danger">
+                    {{ $old }}%
+                </span>
+
+                <i class="bi bi-arrow-right mx-1 text-muted"></i>
                 @endif
+
+                <span class="{{ $textColor }} fw-semibold">
+                    {{ $new }}%
+                </span>
+
+                <div class="progress mt-1" style="height:6px;">
+                    <div class="progress-bar {{ $barColor }}"
+                        style="width: {{ $new }}%">
+                    </div>
+                </div>
+
             </div>
 
+            @endif
+
             {{-- Remarks --}}
-            @if(filled($remark->remark))
-            <div class="mb-1">
-                <strong>Remarks: </strong>
-                {{ $remark->remark }}
+            @if(isset($log->changes['remark']))
+            <div class="mt-1 small">
+                <strong>Remarks:</strong>
+                {{ $log->changes['remark']['new'] }}
             </div>
             @endif
 
             {{-- Files --}}
-            @if($remark->files->count())
-            <div class="mb-0">
+            @if($log->files->count())
+            <div class="mt-1 small">
                 <strong>Files: </strong>
 
-                @foreach($remark->files as $file)
+                @foreach($log->files as $file)
                 <a href="{{ asset('storage/' . $file->file_path) }}"
                     target="_blank">
                     {{ $file->original_name }}
@@ -110,12 +177,65 @@
             </div>
             @endif
 
+            {{-- Other Structural Changes --}}
+            @foreach($log->changes ?? [] as $field => $values)
+
+            @if(!in_array($field, ['progress','remark','files']))
+
+            @php
+            $old = $values['old'] ?? null;
+            $new = $values['new'] ?? null;
+            $label = ucwords(str_replace('_', ' ', $field));
+
+            /*
+            |--------------------------------------------------------------------------
+            | Special Handling
+            |--------------------------------------------------------------------------
+            */
+
+            // 1️⃣ Date Formatting
+            if (in_array($field, ['start_date','due_date'])) {
+            $old = $old ? \Carbon\Carbon::parse($old)->format('F d, Y') : '—';
+            $new = $new ? \Carbon\Carbon::parse($new)->format('F d, Y') : '—';
+            }
+
+            // 2️⃣ Assigned User ID → Convert to Name
+            if ($field === 'assigned_user_id') {
+            $oldUser = $old ? \App\Models\User::find($old) : null;
+            $newUser = $new ? \App\Models\User::find($new) : null;
+
+            $old = $oldUser->name ?? '—';
+            $new = $newUser->name ?? '—';
+
+            $label = 'Assigned To';
+            }
+
+            @endphp
+
+            <div class="mt-1 small">
+                <strong>{{ $label }}:</strong>
+
+                <span class="text-danger">{{ $old ?? '—' }}</span>
+
+                <i class="bi bi-arrow-right mx-1 text-muted"></i>
+
+                <span class="text-success">{{ $new ?? '—' }}</span>
+            </div>
+
+            @endif
+
+            @endforeach
+
+
         </div>
     </div>
-    @endforeach
+
+    @empty
+    <div class="text-muted">No activity recorded.</div>
+    @endforelse
 
     <div class="mt-3">
-        {{ $remarks->withQueryString()->links() }}
+        {{ $activityLogs->withQueryString()->links() }}
     </div>
 
 </x-page-wrapper>

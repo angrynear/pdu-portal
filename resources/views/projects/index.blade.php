@@ -7,10 +7,12 @@
 
     {{-- Page Actions --}}
     <x-slot name="actions">
+        @if(auth()->user()->isAdmin())
         <a href="{{ route('projects.create') }}" class="btn btn-sm btn-success">
             <i class="bi bi-plus-circle me-1"></i>
             Add Project
         </a>
+        @endif
     </x-slot>
 
     <div class="table-responsive">
@@ -89,35 +91,35 @@
 
                     {{-- Progress (Computed) --}}
                     <td class="text-center">
-                        <div class="progress" style="height: 6px;">
-                            <div
-                                class="progress-bar
-                                    {{ $project->progress == 100 ? 'bg-success' : 'bg-primary' }}"
-                                role="progressbar"
-                                style="width: {{ $project->progress }}%;"
-                                aria-valuenow="{{ $project->progress }}"
-                                aria-valuemin="0"
-                                aria-valuemax="100">
-                            </div>
-                        </div>
-                        <div class="small {{ $project->progress == 100 ? 'text-success fw-semibold' : 'text-muted' }}">
-                            {{ $project->progress }}%
-                        </div>
+                        <x-progress-bar :value="$project->progress" />
                     </td>
 
                     {{-- Actions --}}
                     <td class="text-center">
+
+                        {{-- VIEW (Everyone Allowed) --}}
                         <a href="{{ route('projects.show', $project->id) }}"
                             class="btn btn-sm btn-secondary">
                             View
                         </a>
 
-                        @if (is_null($project->archived_at))
+                        @php
+                        $isAdmin = auth()->user()->role === 'admin';
+                        $isArchived = !is_null($project->archived_at);
+                        @endphp
+
+                        {{-- ADMIN ONLY CONTROLS --}}
+                        @if($isAdmin)
+
+                        @if(!$isArchived)
+
+                        {{-- EDIT --}}
                         <a href="{{ route('projects.edit', $project->id) }}"
                             class="btn btn-sm btn-primary">
                             Edit
                         </a>
 
+                        {{-- ARCHIVE --}}
                         <button type="button"
                             class="btn btn-sm btn-danger"
                             data-bs-toggle="modal"
@@ -130,13 +132,17 @@
                             data-confirm-class="btn-danger">
                             Archive
                         </button>
+
                         @else
                         <span class="text-muted small">
                             Archived
                         </span>
                         @endif
 
+                        @endif
+
                     </td>
+
                 </tr>
                 @empty
                 <tr>

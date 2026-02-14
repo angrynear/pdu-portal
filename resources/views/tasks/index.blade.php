@@ -54,38 +54,24 @@
 
                     {{-- Progress --}}
                     <td class="text-center align-middle">
-
-                        <div class="progress" style="height: 6px;">
-                            <div
-                                class="progress-bar
-                                {{ $task->progress == 100 ? 'bg-success' : 'bg-primary' }}"
-                                style="width: {{ $task->progress }}%">
-                            </div>
-                        </div>
-                        <div class="small {{ $task->progress == 100 ? 'text-success fw-semibold' : 'text-muted' }}">
-                            {{ $task->progress }}%
-                        </div>
+                        <x-progress-bar :value="$task->progress" />
                     </td>
 
                     <td class="align-items-center">
                         @php
-                        $remark = $task->latestRemark->remark ?? null;
+                        $remark = $task->latestRemarkLog->changes['remark']['new'] ?? null;
                         @endphp
 
                         @if($remark)
 
                         <div>
-
-                            {{-- Short preview --}}
                             <span id="preview-{{ $task->id }}">
                                 {{ Str::limit($remark, 30) }}
                             </span>
 
-                            {{-- Full remark --}}
                             <span id="full-{{ $task->id }}" class="d-none text-dark">
                                 {{ $remark }}
                             </span>
-
                         </div>
 
                         @if(strlen($remark) > 30)
@@ -100,12 +86,12 @@
                         @else
                         <span>—</span>
                         @endif
-
                     </td>
 
                     {{-- Actions --}}
                     <td class="text-center">
-                        {{-- View --}}
+
+                        {{-- Always can View --}}
                         <a href="{{ route('tasks.show', ['task' => $task->id, 'from' => 'tasks']) }}"
                             class="btn btn-sm btn-secondary">
                             View
@@ -113,9 +99,15 @@
 
                         @if (is_null($task->archived_at) && is_null($task->project->archived_at))
 
-                        @if(!$task->assigned_user_id)
+                        @php
+                        $isAdmin = auth()->user()->isAdmin();
+                        $isAssignedUser = auth()->id() === $task->assigned_user_id;
+                        @endphp
 
-                        {{-- Assign --}}
+                        {{-- ========================= --}}
+                        {{-- ASSIGN (ADMIN ONLY) --}}
+                        {{-- ========================= --}}
+                        @if($isAdmin && !$task->assigned_user_id)
                         <button
                             class="btn btn-sm btn-info"
                             data-bs-toggle="modal"
@@ -123,10 +115,15 @@
                             data-task-id="{{ $task->id }}">
                             Assign
                         </button>
+                        @endif
 
-                        @elseif(!$task->start_date || !$task->due_date)
 
-                        {{-- Set Date --}}
+                        {{-- ========================= --}}
+                        {{-- SET DATE --}}
+                        {{-- ========================= --}}
+                        @if($task->assigned_user_id && (!$task->start_date || !$task->due_date))
+
+                        @if($isAdmin || $isAssignedUser)
                         <button
                             class="btn btn-sm btn-warning"
                             data-bs-toggle="modal"
@@ -136,10 +133,21 @@
                             data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
                             Set Date
                         </button>
-
                         @else
+                        <button class="btn btn-sm btn-warning" disabled>
+                            Set Date
+                        </button>
+                        @endif
 
-                        {{-- Update --}}
+                        @endif
+
+
+                        {{-- ========================= --}}
+                        {{-- UPDATE PROGRESS --}}
+                        {{-- ========================= --}}
+                        @if($task->assigned_user_id && $task->start_date && $task->due_date)
+
+                        @if($isAdmin || $isAssignedUser)
                         <button
                             class="btn btn-sm btn-primary ms-1"
                             data-bs-toggle="modal"
@@ -152,11 +160,19 @@
                             data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
                             Update
                         </button>
+                        @else
+                        <button class="btn btn-sm btn-primary ms-1" disabled>
+                            Update
+                        </button>
+                        @endif
 
                         @endif
 
 
-                        {{-- Archive Task --}}
+                        {{-- ========================= --}}
+                        {{-- ARCHIVE (ADMIN ONLY) --}}
+                        {{-- ========================= --}}
+                        @if($isAdmin)
                         <button
                             type="button"
                             class="btn btn-sm btn-danger ms-1"
@@ -170,6 +186,8 @@
                             data-confirm-class="btn-danger">
                             Archive
                         </button>
+                        @endif
+
                         @else
                         <span class="d-block text-muted small mt-1">
                             {{ $task->project->archived_at ? 'Project Archived' : 'Task Archived' }}

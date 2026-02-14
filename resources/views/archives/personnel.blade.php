@@ -29,7 +29,6 @@
                     <th style="width: 180px;">Email</th>
                     <th style="width: 100px;">Contact No.</th>
                     <th class="text-center" style="width: 90px;">Role</th>
-                    <th class="text-center" style="width: 100px;">Tasks</th>
                     <th class="text-center" style="width: 90px;">Deactivated At</th>
                     <th class="text-center" style="width: 120px;">Actions</th>
                 </tr>
@@ -75,18 +74,6 @@
                         <span class="badge bg-secondary">
                             {{ ucfirst($user->role) }}
                         </span>
-                    </td>
-
-                    {{-- Tasks --}}
-                    <td class="text-center">
-                        <div class="small">
-                            <span class="badge bg-warning text-dark me-1">
-                                Ongoing: {{ $user->ongoing_tasks_count }}
-                            </span><br />
-                            <span class="badge bg-primary">
-                                Total: {{ $user->total_tasks_count }}
-                            </span>
-                        </div>
                     </td>
 
                     {{-- Deactivated At --}}

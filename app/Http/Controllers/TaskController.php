@@ -17,14 +17,21 @@ class TaskController extends Controller
 {
     public function index()
     {
-        $tasks = Task::with([
+        $query = Task::with([
             'project',
             'assignedUser',
-            'latestRemark'
+            'activityLogs' => function ($query) {
+                $query->latest();
+            }
         ])
-            ->whereNull('archived_at')
-            ->paginate(20)
-            ->withQueryString();
+            ->whereNull('archived_at');
+
+        // If NOT admin → only show assigned tasks
+        if (!auth()->user()->isAdmin()) {
+            $query->where('assigned_user_id', auth()->id());
+        }
+
+        $tasks = $query->paginate(20)->withQueryString();
 
         $users = User::where('account_status', 'active')->get();
 
@@ -94,6 +101,11 @@ class TaskController extends Controller
 
     public function archive(Task $task)
     {
+
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
         if ($task->project->archived_at !== null) {
             abort(403, 'Cannot archive task under an archived project.');
         }
@@ -141,6 +153,7 @@ class TaskController extends Controller
 
     public function updateProgress(Request $request)
     {
+
         $request->validate([
             'task_id'   => ['required', 'exists:tasks,id'],
             'progress'  => ['required', 'integer', 'min:0', 'max:100'],
@@ -156,20 +169,13 @@ class TaskController extends Controller
             abort(403, 'Cannot update archived task.');
         }
 
-        // 🔒 Require dates before updating progress
-        if (
-            (!$task->start_date || !$task->due_date) &&
-            (!$request->start_date || !$request->due_date)
-        ) {
-            return back()->with(
-                'error',
-                FlashMessage::error('task_progress_updated')
-            );
+        // Only assigned user or admin can update progress
+        if (!auth()->user()->isAdmin() && $task->assigned_user_id !== auth()->id()) {
+            abort(403);
         }
 
         $project = $task->project;
 
-        // Normalize new values
         $newProgress = (int)$request->progress;
         $newRemark   = trim($request->remark ?? '');
         $newStart    = $request->start_date ?: null;
@@ -178,7 +184,7 @@ class TaskController extends Controller
         $oldStart = $task->start_date ? $task->start_date->format('Y-m-d') : null;
         $oldDue   = $task->due_date ? $task->due_date->format('Y-m-d') : null;
 
-        // 🔒 Enforce project date range
+        // Enforce project date range
         if ($newStart && $newStart < $project->start_date) {
             return back()->withErrors([
                 'start_date' => 'Task start date cannot be before project start date.'
@@ -191,7 +197,6 @@ class TaskController extends Controller
             ]);
         }
 
-        // Detect changes strictly
         $progressChanged = ((int)$task->progress !== $newProgress);
         $remarkChanged   = ($newRemark !== '');
         $dateChanged     = ($oldStart !== $newStart) || ($oldDue !== $newDue);
@@ -232,6 +237,7 @@ class TaskController extends Controller
 
             // ===== DATES =====
             if ($dateChanged) {
+
                 if ($oldStart !== $newStart) {
                     $changes['start_date'] = [
                         'old' => $oldStart,
@@ -253,55 +259,36 @@ class TaskController extends Controller
                 $task->save();
             }
 
-            // ===== REMARK OR FILE =====
-            if ($remarkChanged || $progressChanged || $hasFiles) {
-
-                $remarkData = [
-                    'task_id' => $task->id,
-                    'user_id' => auth()->id(),
+            // ===== REMARK =====
+            if ($remarkChanged) {
+                $changes['remark'] = [
+                    'old' => null,
+                    'new' => $newRemark,
                 ];
-
-                if ($remarkChanged) {
-                    $changes['remark'] = [
-                        'old' => optional($task->latestRemark)->remark,
-                        'new' => $newRemark,
-                    ];
-                    $remarkData['remark'] = $newRemark;
-                }
-
-                if ($progressChanged) {
-                    $remarkData['progress'] = $newProgress;
-                }
-
-                $remark = TaskRemark::create($remarkData);
-
-                if ($hasFiles) {
-
-                    $changes['files'] = [
-                        'old' => null,
-                        'new' => 'File(s) uploaded',
-                    ];
-
-                    foreach ($request->file('attachments') as $file) {
-
-                        $path = $file->store('task_attachments', 'public');
-
-                        $remark->files()->create([
-                            'file_path'     => $path,
-                            'original_name' => $file->getClientOriginalName(),
-                        ]);
-                    }
-                }
             }
 
-            // ===== ACTIVITY LOG =====
-            TaskActivityLog::create([
+            // ===== CREATE ACTIVITY LOG FIRST =====
+            $log = TaskActivityLog::create([
                 'task_id' => $task->id,
                 'user_id' => auth()->id(),
                 'action'  => 'updated',
                 'description' => 'Task updated',
                 'changes' => $changes,
             ]);
+
+            // ===== FILES =====
+            if ($hasFiles) {
+
+                foreach ($request->file('attachments') as $file) {
+
+                    $path = $file->store('task_attachments', 'public');
+
+                    $log->files()->create([
+                        'file_path'     => $path,
+                        'original_name' => $file->getClientOriginalName(),
+                    ]);
+                }
+            }
         });
 
         return back()->with(
@@ -309,7 +296,6 @@ class TaskController extends Controller
             FlashMessage::success('task_progress_updated')
         );
     }
-
 
     public function update(Request $request)
     {
@@ -409,12 +395,24 @@ class TaskController extends Controller
 
     public function show(Request $request, Task $task)
     {
-        $task->load(['project', 'assignedUser']);
+        // SECURITY CHECK
+        if (!auth()->user()->isAdmin()) {
 
-        $remarks = $task->remarks()
-            ->with(['user', 'files'])
-            ->latest()
-            ->paginate(5);
+            $userId = auth()->id();
+
+            $isAssigned = $task->assigned_user_id == $userId;
+
+            $isInRelatedProject = $task->project
+                ->tasks()
+                ->where('assigned_user_id', $userId)
+                ->exists();
+
+            if (!$isAssigned && !$isInRelatedProject) {
+                abort(403);
+            }
+        }
+
+        $task->load(['project', 'assignedUser']);
 
         $activityLogs = TaskActivityLog::with('user')
             ->where('task_id', $task->id)
@@ -425,17 +423,24 @@ class TaskController extends Controller
 
         return view('tasks.show', compact(
             'task',
-            'remarks',
             'activityLogs',
             'from'
         ));
     }
 
+
     public function taskLogs()
     {
-        $logs = TaskActivityLog::with(['task.project', 'user'])
-            ->latest()
-            ->paginate(20);
+        $query = TaskActivityLog::with(['task.project', 'user'])
+            ->latest();
+
+        if (!auth()->user()->isAdmin()) {
+            $query->whereHas('task', function ($q) {
+                $q->where('assigned_user_id', auth()->id());
+            });
+        }
+
+        $logs = $query->paginate(20);
 
         return view('logs.tasks', compact('logs'));
     }
@@ -450,6 +455,11 @@ class TaskController extends Controller
 
         $task = Task::findOrFail($request->task_id);
         $project = $task->project;
+
+        // Only assigned user or admin can set dates
+        if (!auth()->user()->isAdmin() && $task->assigned_user_id !== auth()->id()) {
+            abort(403);
+        }
 
         if ($request->start_date < $project->start_date) {
             return back()->withErrors([
@@ -504,6 +514,8 @@ class TaskController extends Controller
         ]);
 
         $task = Task::findOrFail($request->task_id);
+
+
 
         if ((int)$task->assigned_user_id === (int)$request->assigned_user_id) {
             return back()->with('warning', FlashMessage::warning('task_re-assign'));

@@ -19,8 +19,8 @@ class TaskFile extends Model
         return $this->belongsTo(Task::class);
     }
 
-    public function remark()
+    public function activityLog()
     {
-        return $this->belongsTo(TaskRemark::class, 'task_remark_id');
+        return $this->belongsTo(TaskActivityLog::class);
     }
 }

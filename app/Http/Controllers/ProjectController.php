@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Support\FlashMessage;
 use App\Models\ProjectActivityLog;
+use App\Models\TaskActivityLog;
+use Illuminate\Support\Facades\DB;
 
 
 class ProjectController extends Controller
@@ -16,27 +18,24 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $projects = Project::whereNull('archived_at')
+        $query = Project::whereNull('archived_at')
             ->withCount([
                 'tasks as total_tasks_count' => function ($query) {
                     $query->whereNull('archived_at');
-                },
-                'tasks as not_started_tasks_count' => function ($query) {
-                    $query->where('progress', 0)
-                        ->whereNull('archived_at');
-                },
-                'tasks as ongoing_tasks_count' => function ($query) {
-                    $query->whereBetween('progress', [1, 99])
-                        ->whereNull('archived_at');
                 },
                 'tasks as completed_tasks_count' => function ($query) {
                     $query->where('progress', 100)
                         ->whereNull('archived_at');
                 },
-            ])
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
+            ]);
+
+        if (!auth()->user()->isAdmin()) {
+            $query->whereHas('tasks', function ($q) {
+                $q->where('assigned_user_id', auth()->id());
+            });
+        }
+
+        $projects = $query->latest()->paginate(10)->withQueryString();
 
         return view('projects.index', compact('projects'));
     }
@@ -49,19 +48,21 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                'unique:projects,name' // prevents duplicate names
+            ],
             'location' => ['required', 'string', 'max:255'],
-
             'sub_sector' => [
                 'required',
                 'in:basic_education,higher_education,madaris_education,technical_education,others'
             ],
-
             'source_of_fund' => [
                 'required',
                 'in:GAAB,QRF,TDIF,SDF,CF,SB,BEFF,ODA,LOCAL,For Approval'
             ],
-
             'funding_year' => [
                 'required',
                 function ($attribute, $value, $fail) {
@@ -70,7 +71,6 @@ class ProjectController extends Controller
                     }
                 }
             ],
-
             'amount' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string'],
             'start_date' => ['required', 'date'],
@@ -79,8 +79,6 @@ class ProjectController extends Controller
 
         $project = Project::create($validated);
 
-        Project::create($validated);
-
         ProjectActivityLog::create([
             'project_id' => $project->id,
             'user_id' => auth()->id(),
@@ -88,17 +86,28 @@ class ProjectController extends Controller
             'description' => 'Project created',
         ]);
 
-
         return redirect()
             ->route('projects.index')
             ->with('success', FlashMessage::success('project_created'));
     }
 
+
     public function show(Project $project)
     {
+        // SECURITY: Normal users can only access related projects
+        if (!auth()->user()->isAdmin()) {
+
+            $hasAssignedTask = $project->tasks()
+                ->where('assigned_user_id', auth()->id())
+                ->exists();
+
+            if (!$hasAssignedTask) {
+                abort(403);
+            }
+        }
 
         $project->load([
-            'tasks.assignedUser', // optional, if relation exists
+            'tasks.assignedUser',
         ])->loadCount([
             'tasks as total_tasks_count',
             'tasks as completed_tasks_count' => function ($q) {
@@ -106,7 +115,6 @@ class ProjectController extends Controller
             },
         ]);
 
-        // Get active personnel only
         $users = User::where('account_status', 'active')
             ->orderBy('name')
             ->get();
@@ -116,11 +124,21 @@ class ProjectController extends Controller
 
     public function edit(Project $project)
     {
+        // SECURITY: Only admins can edit projects
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
         return view('projects.edit', compact('project'));
     }
 
     public function update(Request $request, Project $project)
     {
+        // SECURITY: Only admins can update projects
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'location' => ['required', 'string', 'max:255'],
@@ -191,29 +209,51 @@ class ProjectController extends Controller
 
     public function archive(Project $project)
     {
-        // Archive ALL tasks under the project
-        $project->tasks()->update([
-            'archived_at' => now(),
-        ]);
+        // SECURITY: Only admins can archive projects
+        if (!auth()->user()->isAdmin()) {
+            abort(403);
+        }
 
-        // Archive the project itself
-        $project->update([
-            'archived_at' => now(),
-        ]);
+        if ($project->archived_at) {
+            return back();
+        }
 
-        ProjectActivityLog::create([
-            'project_id' => $project->id,
-            'user_id' => auth()->id(),
-            'action' => 'archived',
-            'description' => 'Project archived',
-        ]);
+        DB::transaction(function () use ($project) {
 
+            // Archive project
+            $project->update([
+                'archived_at' => now(),
+            ]);
 
-        return redirect()
-            ->route('projects.index')
-            ->with('success', FlashMessage::success('project_archived'));
+            ProjectActivityLog::create([
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+                'action' => 'archived',
+                'description' => 'Project archived',
+            ]);
+
+            // Archive each task individually
+            foreach ($project->tasks as $task) {
+
+                if (!$task->archived_at) {
+
+                    $task->update([
+                        'archived_at' => now(),
+                    ]);
+
+                    TaskActivityLog::create([
+                        'task_id' => $task->id,
+                        'user_id' => auth()->id(),
+                        'action'  => 'archived',
+                        'description' => 'Task archived due to project archive',
+                    ]);
+                }
+            }
+        });
+
+        return back()->with('success', FlashMessage::success('project_archived'));
     }
- 
+
     public function archived()
     {
         $projects = Project::whereNotNull('archived_at')
@@ -248,10 +288,16 @@ class ProjectController extends Controller
 
     public function activityLogs()
     {
-        $logs = ProjectActivityLog::with(['project', 'user'])
-            ->latest()
-            ->paginate(20)
-            ->withQueryString();
+        $query = ProjectActivityLog::with(['project', 'user'])
+            ->latest();
+
+        if (!auth()->user()->isAdmin()) {
+            $query->whereHas('project.tasks', function ($q) {
+                $q->where('assigned_user_id', auth()->id());
+            });
+        }
+
+        $logs = $query->paginate(20)->withQueryString();
 
         return view('logs.projects', compact('logs'));
     }

@@ -12,9 +12,9 @@
                     <th style="width:160px;">Date & Time</th>
                     <th style="width:180px;">User</th>
                     <th style="width:230px;">Project</th>
-                    <th style="width:160px;">Task</th>
+                    <th style="width:100px;">Task</th>
                     <th style="width:70px;">Action</th>
-                    <th style="width:190px;">Description</th>
+                    <th style="width:300px;">Description</th>
                 </tr>
             </thead>
 
@@ -68,7 +68,9 @@
                     {{-- Description --}}
                     <td>
 
-                        <div>{{ $log->description }}</div>
+                        <div>
+                            {{ $log->description }}
+                        </div>
 
                         @if(!empty($log->changes))
 
@@ -82,25 +84,60 @@
                         <div class="collapse mt-2 small"
                             id="taskChanges-{{ $log->id }}">
 
+                            @php
+                            $fieldLabels = [
+                            'task_type' => 'Task Type',
+                            'assigned_user_id' => 'Assigned Personnel',
+                            'start_date' => 'Start Date',
+                            'due_date' => 'Due Date',
+                            'progress' => 'Progress',
+                            'remark' => 'Remark',
+                            'files' => 'Attachments',
+                            ];
+                            @endphp
+
                             @foreach($log->changes as $field => $values)
 
                             @php
+                            $label = $fieldLabels[$field] ?? ucwords(str_replace('_', ' ', $field));
+
                             $old = $values['old'] ?? null;
                             $new = $values['new'] ?? null;
 
-                            $label = ucwords(str_replace('_', ' ', $field));
-
+                            // Format progress
                             if ($field === 'progress') {
-                            $old .= '%';
-                            $new .= '%';
+                            $old = $old !== null ? $old . '%' : null;
+                            $new = $new !== null ? $new . '%' : null;
+                            }
+
+                            // Format dates
+                            if (in_array($field, ['start_date','due_date'])) {
+                            $old = $old ? \Carbon\Carbon::parse($old)->format('M. d, Y') : null;
+                            $new = $new ? \Carbon\Carbon::parse($new)->format('M. d, Y') : null;
+                            }
+
+                            // Convert assigned user ID to name
+                            if ($field === 'assigned_user_id') {
+                            $oldUser = \App\Models\User::find($old);
+                            $newUser = \App\Models\User::find($new);
+
+                            $old = $oldUser?->name ?? '—';
+                            $new = $newUser?->name ?? '—';
                             }
                             @endphp
 
-                            <div>
+                            <div class="small">
                                 <strong>{{ $label }}:</strong>
-                                <span class="text-danger">{{ $old }}</span>
-                                →
-                                <span class="text-success">{{ $new }}</span>
+
+                                <span class="text-danger">
+                                    {{ $old ?? '—' }}
+                                </span>
+
+                                <i class="bi bi-arrow-right mx-2 text-muted"></i>
+
+                                <span class="text-success">
+                                    {{ $new ?? '—' }}
+                                </span>
                             </div>
 
                             @endforeach
