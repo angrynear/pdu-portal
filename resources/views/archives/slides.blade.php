@@ -138,6 +138,5 @@
     </script>
     @endpush
 
-
 </x-page-wrapper>
 @endsection

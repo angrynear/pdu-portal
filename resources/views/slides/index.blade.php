@@ -30,7 +30,7 @@
                 @forelse ($slides as $slide)
                 <tr>
                     <td class="text-center">
-                        {{ $loop->iteration }}
+                        {{ $slides->firstItem() + $loop->index }}
                     </td>
 
                     <td>
@@ -113,8 +113,12 @@
                 @endforelse
             </tbody>
         </table>
-    </div>
 
+        <div class="mt-3">
+            {{ $slides->links() }}
+        </div>
+
+    </div>
 
     @push('scripts')
     <script>
