@@ -1,18 +1,35 @@
 @extends('layouts.app')
 
-@section('title', 'Manage Projects')
-
 @section('content')
-<x-page-wrapper title="Projects List">
+
+@php
+$isAdmin = auth()->user()->isAdmin();
+$isMyPage = request()->routeIs('projects.my');
+
+$pageTitle = $isAdmin
+? ($isMyPage ? 'My Projects' : 'Manage Projects')
+: 'My Projects';
+@endphp
+
+@section('title', $pageTitle)
+
+<x-page-wrapper :title="$pageTitle">
 
     {{-- Page Actions --}}
     <x-slot name="actions">
-        @if(auth()->user()->isAdmin())
-        <a href="{{ route('projects.create') }}" class="btn btn-sm btn-success">
-            <i class="bi bi-plus-circle me-1"></i>
-            Add Project
+        @php
+        $isMyPage = request()->routeIs('projects.my');
+        @endphp
+
+        @if(auth()->user()->isAdmin() && !$isMyPage)
+
+        <a href="{{ route('projects.create') }}"
+            class="btn btn-sm btn-success">
+            + Add Project
         </a>
+
         @endif
+
     </x-slot>
 
     <div class="table-responsive">
@@ -98,7 +115,10 @@
                     <td class="text-center">
 
                         {{-- VIEW (Everyone Allowed) --}}
-                        <a href="{{ route('projects.show', $project->id) }}"
+                        <a href="{{ route('projects.show', [
+        'project' => $project->id,
+        'from' => request()->routeIs('projects.my') ? 'my' : 'manage'
+    ]) }}"
                             class="btn btn-sm btn-secondary">
                             View
                         </a>

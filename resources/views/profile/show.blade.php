@@ -8,10 +8,10 @@
     {{-- Edit Profile --}}
     <x-slot name="actions">
         <a href="{{ route('profile.edit') }}"
-    class="btn btn-sm btn-primary">
-    <i class="bi bi-pencil-square me-1"></i>
-    Edit Profile
-    </a>
+            class="btn btn-sm btn-primary">
+            <i class="bi bi-pencil-square me-1"></i>
+            Edit Profile
+        </a>
     </x-slot>
 
 
@@ -88,7 +88,7 @@
                 </tr>
             </table>
 
-            {{-- TASK SUMMARY --}}
+            {{-- TASK SUMMARY
             <h6 class="text-uppercase text-muted mb-2">Task Summary</h6>
             <table class="table table-sm table-borderless">
 
@@ -97,30 +97,30 @@
                     <td>
                         <span class="badge bg-primary">
                             {{ $user->total_tasks_count ?? 0 }}
-                        </span>
-                    </td>
-                </tr>
+            </span>
+            </td>
+            </tr>
 
-                <tr>
-                    <th width="200">Completed Tasks</th>
-                    <td>
-                        <span class="badge bg-success">
-                            {{ $user->completed_tasks_count ?? 0 }}
-                        </span>
-                    </td>
-                </tr>
+            <tr>
+                <th width="200">Completed Tasks</th>
+                <td>
+                    <span class="badge bg-success">
+                        {{ $user->completed_tasks_count ?? 0 }}
+                    </span>
+                </td>
+            </tr>
 
-                <tr>
-                    <th width="200">Ongoing Tasks</th>
-                    <td>
-                        <span class="badge bg-warning text-dark">
-                            {{ $user->ongoing_tasks_count ?? 0 }}
-                        </span>
-                    </td>
-                </tr>
+            <tr>
+                <th width="200">Ongoing Tasks</th>
+                <td>
+                    <span class="badge bg-warning text-dark">
+                        {{ $user->ongoing_tasks_count ?? 0 }}
+                    </span>
+                </td>
+            </tr>
 
             </table>
-
+            --}}
         </div>
     </div>
 

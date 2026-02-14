@@ -1,9 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'Manage Tasks')
-
 @section('content')
-<x-page-wrapper title="Tasks List">
+
+@php
+$isAdmin = auth()->user()->isAdmin();
+$isMyPage = request()->routeIs('tasks.my');
+
+$pageTitle = $isAdmin
+? ($isMyPage ? 'My Tasks' : 'Manage Tasks')
+: 'My Tasks';
+@endphp
+
+@section('title', $pageTitle)
+
+<x-page-wrapper :title="$pageTitle">
 
     <div class="table-responsive">
         <table class="table align-middle table-sm">
@@ -92,7 +102,10 @@
                     <td class="text-center">
 
                         {{-- Always can View --}}
-                        <a href="{{ route('tasks.show', ['task' => $task->id, 'from' => 'tasks']) }}"
+                        <a href="{{ route('tasks.show', [
+        'task' => $task->id,
+        'from' => request()->routeIs('tasks.my') ? 'my' : 'manage'
+    ]) }}"
                             class="btn btn-sm btn-secondary">
                             View
                         </a>

@@ -428,7 +428,6 @@ class TaskController extends Controller
         ));
     }
 
-
     public function taskLogs()
     {
         $query = TaskActivityLog::with(['task.project', 'user'])
@@ -505,7 +504,6 @@ class TaskController extends Controller
         return back()->with('success', FlashMessage::success('task_set_dates'));
     }
 
-
     public function assign(Request $request)
     {
         $request->validate([
@@ -541,5 +539,20 @@ class TaskController extends Controller
         ]);
 
         return back()->with('success', FlashMessage::success('task_re-assign'));
+    }
+
+    public function myTasks()
+    {
+        $userId = auth()->id();
+
+        $tasks = Task::with(['project', 'assignedUser'])
+            ->whereNull('archived_at')
+            ->where('assigned_user_id', $userId)
+            ->latest()
+            ->paginate(20);
+
+        $users = User::where('account_status', 'active')->get();
+
+        return view('tasks.index', compact('tasks', 'users'));
     }
 }

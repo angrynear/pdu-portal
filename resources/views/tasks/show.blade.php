@@ -10,6 +10,7 @@
         $from = request('from');
 
         switch ($from) {
+
         case 'project':
         $backUrl = route('projects.show', $task->project_id);
         $label = 'Project';
@@ -20,9 +21,16 @@
         $label = 'Task Logs';
         break;
 
+        case 'my':
+        $backUrl = route('tasks.my');
+        $label = 'My Tasks';
+        break;
+
+        case 'manage':
         default:
         $backUrl = route('tasks.index');
-        $label = 'Tasks';
+        $label = auth()->user()->isAdmin() ? 'Manage Tasks' : 'My Tasks';
+        break;
         }
         @endphp
 
@@ -38,15 +46,16 @@
 
             <div class="mb-1">
                 <strong>Project:</strong>
-                <a href="{{ route('projects.show', $task->project->id) }}"
-                    class="text-decoration-none text-dark fw-semibold link-hover">
                     {{ $task->project->name ?? '-' }}
-                </a>
             </div>
 
             <div class="mb-1">
                 <strong>Assigned To:</strong>
+                @if($task->assignedUser)
                 {{ $task->assignedUser->name }}
+                @else
+                <span class="text-danger">Deactivated User</span>
+                @endif
             </div>
 
             <div class="mb-1">

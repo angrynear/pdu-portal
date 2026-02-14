@@ -38,6 +38,15 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/projects', [ProjectController::class, 'index'])
         ->name('projects.index');
 
+    // All projects (admin sees all, user filtered inside controller)
+    Route::get('/projects', [ProjectController::class, 'index'])
+        ->name('projects.index');
+
+    // My projects (admin only)
+    Route::get('/my-projects', [ProjectController::class, 'myProjects'])
+        ->middleware('admin')
+        ->name('projects.my');
+
     /*
     |--------------------------------------------------------------------------
     | TASKS (Admin + User)
@@ -54,6 +63,15 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::patch('/tasks/set-dates', [TaskController::class, 'setDates'])
         ->name('tasks.setDates');
+
+    // All tasks (admin sees all, user filtered inside controller)
+    Route::get('/tasks', [TaskController::class, 'index'])
+        ->name('tasks.index');
+
+    // My tasks (admin only)
+    Route::get('/my-tasks', [TaskController::class, 'myTasks'])
+        ->middleware('admin')
+        ->name('tasks.my');
 
     /*
     |--------------------------------------------------------------------------

@@ -301,4 +301,23 @@ class ProjectController extends Controller
 
         return view('logs.projects', compact('logs'));
     }
+
+    public function myProjects()
+    {
+        $userId = auth()->id();
+
+        $projects = Project::whereNull('archived_at')
+            ->whereHas('tasks', function ($q) use ($userId) {
+                $q->where('assigned_user_id', $userId);
+            })
+            ->withCount([
+                'tasks as total_tasks_count' => function ($q) {
+                    $q->whereNull('archived_at');
+                }
+            ])
+            ->latest()
+            ->paginate(10);
+
+        return view('projects.index', compact('projects'));
+    }
 }

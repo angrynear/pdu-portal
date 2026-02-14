@@ -15,25 +15,105 @@
     {{-- PROJECT --}}
     <h6 class="text-uppercase text-muted">Project</h6>
     <ul class="nav flex-column">
+
+        @php
+        $isAdmin = auth()->user()->isAdmin();
+        $route = request()->route()->getName();
+        $from = request('from');
+
+        $isProjectRoute = str_starts_with($route, 'projects.');
+        @endphp
+
+        @if($isAdmin)
+
+        @php
+        $manageActive = $route === 'projects.index' ||
+        ($route === 'projects.show' && $from !== 'my');
+
+        $myActive = $route === 'projects.my' ||
+        ($route === 'projects.show' && $from === 'my');
+        @endphp
+
         <li class="nav-item">
             <a href="{{ route('projects.index') }}"
-                class="nav-link {{ request()->routeIs('projects.*') && !request()->routeIs('projects.archived') ? 'active' : '' }}">
+                class="nav-link {{ $manageActive ? 'active' : '' }}">
                 <i class="bi bi-kanban me-2"></i>
                 Manage Projects
             </a>
         </li>
+
+        <li class="nav-item">
+            <a href="{{ route('projects.my') }}"
+                class="nav-link {{ $myActive ? 'active' : '' }}">
+                <i class="bi bi-kanban me-2"></i>
+                My Projects
+            </a>
+        </li>
+
+        @else
+
+        {{-- USER LOGIC --}}
+        <li class="nav-item">
+            <a href="{{ route('projects.index') }}"
+                class="nav-link {{ $isProjectRoute ? 'active' : '' }}">
+                <i class="bi bi-kanban me-2"></i>
+                My Projects
+            </a>
+        </li>
+
+        @endif
     </ul>
 
     {{-- TASK --}}
     <h6 class="text-uppercase text-muted">Task</h6>
     <ul class="nav flex-column">
+
+        @php
+        $isAdmin = auth()->user()->isAdmin();
+        $route = request()->route()->getName();
+        $from = request('from');
+
+        $isTaskRoute = str_starts_with($route, 'tasks.');
+        @endphp
+
+        @if($isAdmin)
+
+        @php
+        $manageActive = $route === 'tasks.index' ||
+        ($route === 'tasks.show' && $from !== 'my');
+
+        $myActive = $route === 'tasks.my' ||
+        ($route === 'tasks.show' && $from === 'my');
+        @endphp
+
         <li class="nav-item">
             <a href="{{ route('tasks.index') }}"
-                class="nav-link {{ request()->routeIs('tasks.*') && !request()->routeIs('tasks.archived') ? 'active' : '' }}">
+                class="nav-link {{ $manageActive ? 'active' : '' }}">
                 <i class="bi bi-list-check me-2"></i>
                 Manage Tasks
             </a>
         </li>
+
+        <li class="nav-item">
+            <a href="{{ route('tasks.my') }}"
+                class="nav-link {{ $myActive ? 'active' : '' }}">
+                <i class="bi bi-list-check me-2"></i>
+                My Tasks
+            </a>
+        </li>
+
+        @else
+
+        {{-- USER LOGIC --}}
+        <li class="nav-item">
+            <a href="{{ route('tasks.index') }}"
+                class="nav-link {{ $isTaskRoute ? 'active' : '' }}">
+                <i class="bi bi-list-check me-2"></i>
+                My Tasks
+            </a>
+        </li>
+
+        @endif
     </ul>
 
     {{-- ADMIN ONLY --}}

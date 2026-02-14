@@ -195,7 +195,9 @@ class PersonnelController extends Controller
         }
 
         if (empty($changes)) {
-            return back()->with('warning', FlashMessage::warning('personnel_updated'));
+            return redirect()
+                ->route('personnel.index')
+                ->with('warning', FlashMessage::warning('personnel_updated'));
         }
 
         // ===============================
@@ -231,7 +233,6 @@ class PersonnelController extends Controller
             ->route('personnel.index')
             ->with('success', FlashMessage::success('personnel_updated'));
     }
-
 
     public function deactivate(User $user)
     {

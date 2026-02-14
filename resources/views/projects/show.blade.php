@@ -10,6 +10,7 @@
         $from = request('from');
 
         switch ($from) {
+
         case 'tasks':
         $backUrl = route('tasks.index');
         $label = 'Tasks';
@@ -25,9 +26,16 @@
         $label = 'Project Logs';
         break;
 
+        case 'my':
+        $backUrl = route('projects.my');
+        $label = 'My Projects';
+        break;
+
+        case 'manage':
         default:
         $backUrl = route('projects.index');
-        $label = 'Projects';
+        $label = auth()->user()->isAdmin() ? 'Manage Projects' : 'My Projects';
+        break;
         }
         @endphp
 
