@@ -5,6 +5,7 @@ use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
+use \App\Http\Controllers\Admin\SlideController;
 
 /*
 |--------------------------------------------------------------------------
@@ -175,6 +176,30 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         Route::put('/tasks/update', [TaskController::class, 'update'])
             ->name('tasks.update');
+
+        /*
+        |--------------------------------------------------------------------------
+        | SLIDESHOW MANAGEMENT (ADMIN)
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('/slides', [SlideController::class, 'index'])
+            ->name('slides.index');
+
+        Route::get('/slides/create', [SlideController::class, 'create'])
+            ->name('slides.create');
+
+        Route::post('/slides', [SlideController::class, 'store'])
+            ->name('slides.store');
+
+        Route::get('/slides/{slide}/edit', [SlideController::class, 'edit'])
+            ->name('slides.edit');
+
+        Route::put('/slides/{slide}', [SlideController::class, 'update'])
+            ->name('slides.update');
+
+        Route::patch('/slides/{slide}/archive', [SlideController::class, 'archive'])
+            ->name('slides.archive');
     });
 
     /*
@@ -214,6 +239,12 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::get('/archives/personnel', [PersonnelController::class, 'archived'])
         ->name('personnel.archived');
+
+    Route::get('/archives/slides', [SlideController::class, 'archived'])
+        ->name('slides.archived');
+
+    Route::patch('/archives/slides/{slide}/restore', [SlideController::class, 'restore'])
+        ->name('slides.restore');
 });
 
 /*

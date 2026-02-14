@@ -135,8 +135,12 @@
     <h6 class="text-uppercase text-muted">Content</h6>
     <ul class="nav flex-column">
         <li class="nav-item">
-            <a href="#"
-                class="nav-link {{ request()->routeIs('content.*') ? 'active' : '' }}">
+            <a href="{{ route('slides.index') }}"
+                class="nav-link 
+    {{ request()->routeIs('slides.index') 
+        || request()->routeIs('slides.create') 
+        || request()->routeIs('slides.edit') 
+        ? 'active' : '' }}">
                 <i class="bi bi-images me-2"></i>
                 Slideshow Manager
             </a>
@@ -161,6 +165,15 @@
             </a>
 
         </li>
+
+        <li class="nav-item">
+            <a href="{{ route('slides.archived') }}"
+                class="nav-link {{ request()->routeIs('slides.archived') ? 'active' : '' }}">
+                <i class="bi bi-archive me-2"></i>
+                Archived Slides
+            </a>
+        </li>
+
         <li class="nav-item">
             <a href="{{ route('personnel.archived') }}"
                 class="nav-link {{ request()->routeIs('personnel.archived') ? 'active' : '' }}">
