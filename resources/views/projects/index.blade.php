@@ -39,8 +39,8 @@ $pageTitle = $isAdmin
                     <th class="text-center" style="width: 50px;">No.</th>
                     <th style="width: 280px;">Project Name</th>
                     <th style="width: 180px;">Location</th>
-                    <th style="width: 180px;">Source of Fund</th>
-                    <th class="text-center" style="width: 150px;">Timeline</th>
+                    <th style="width: 160px;">Source of Fund</th>
+                    <th class="text-center" style="width: 170px;">Timeline</th>
                     <th class="text-center" style="width: 50px;">Task</th>
                     <th class="text-center" style="width: 100px;">Progress</th>
                     <th class="text-center" style="width: 150px;">Actions</th>

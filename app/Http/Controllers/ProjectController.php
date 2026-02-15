@@ -313,6 +313,10 @@ class ProjectController extends Controller
             ->withCount([
                 'tasks as total_tasks_count' => function ($q) {
                     $q->whereNull('archived_at');
+                },
+                'tasks as completed_tasks_count' => function ($q) {
+                    $q->where('progress', 100)
+                        ->whereNull('archived_at');
                 }
             ])
             ->latest()
