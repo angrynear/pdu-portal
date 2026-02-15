@@ -39,69 +39,72 @@
         </a>
     </x-slot>
 
-    <div class="card mb-4">
-        <div class="card-body">
+    @php
+    $progress = $task->progress ?? 0;
+    @endphp
 
-            <h5 class="fw-bold">{{ $task->task_type }}</h5>
-
-            <div class="mb-1">
-                <strong>Project:</strong>
-                {{ $task->project->name ?? '-' }}
+    {{-- HEADER --}}
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h5 class="mb-1">{{ ucfirst($task->task_type) }}</h5>
+            <div class="text-muted small">
+                Project: {{ $task->project->name ?? '—' }}
             </div>
+        </div>
 
-            <div class="mb-1">
-                <strong>Assigned To:</strong>
+        {{-- Optional Status Badge (Future Ready) --}}
+        @php
+        $status = $progress == 100 ? 'Completed' : ($progress > 0 ? 'Ongoing' : 'Not Started');
+
+        $statusClasses = [
+        'Not Started' => 'bg-secondary',
+        'Ongoing' => 'bg-success',
+        'Completed' => 'bg-primary',
+        ];
+        @endphp
+
+        <span class="badge {{ $statusClasses[$status] ?? 'bg-secondary' }}">
+            {{ $status }}
+        </span>
+    </div>
+
+    <hr>
+
+    {{-- INFO GRID --}}
+    <div class="row mb-3">
+
+        <div class="col-md-4 mb-2">
+            <div class="fw-semibold">Assigned To</div>
+            <div>
                 @if($task->assignedUser)
                 {{ $task->assignedUser->name }}
                 @else
                 <span class="text-danger">Deactivated User</span>
                 @endif
             </div>
+        </div>
 
-            <div class="mb-1">
-                <strong>Start Date:</strong>
-                {{ optional($task->start_date)->format('F d, Y') }}
-            </div>
+        <div class="col-md-4 mb-2">
+            <div class="fw-semibold">Start Date</div>
+            <div>{{ $task->start_date?->format('F j, Y') ?? '—' }}</div>
+        </div>
 
-            <div class="mb-1">
-                <strong>Due Date:</strong>
+        <div class="col-md-4 mb-2">
+            <div class="fw-semibold">Due Date</div>
+            <div>
                 <x-due-date
                     :dueDate="$task->due_date"
                     :progress="$task->progress" />
             </div>
-
-            <div class="mb-0">
-                @php
-                $progress = $task->progress;
-
-                if ($progress == 100) {
-                $colorClass = 'text-success';
-                $barColor = 'bg-success';
-                } elseif ($progress >= 70) {
-                $colorClass = 'text-primary';
-                $barColor = 'bg-primary';
-                } elseif ($progress >= 31) {
-                $colorClass = 'text-warning';
-                $barColor = 'bg-warning';
-                } else {
-                $colorClass = 'text-danger';
-                $barColor = 'bg-danger';
-                }
-                @endphp
-
-                <strong>Progress:</strong>
-                <span class="{{ $colorClass }} fw-semibold">
-                    {{ $progress }}%
-                </span>
-                <div class="progress mt-1" style="height:6px;">
-                    <div class="progress-bar {{ $barColor }}"
-                        style="width: {{ $progress }}%">
-                    </div>
-                </div>
-            </div>
-
         </div>
+
+        <div class="col-md-4 mb-2">
+            <div class="fw-semibold mb-1">Progress</div>
+            <x-progress-bar :value="$task->progress" />
+        </div>
+
     </div>
+
 
     <h6 class="text-muted mb-3">Task Activity</h6>
 
