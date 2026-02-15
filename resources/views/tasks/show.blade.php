@@ -46,7 +46,7 @@
 
             <div class="mb-1">
                 <strong>Project:</strong>
-                    {{ $task->project->name ?? '-' }}
+                {{ $task->project->name ?? '-' }}
             </div>
 
             <div class="mb-1">
@@ -65,7 +65,9 @@
 
             <div class="mb-1">
                 <strong>Due Date:</strong>
-                {{ optional($task->due_date)->format('F d, Y') }}
+                <x-due-date
+                    :dueDate="$task->due_date"
+                    :progress="$task->progress" />
             </div>
 
             <div class="mb-0">

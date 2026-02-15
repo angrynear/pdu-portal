@@ -84,7 +84,7 @@ $pageTitle = $isAdmin
                     </td>
 
                     {{-- Timeline --}}
-                    <td class="text-center">
+                    <td>
                         <div class="small">
                             <div>
                                 <strong>Start Date:</strong>
@@ -92,7 +92,9 @@ $pageTitle = $isAdmin
                             </div>
                             <div>
                                 <strong>Due Date:</strong>
-                                {{ $project->due_date?->format('M. j, Y') ?? '—' }}
+                                <x-due-date
+                                    :dueDate="$project->due_date"
+                                    :progress="$project->progress"/>
                             </div>
                         </div>
                     </td>

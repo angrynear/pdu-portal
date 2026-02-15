@@ -20,13 +20,13 @@ $pageTitle = $isAdmin
             <thead class="table-light">
                 <tr>
                     <th class="text-center" style="width: 50px;">No.</th>
-                    <th style="width: 120px;">Task</th>
-                    <th style="width: 180px;">Project Title</th>
-                    <th style="width: 130px;">Assigned Personnel</th>
-                    <th style="width: 100px;">Timeline</th>
-                    <th class="text-center" style="width: 70px;">Progress</th>
-                    <th class="text-center" style="width: 130px;">Remarks</th>
-                    <th style="width: 130px;" class="text-center">Actions</th>
+                    <th style="width: 130px;">Task</th>
+                    <th style="width: 150px;">Project Title</th>
+                    <th style="width: 120px;">Assigned Personnel</th>
+                    <th style="width: 120px;">Timeline</th>
+                    <th class="text-center" style="width: 90px;">Progress</th>
+                    <th class="text-center" style="width: 120px;">Remarks</th>
+                    <th style="width: 120px;" class="text-center">Actions</th>
                 </tr>
             </thead>
 
@@ -58,7 +58,10 @@ $pageTitle = $isAdmin
                             {{ $task->start_date?->format('M. j, Y') ?? '—' }}
                         </div>
                         <div>
-                            <strong>Due Date: </strong>{{ $task->due_date?->format('M. j, Y') ?? '—' }}
+                            <strong>Due Date: </strong>
+                            <x-due-date
+                                :dueDate="$task->due_date"
+                                :progress="$task->progress" />
                         </div>
                     </td>
 
@@ -67,7 +70,7 @@ $pageTitle = $isAdmin
                         <x-progress-bar :value="$task->progress" />
                     </td>
 
-                    <td class="align-items-center">
+                    <td class="small align-items-center">
                         @php
                         $remark = $task->latestRemarkLog->changes['remark']['new'] ?? null;
                         @endphp

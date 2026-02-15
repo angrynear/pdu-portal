@@ -109,7 +109,11 @@
 
         <div class="col-md-4 mb-2">
             <div class="fw-semibold">Target Completion</div>
-            <div>{{ $project->due_date?->format('F j, Y') ?? '—' }}</div>
+            <div>
+                <x-due-date
+                    :dueDate="$project->due_date"
+                    :progress="$project->progress" />
+            </div>
         </div>
 
         <div class="col-md-4 mb-2">
