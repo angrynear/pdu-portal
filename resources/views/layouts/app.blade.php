@@ -128,6 +128,7 @@
 
         .card {
             border-radius: 14px;
+            transition: all 0.2s ease-in-out;
         }
 
         .card:hover {
@@ -136,6 +137,7 @@
         }
 
         .stat-tile {
+            min-height: 110px;
             border-radius: 14px;
             padding: 22px 24px;
             color: #ffffff;
@@ -197,6 +199,51 @@
 
         .dashboard-section {
             margin-bottom: 3rem;
+        }
+
+        /* Reduce Card Padding on Mobile */
+        @media (max-width: 767.98px) {
+            .card-body {
+                padding: 1rem;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+            }
+        }
+
+        /*------------------*/
+
+        .dashboard-scroll {
+            max-height: 420px;
+        }
+
+        @media (max-width: 767.98px) {
+            .dashboard-scroll {
+                max-height: 300px;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .stat-number {
+                font-size: 1.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.75rem;
+            }
+
+            h6 {
+                font-size: 0.9rem;
+            }
+        }
+
+        .fw-semibold a {
+            word-break: break-word;
         }
     </style>
 </head>

@@ -12,13 +12,13 @@
     {{-- ============================= --}}
     {{-- 1️⃣ SYSTEM SNAPSHOT --}}
     {{-- ============================= --}}
-    <div class="mb-4">
+    <div class="mb-3 mb-md-4">
 
         {{-- ================= Projects Row ================= --}}
         <div class="row g-4 mb-4">
 
             {{-- Total Projects --}}
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-xl-3">
                 <div class="stat-tile tile-blue d-flex justify-content-between">
                     <div>
                         <div class="stat-label">Total Projects</div>
@@ -29,7 +29,7 @@
             </div>
 
             {{-- Completed Projects --}}
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-xl-3">
                 <div class="stat-tile tile-green d-flex justify-content-between">
                     <div>
                         <div class="stat-label">Completed Projects</div>
@@ -40,7 +40,7 @@
             </div>
 
             {{-- Ongoing Projects --}}
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-xl-3">
                 <div class="stat-tile tile-orange d-flex justify-content-between">
                     <div>
                         <div class="stat-label">Ongoing Projects</div>
@@ -51,7 +51,7 @@
             </div>
 
             {{-- Overdue Projects --}}
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-xl-3">
                 <div class="stat-tile tile-red d-flex justify-content-between">
                     <div>
                         <div class="stat-label">Overdue Projects</div>
@@ -64,7 +64,8 @@
         </div>
 
         {{-- ================= Tasks Row ================= --}}
-        <div class="row g-4">
+        <div class="row g-3 g-md-4">
+
 
             {{-- Total Tasks --}}
             <div class="col-md-4">
@@ -124,9 +125,9 @@
         {{-- ========================= --}}
         {{-- LEFT: OVERDUE PROJECTS --}}
         {{-- ========================= --}}
-        <div class="col-md-6 mb-4">
+        <div class="col-12 col-lg-6 mb-4">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
+                <div class="card-body overflow-auto dashboard-scroll">
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-semibold mb-0">
@@ -143,7 +144,9 @@
 
                     @forelse($overdueProjects as $project)
 
-                    <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex flex-column flex-sm-row 
+            justify-content-between align-items-start 
+            gap-2 mb-3">
 
                         {{-- Project Info --}}
                         <div>
@@ -162,7 +165,7 @@
                         </div>
 
                         {{-- Due Info --}}
-                        <div class="text-end">
+                        <div class="text-start text-sm-end mt-1 mt-sm-0">
                             <div class="small text-danger fw-semibold">
                                 {{ optional($project->due_date)->format('M d, Y') }}
                             </div>
@@ -193,14 +196,14 @@
         {{-- ========================= --}}
         {{-- RIGHT: OVERDUE TASKS --}}
         {{-- ========================= --}}
-        <div class="col-md-6 mb-4">
+        <div class="col-12 col-lg-6 mb-4">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
+                <div class="card-body overflow-auto dashboard-scroll">
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-semibold mb-0">
                             <i class="bi bi-exclamation-triangle stat-icon text-danger"></i>
-                            Overdue Task
+                            Overdue Tasks
                         </h6>
 
                         <a href="{{ route('tasks.index') }}"
@@ -211,7 +214,9 @@
 
                     @forelse($overdueTasks as $task)
 
-                    <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex flex-column flex-sm-row 
+            justify-content-between align-items-start 
+            gap-2 mb-3">
 
                         {{-- Task Info --}}
                         <div>
@@ -235,7 +240,7 @@
                         </div>
 
                         {{-- Due Info --}}
-                        <div class="text-end">
+                        <div class="text-start text-sm-end mt-1 mt-sm-0">
                             <div class="small text-danger fw-semibold">
                                 {{ optional($task->due_date)->format('M d, Y') }}
                             </div>
@@ -274,9 +279,9 @@
         {{-- ========================= --}}
         {{-- LEFT: PROJECTS DUE SOON --}}
         {{-- ========================= --}}
-        <div class="col-md-6 mb-4">
+        <div class="col-12 col-lg-6 mb-4">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
+                <div class="card-body overflow-auto dashboard-scroll">
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-semibold mb-0">
@@ -292,7 +297,9 @@
 
                     @forelse($dueSoonProjects as $project)
 
-                    <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex flex-column flex-sm-row 
+            justify-content-between align-items-start 
+            gap-2 mb-3">
 
                         {{-- Project Info --}}
                         <div>
@@ -311,7 +318,7 @@
                         </div>
 
                         {{-- Due Date --}}
-                        <div class="text-end">
+                        <div class="text-start text-sm-end mt-1 mt-sm-0">
                             <div class="small fw-semibold text-warning">
                                 {{ optional($project->due_date)->format('M d, Y') }}
                             </div>
@@ -343,9 +350,9 @@
         {{-- ========================= --}}
         {{-- RIGHT: TASKS DUE SOON --}}
         {{-- ========================= --}}
-        <div class="col-md-6 mb-4">
+        <div class="col-12 col-lg-6 mb-4">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
+                <div class="card-body overflow-auto dashboard-scroll">
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-semibold mb-0">
@@ -361,7 +368,9 @@
 
                     @forelse($dueSoonTasks as $task)
 
-                    <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex flex-column flex-sm-row 
+            justify-content-between align-items-start 
+            gap-2 mb-3">
 
                         {{-- Task Info --}}
                         <div>
@@ -384,7 +393,7 @@
                         </div>
 
                         {{-- Due Date --}}
-                        <div class="text-end">
+                        <div class="text-start text-sm-end mt-1 mt-sm-0">
                             <div class="small fw-semibold text-warning">
                                 {{ optional($task->due_date)->format('M d, Y') }}
                             </div>
@@ -419,7 +428,7 @@
     {{-- 4️⃣ WORKLOAD DISTRIBUTION --}}
     {{-- ============================= --}}
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
+        <div class="card-body overflow-auto dashboard-scroll">
 
             <h6 class="fw-semibold mb-4">Workload Distribution</h6>
 
@@ -429,7 +438,7 @@
 
             @forelse($workload as $person)
 
-            <div class="mb-4">
+            <div class="mb-3 mb-md-4">
 
                 {{-- Name + Count --}}
                 <div class="d-flex justify-content-between mb-2">
@@ -455,7 +464,7 @@
                 }
                 @endphp
 
-                <div class="progress" style="height:10px; border-radius:6px;">
+                <div class="progress rounded-pill" style="height:8px;">
                     <div class="progress-bar {{ $barColor }}"
                         style="width: {{ $percentage }}%">
                     </div>
@@ -477,12 +486,12 @@
     {{-- ============================= --}}
     {{-- 1️⃣ USER TASK SNAPSHOT --}}
     {{-- ============================= --}}
-    <div class="mb-4">
+    <div class="mb-3 mb-md-4">
 
-        <div class="row g-4">
+        <div class="row g-3 g-md-4">
 
             {{-- My Total Tasks --}}
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-xl-3">
                 <div class="stat-tile tile-blue d-flex justify-content-between">
                     <div>
                         <div class="stat-label">My Total Tasks</div>
@@ -495,7 +504,7 @@
             </div>
 
             {{-- My Ongoing Tasks --}}
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-xl-3">
                 <div class="stat-tile tile-orange d-flex justify-content-between">
                     <div>
                         <div class="stat-label">My Ongoing Tasks</div>
@@ -508,7 +517,7 @@
             </div>
 
             {{-- My Completed Tasks --}}
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-xl-3">
                 <div class="stat-tile tile-green d-flex justify-content-between">
                     <div>
                         <div class="stat-label">My Completed Tasks</div>
@@ -521,7 +530,7 @@
             </div>
 
             {{-- My Overdue Tasks --}}
-            <div class="col-md-3">
+            <div class="col-12 col-sm-6 col-xl-3">
                 <div class="stat-tile tile-red d-flex justify-content-between">
                     <div>
                         <div class="stat-label">My Overdue Tasks</div>
@@ -546,14 +555,14 @@
         {{-- ========================= --}}
         {{-- LEFT: MY OVERDUE TASK   --}}
         {{-- ========================= --}}
-        <div class="col-md-6 mb-4">
+        <div class="col-12 col-lg-6 mb-4">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
+                <div class="card-body overflow-auto dashboard-scroll">
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-semibold mb-0">
                             <i class="bi bi-exclamation-triangle stat-icon text-danger"></i>
-                            My Overdue Task
+                            My Overdue Tasks
                         </h6>
 
                         <a href="{{ route('tasks.index') }}"
@@ -564,7 +573,9 @@
 
                     @forelse($userOverdueTasks as $task)
 
-                    <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex flex-column flex-sm-row 
+            justify-content-between align-items-start 
+            gap-2 mb-3">
 
                         {{-- Task Info --}}
                         <div>
@@ -583,7 +594,7 @@
                         </div>
 
                         {{-- Due Date --}}
-                        <div class="text-end">
+                        <div class="text-start text-sm-end mt-1 mt-sm-0">
                             <div class="small text-danger fw-semibold">
                                 {{ optional($task->due_date)->format('M d, Y') }}
                             </div>
@@ -614,14 +625,14 @@
         {{-- ========================= --}}
         {{-- RIGHT: TASK DUE SOON    --}}
         {{-- ========================= --}}
-        <div class="col-md-6 mb-4">
+        <div class="col-12 col-lg-6 mb-4">
             <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
+                <div class="card-body overflow-auto dashboard-scroll">
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-semibold mb-0">
                             <i class="bi bi-hourglass-split stat-icon text-primary"></i>
-                            My Task Due Soon
+                            My Tasks Due Soon
                         </h6>
 
                         <a href="{{ route('tasks.index') }}"
@@ -632,7 +643,9 @@
 
                     @forelse($userDueSoonTasks as $task)
 
-                    <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex flex-column flex-sm-row 
+            justify-content-between align-items-start 
+            gap-2 mb-3">
 
                         {{-- Task Info --}}
                         <div>
@@ -651,7 +664,7 @@
                         </div>
 
                         {{-- Due Date --}}
-                        <div class="text-end">
+                        <div class="text-start text-sm-end mt-1 mt-sm-0">
                             <div class="small text-warning fw-semibold">
                                 {{ optional($task->due_date)->format('M d, Y') }}
                             </div>
@@ -686,7 +699,7 @@
     {{-- ============================= --}}
 
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
+        <div class="card-body overflow-auto dashboard-scroll">
 
             <h6 class="fw-semibold mb-4">
                 My Assigned Projects
@@ -694,7 +707,9 @@
 
             @forelse($userProjects as $project)
 
-            <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="d-flex flex-column flex-sm-row 
+            justify-content-between align-items-start 
+            gap-2 mb-3">
 
                 {{-- Project Info --}}
                 <div>
@@ -713,7 +728,7 @@
                 </div>
 
                 {{-- Due Date --}}
-                <div class="text-end">
+                <div class="text-start text-sm-end mt-1 mt-sm-0">
                     <div class="small text-muted">
                         {{ optional($project->due_date)->format('M d, Y') }}
                     </div>
