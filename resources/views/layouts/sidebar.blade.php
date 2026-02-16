@@ -1,5 +1,5 @@
 <aside class="col-auto sidebar p-2">
-
+    
     {{-- MAIN --}}
     <h6 class="text-uppercase text-muted">Main</h6>
     <ul class="nav flex-column">

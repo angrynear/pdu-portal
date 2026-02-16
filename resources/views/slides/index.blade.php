@@ -13,7 +13,7 @@
     </x-slot>
 
     <div class="table-responsive">
-        <table class="table align-middle">
+        <table class="table table-sm align-middle">
             <thead class="table-light">
                 <tr>
                     <th class="text-center" style="width:60px;">No.</th>

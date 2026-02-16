@@ -14,7 +14,7 @@
     {{-- Custom styles (later) --}}
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f5f7fa;
         }
 
         .navbar {
@@ -82,6 +82,83 @@
 
         .link-hover:hover {
             text-decoration: underline;
+        }
+
+        /* ==============================
+        Refined Stat Tiles
+        ============================== */
+
+        .card {
+            border-radius: 14px;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            transition: 0.2s ease;
+        }
+
+        .stat-tile {
+            border-radius: 14px;
+            padding: 22px 24px;
+            color: #ffffff;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+            transition: all .2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-tile:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Softer Gradients */
+        .tile-blue {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        }
+
+        .tile-green {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+        }
+
+        .tile-orange {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .tile-red {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+
+        /* Label */
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            opacity: .85;
+            font-weight: 600;
+        }
+
+        /* Number */
+        .stat-number {
+            font-size: 2.4rem;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        /* Subtle light overlay */
+        .stat-tile::after {
+            content: "";
+            position: absolute;
+            top: -40%;
+            right: -30%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+        }
+
+        .dashboard-section {
+            margin-bottom: 3rem;
         }
     </style>
 </head>
