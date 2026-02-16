@@ -26,17 +26,34 @@ class TaskController extends Controller
         ])
             ->whereNull('archived_at');
 
-        // If NOT admin → only show assigned tasks
         if (!auth()->user()->isAdmin()) {
             $query->where('assigned_user_id', auth()->id());
         }
 
         $tasks = $query->paginate(20)->withQueryString();
 
+        /*
+    |--------------------------------------------------------------------------
+    | Compute Latest Remark Per Task (No Extra Queries)
+    |--------------------------------------------------------------------------
+    */
+
+        foreach ($tasks as $task) {
+            $task->latest_remark = null;
+
+            foreach ($task->activityLogs as $log) {
+                if (!empty($log->changes['remark']['new'] ?? null)) {
+                    $task->latest_remark = $log->changes['remark']['new'];
+                    break;
+                }
+            }
+        }
+
         $users = User::where('account_status', 'active')->get();
 
         return view('tasks.index', compact('tasks', 'users'));
     }
+
 
     public function store(Request $request)
     {
@@ -392,19 +409,26 @@ class TaskController extends Controller
         return back()->with('success', FlashMessage::success('task_updated'));
     }
 
-
     public function show(Request $request, Task $task)
     {
-        // SECURITY CHECK
-        if (!auth()->user()->isAdmin()) {
+        $user = auth()->user();
 
-            $userId = auth()->id();
+        /*
+    |--------------------------------------------------------------------------
+    | SECURITY CHECK
+    |--------------------------------------------------------------------------
+    */
 
-            $isAssigned = $task->assigned_user_id == $userId;
+        if (!$user->isAdmin()) {
 
-            $isInRelatedProject = $task->project
-                ->tasks()
-                ->where('assigned_user_id', $userId)
+            $userId = $user->id;
+
+            $isAssigned = $task->assigned_user_id === $userId;
+
+            $isInRelatedProject = $task->project()
+                ->whereHas('tasks', function ($query) use ($userId) {
+                    $query->where('assigned_user_id', $userId);
+                })
                 ->exists();
 
             if (!$isAssigned && !$isInRelatedProject) {
@@ -412,21 +436,61 @@ class TaskController extends Controller
             }
         }
 
-        $task->load(['project', 'assignedUser']);
+        /*
+    |--------------------------------------------------------------------------
+    | LOAD MAIN RELATIONS
+    |--------------------------------------------------------------------------
+    */
 
-        $activityLogs = TaskActivityLog::with('user')
+        $task->load([
+            'project',
+            'assignedUser'
+        ]);
+
+        /*
+    |--------------------------------------------------------------------------
+    | LOAD ACTIVITY LOGS (EAGER LOADED)
+    |--------------------------------------------------------------------------
+    */
+
+        $activityLogs = TaskActivityLog::with([
+            'user',
+            'files'
+        ])
             ->where('task_id', $task->id)
             ->latest()
-            ->paginate(5);
+            ->paginate(10);
+
+        /*
+    |--------------------------------------------------------------------------
+    | PRELOAD USERS USED IN assigned_user_id CHANGES
+    |--------------------------------------------------------------------------
+    */
+
+        $userIds = collect($activityLogs->items())
+            ->flatMap(function ($log) {
+                return [
+                    $log->changes['assigned_user_id']['old'] ?? null,
+                    $log->changes['assigned_user_id']['new'] ?? null,
+                ];
+            })
+            ->filter()
+            ->unique()
+            ->values();
+
+        $changedUsers = \App\Models\User::whereIn('id', $userIds)
+            ->pluck('name', 'id');
 
         $from = $request->query('from');
 
         return view('tasks.show', compact(
             'task',
             'activityLogs',
+            'changedUsers',
             'from'
         ));
     }
+
 
     public function taskLogs()
     {
@@ -545,11 +609,34 @@ class TaskController extends Controller
     {
         $userId = auth()->id();
 
-        $tasks = Task::with(['project', 'assignedUser'])
+        $tasks = Task::with([
+            'project',
+            'assignedUser',
+            'activityLogs' => function ($query) {
+                $query->latest();
+            }
+        ])
             ->whereNull('archived_at')
             ->where('assigned_user_id', $userId)
             ->latest()
             ->paginate(20);
+
+        /*
+    |--------------------------------------------------------------------------
+    | Compute Latest Remark Per Task
+    |--------------------------------------------------------------------------
+    */
+
+        foreach ($tasks as $task) {
+            $task->latest_remark = null;
+
+            foreach ($task->activityLogs as $log) {
+                if (!empty($log->changes['remark']['new'] ?? null)) {
+                    $task->latest_remark = $log->changes['remark']['new'];
+                    break;
+                }
+            }
+        }
 
         $users = User::where('account_status', 'active')->get();
 

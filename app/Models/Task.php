@@ -38,13 +38,6 @@ class Task extends Model
         return $this->belongsTo(User::class, 'assigned_user_id');
     }
 
-    public function latestRemarkLog()
-    {
-        return $this->hasOne(TaskActivityLog::class)
-            ->whereNotNull('changes->remark')
-            ->latestOfMany();
-    }
-
     public function files()
     {
         return $this->hasMany(TaskFile::class)

@@ -32,150 +32,256 @@ $pageTitle = $isAdmin
 
     </x-slot>
 
-    <div class="table-responsive">
-        <table class="table table-sm align-middle table-projects">
-            <thead class="table-light">
-                <tr>
-                    <th class="text-center" style="width: 50px;">No.</th>
-                    <th style="width: 280px;">Project Name</th>
-                    <th style="width: 180px;">Location</th>
-                    <th style="width: 160px;">Source of Fund</th>
-                    <th class="text-center" style="width: 170px;">Timeline</th>
-                    <th class="text-center" style="width: 50px;">Task</th>
-                    <th class="text-center" style="width: 100px;">Progress</th>
-                    <th class="text-center" style="width: 150px;">Actions</th>
-                </tr>
-            </thead>
+    {{-- ================= DESKTOP TABLE ================= --}}
+    <div class="d-none d-lg-block">
+        <div class="table-responsive">
+            <table class="table table-sm align-middle table-projects w-100">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center text-nowrap">No.</th>
+                        <th>Project Name</th>
+                        <th>Location</th>
+                        <th>Source of Fund</th>
+                        <th class="text-nowrap text-center">Timeline</th>
+                        <th class="text-center text-nowrap">Task</th>
+                        <th class="text-center text-nowrap">Progress</th>
+                        <th class="text-center text-nowrap">Actions</th>
+                    </tr>
+                </thead>
 
-            <tbody>
-                @forelse ($projects as $project)
-                <tr>
-                    {{-- No. --}}
-                    <td class="text-center">
-                        {{ $projects->firstItem() + $loop->index }}
-                    </td>
+                <tbody>
+                    @forelse ($projects as $project)
+                    <tr>
+                        {{-- No. --}}
+                        <td class="text-center">
+                            {{ $projects->firstItem() + $loop->index }}
+                        </td>
 
-                    {{-- Project Name --}}
-                    <td>
-                        {{ $project->name }}
-                    </td>
+                        {{-- Project Name --}}
+                        <td>
+                            {{ $project->name }}
+                        </td>
 
-                    {{-- Location --}}
-                    <td>
-                        {{ $project->location }}
-                    </td>
+                        {{-- Location --}}
+                        <td>
+                            {{ $project->location }}
+                        </td>
 
-                    {{-- Source of Fund --}}
-                    <td>
-                        <div class="small">
-                            <div>
-                                <strong>Source:</strong>
-                                {{ $project->source_of_fund }}
+                        {{-- Source of Fund --}}
+                        <td>
+                            <div class="small">
+                                <div>
+                                    <strong>Source:</strong>
+                                    {{ $project->source_of_fund }}
+                                </div>
+                                <div>
+                                    <strong>Funding Year:</strong>
+                                    {{ $project->funding_year }}
+                                </div>
+                                <div>
+                                    <strong>Amount:</strong>
+                                    PHP {{ number_format($project->amount, 2) }}
+                                </div>
                             </div>
-                            <div>
-                                <strong>Funding Year:</strong>
-                                {{ $project->funding_year }}
+                        </td>
+
+                        {{-- Timeline --}}
+                        <td>
+                            <div class="small">
+                                <div>
+                                    <strong>Start Date:</strong>
+                                    {{ $project->start_date?->format('M. j, Y') ?? '—' }}
+                                </div>
+                                <div>
+                                    <strong>Due Date:</strong>
+                                    <x-due-date
+                                        :dueDate="$project->due_date"
+                                        :progress="$project->progress" />
+                                </div>
                             </div>
-                            <div>
-                                <strong>Amount:</strong>
-                                PHP {{ number_format($project->amount, 2) }}
+                        </td>
+
+                        {{-- Task Summary --}}
+                        <td class="text-center">
+                            <div class="small text-center">
+                                <div>
+                                    {{ $project->completed_tasks_count }} / {{ $project->tasks->count() }}
+                                </div>
                             </div>
-                        </div>
-                    </td>
+                        </td>
 
-                    {{-- Timeline --}}
-                    <td>
-                        <div class="small">
-                            <div>
-                                <strong>Start Date:</strong>
-                                {{ $project->start_date?->format('M. j, Y') ?? '—' }}
-                            </div>
-                            <div>
-                                <strong>Due Date:</strong>
-                                <x-due-date
-                                    :dueDate="$project->due_date"
-                                    :progress="$project->progress"/>
-                            </div>
-                        </div>
-                    </td>
+                        {{-- Progress (Computed) --}}
+                        <td class="text-center">
+                            <x-progress-bar :value="$project->progress" />
+                        </td>
 
-                    {{-- Task Summary --}}
-                    <td class="text-center">
-                        <div class="small text-center">
-                            <div>
-                                {{ $project->completed_tasks_count }} / {{ $project->tasks->count() }}
-                            </div>
-                        </div>
-                    </td>
-
-                    {{-- Progress (Computed) --}}
-                    <td class="text-center">
-                        <x-progress-bar :value="$project->progress" />
-                    </td>
-
-                    {{-- Actions --}}
-                    <td class="text-center">
-
-                        {{-- VIEW (Everyone Allowed) --}}
-                        <a href="{{ route('projects.show', [
-        'project' => $project->id,
-        'from' => request()->routeIs('projects.my') ? 'my' : 'manage'
-    ]) }}"
-                            class="btn btn-sm btn-secondary">
-                            View
-                        </a>
-
+                        {{-- Actions --}}
                         @php
-                        $isAdmin = auth()->user()->role === 'admin';
+                        $isAdmin = auth()->user()->isAdmin();
                         $isArchived = !is_null($project->archived_at);
                         @endphp
 
-                        {{-- ADMIN ONLY CONTROLS --}}
-                        @if($isAdmin)
+                        <td class="text-center">
+                            <div class="d-flex flex-wrap justify-content-center gap-1">
 
-                        @if(!$isArchived)
+                                {{-- VIEW --}}
+                                <a href="{{ route('projects.show', [
+            'project' => $project->id,
+            'from' => request()->routeIs('projects.my') ? 'my' : 'manage'
+        ]) }}"
+                                    class="btn btn-sm btn-secondary">
+                                    View
+                                </a>
 
-                        {{-- EDIT --}}
-                        <a href="{{ route('projects.edit', $project->id) }}"
-                            class="btn btn-sm btn-primary">
-                            Edit
-                        </a>
+                                @if($isAdmin && !$isArchived)
 
-                        {{-- ARCHIVE --}}
-                        <button type="button"
-                            class="btn btn-sm btn-danger"
-                            data-bs-toggle="modal"
-                            data-bs-target="#confirmActionModal"
-                            data-action="{{ route('projects.archive', $project->id) }}"
-                            data-method="PATCH"
-                            data-title="Archive Project"
-                            data-message="Are you sure you want to archive this project?"
-                            data-confirm-text="Archive"
-                            data-confirm-class="btn-danger">
-                            Archive
-                        </button>
+                                <a href="{{ route('projects.edit', $project->id) }}"
+                                    class="btn btn-sm btn-primary">
+                                    Edit
+                                </a>
 
-                        @else
-                        <span class="text-muted small">
-                            Archived
-                        </span>
-                        @endif
+                                <button type="button"
+                                    class="btn btn-sm btn-danger"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#confirmActionModal"
+                                    data-action="{{ route('projects.archive', $project->id) }}"
+                                    data-method="PATCH"
+                                    data-title="Archive Project"
+                                    data-message="Are you sure you want to archive this project?"
+                                    data-confirm-text="Archive"
+                                    data-confirm-class="btn-danger">
+                                    Archive
+                                </button>
 
-                        @endif
+                                @elseif($isAdmin && $isArchived)
 
-                    </td>
+                                <span class="text-muted small">
+                                    Archived
+                                </span>
 
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="10" class="text-center text-muted">
-                        No projects found.
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+                                @endif
 
+                            </div>
+                        </td>
+
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            No projects found.
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+
+            <div class="mt-3">
+                {{ $projects->links() }}
+            </div>
+
+        </div>
+
+    </div>
+
+    {{-- ================= MOBILE CARDS ================= --}}
+    <div class="d-lg-none">
+
+        @forelse ($projects as $project)
+
+        <div class="card mb-3 shadow-sm border-0">
+            <div class="card-body">
+
+                {{-- Header --}}
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="fw-semibold">
+                        {{ $project->name }}
+                    </div>
+
+                    <span class="badge bg-light text-dark">
+                        {{ $projects->firstItem() + $loop->index }}
+                    </span>
+                </div>
+
+                {{-- Location --}}
+                <div class="small text-muted mb-2">
+                    📍 {{ $project->location }}
+                </div>
+
+                {{-- Source of Fund --}}
+                <div class="small mb-2">
+                    <div><strong>Source:</strong> {{ $project->source_of_fund }}</div>
+                    <div><strong>Year:</strong> {{ $project->funding_year }}</div>
+                    <div><strong>Amount:</strong> PHP {{ number_format($project->amount, 2) }}</div>
+                </div>
+
+                {{-- Task and Timeline --}}
+                <div class="small mb-2">
+                    <div><strong>Task:</strong> {{ $project->completed_tasks_count }} / {{ $project->tasks->count() }}</div>
+                    <div><strong>Start:</strong> {{ $project->start_date?->format('M j, Y') ?? '—' }}</div>
+                    <div>
+                        <strong>Due:</strong>
+                        <x-due-date
+                            :dueDate="$project->due_date"
+                            :progress="$project->progress" />
+                    </div>
+                </div>
+
+                {{-- Progress --}}
+                <div class="mb-3">
+                    <x-progress-bar :value="$project->progress" />
+                </div>
+
+                {{-- Actions --}}
+                <div class="d-flex gap-2 flex-wrap">
+
+                    {{-- View --}}
+                    <a href="{{ route('projects.show', [
+                    'project' => $project->id,
+                    'from' => request()->routeIs('projects.my') ? 'my' : 'manage'
+                ]) }}"
+                        class="btn btn-sm btn-secondary flex-fill">
+                        View
+                    </a>
+
+                    @php
+                    $isAdmin = auth()->user()->role === 'admin';
+                    $isArchived = !is_null($project->archived_at);
+                    @endphp
+
+                    @if($isAdmin && !$isArchived)
+
+                    <a href="{{ route('projects.edit', $project->id) }}"
+                        class="btn btn-sm btn-primary flex-fill">
+                        Edit
+                    </a>
+
+                    <button type="button"
+                        class="btn btn-sm btn-danger flex-fill"
+                        data-bs-toggle="modal"
+                        data-bs-target="#confirmActionModal"
+                        data-action="{{ route('projects.archive', $project->id) }}"
+                        data-method="PATCH"
+                        data-title="Archive Project"
+                        data-message="Are you sure you want to archive this project?"
+                        data-confirm-text="Archive"
+                        data-confirm-class="btn-danger">
+                        Archive
+                    </button>
+
+                    @endif
+
+                </div>
+
+            </div>
+        </div>
+
+        @empty
+        <div class="text-center text-muted py-4">
+            No projects found.
+        </div>
+        @endforelse
+
+        {{-- Pagination --}}
         <div class="mt-3">
             {{ $projects->links() }}
         </div>
