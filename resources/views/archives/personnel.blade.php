@@ -7,15 +7,15 @@
 
     <x-slot name="actions">
         <a href="{{ route('personnel.index') }}"
-           class="btn btn-sm btn-secondary">
+            class="btn btn-sm btn-secondary">
             ← Back to Personnel
         </a>
     </x-slot>
 
     @if ($users->isEmpty())
-        <div class="text-center text-muted py-0">
-            No deactivated user found.
-        </div>
+    <div class="text-center text-muted py-0">
+        No deactivated user found.
+    </div>
     @else
 
     {{-- ===================================================== --}}
@@ -28,13 +28,12 @@
                     <tr>
                         <th class="text-center" style="width: 60px;">No.</th>
                         <th class="text-center" style="width: 80px;">Photo</th>
-                        <th style="width: 200px;">Name</th>
+                        <th style="width: 240px;">Personnel</th>
                         <th style="width: 160px;">Designation</th>
-                        <th style="width: 180px;">Email</th>
-                        <th style="width: 100px;">Contact No.</th>
-                        <th class="text-center" style="width: 90px;">Role</th>
-                        <th class="text-center" style="width: 120px;">Deactivated At</th>
-                        <th class="text-center" style="width: 120px;">Actions</th>
+                        <th style="width: 200px;">Email</th>
+                        <th style="width: 120px;">Contact</th>
+                        <th class="text-center" style="width: 160px;">Deactivated At</th>
+                        <th class="text-center" style="width: 140px;">Actions</th>
                     </tr>
                 </thead>
 
@@ -42,38 +41,52 @@
                     @foreach($users as $user)
                     <tr class="text-muted">
 
-                        <td class="text-center">
+                        {{-- NO --}}
+                        <td class="text-center fw-semibold">
                             {{ $users->firstItem() + $loop->index }}
                         </td>
 
+                        {{-- PHOTO --}}
                         <td class="text-center">
                             <img
                                 src="{{ $user->photo
-                                    ? asset('storage/' . $user->photo)
-                                    : asset('images/default-avatar.png') }}"
-                                alt="Photo"
+                ? asset('storage/' . $user->photo)
+                : asset('images/default-avatar.png') }}"
                                 class="rounded-circle border"
                                 style="width: 50px; height: 50px; object-fit: cover;">
                         </td>
 
-                        <td>{{ $user->name }}</td>
-
-                        <td>{{ $user->designation ?? '—' }}</td>
-
-                        <td>{{ $user->email }}</td>
-
-                        <td>{{ $user->contact_number ?? '—' }}</td>
-
-                        <td class="text-center">
-                            <span class="badge bg-secondary">
+                        {{-- NAME + ROLE --}}
+                        <td>
+                            <div class="fw-semibold">
+                                {{ $user->name }}
+                            </div>
+                            <div class="small text-muted">
                                 {{ ucfirst($user->role) }}
-                            </span>
+                            </div>
                         </td>
 
+                        {{-- DESIGNATION --}}
+                        <td>
+                            {{ $user->designation ?? '—' }}
+                        </td>
+
+                        {{-- EMAIL --}}
+                        <td>
+                            {{ $user->email }}
+                        </td>
+
+                        {{-- CONTACT --}}
+                        <td>
+                            {{ $user->contact_number ?? '—' }}
+                        </td>
+
+                        {{-- DEACTIVATED DATE --}}
                         <td class="text-center">
                             {{ $user->deactivated_at?->format('F d, Y') }}
                         </td>
 
+                        {{-- ACTION --}}
                         <td class="text-center">
                             <button
                                 class="btn btn-sm btn-success"
@@ -116,9 +129,8 @@
 
                     <img
                         src="{{ $user->photo
-                            ? asset('storage/' . $user->photo)
-                            : asset('images/default-avatar.png') }}"
-                        alt="Photo"
+            ? asset('storage/' . $user->photo)
+            : asset('images/default-avatar.png') }}"
                         class="rounded-circle border me-2"
                         style="width: 50px; height: 50px; object-fit: cover;">
 
@@ -126,7 +138,8 @@
                         <div class="fw-bold">
                             {{ $user->name }}
                         </div>
-                        <div class="small">
+
+                        <div class="small text-muted">
                             {{ ucfirst($user->role) }}
                         </div>
                     </div>

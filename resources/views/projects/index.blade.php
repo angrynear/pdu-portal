@@ -35,113 +35,84 @@ $pageTitle = $isAdmin
     {{-- ================= DESKTOP TABLE ================= --}}
     <div class="d-none d-lg-block">
         <div class="table-responsive">
-            <table class="table table-sm align-middle table-projects w-100">
+            <table class="table table-card align-middle">
+
                 <thead class="table-light">
                     <tr>
-                        <th class="text-center text-nowrap">No.</th>
-                        <th>Project Name</th>
-                        <th>Location</th>
-                        <th>Source of Fund</th>
-                        <th class="text-nowrap text-center">Timeline</th>
-                        <th class="text-center text-nowrap">Task</th>
-                        <th class="text-center text-nowrap">Progress</th>
-                        <th class="text-center text-nowrap">Actions</th>
+                        <th style="width:60px;" class="text-center">No.</th>
+                        <th style="width:300px;">Project Name and Location</th>
+                        <th style="width:220px;">Source of Fund</th>
+                        <th style="width:220px;">Timeline</th>
+                        <th style="width:150px;" class="text-center">Progress</th>
+                        <th style="width:170px;" class="text-center">Action</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    @forelse ($projects as $project)
+                    @forelse($projects as $project)
                     <tr>
-                        {{-- No. --}}
-                        <td class="text-center">
+
+                        {{-- NO --}}
+                        <td class="text-center fw-semibold">
                             {{ $projects->firstItem() + $loop->index }}
                         </td>
 
-                        {{-- Project Name --}}
+                        {{-- PROJECT NAME + LOCATION --}}
                         <td>
-                            {{ $project->name }}
+                            <div class="fw-semibold">
+                                {{ $project->name }}
+                            </div>
+                            <div class="small text-muted">
+                                {{ $project->location ?? '—' }}
+                            </div>
                         </td>
 
-                        {{-- Location --}}
+                        {{-- FUNDING SOURCE + YEAR --}}
                         <td>
-                            {{ $project->location }}
+                            <div class="fw-semibold">
+                                {{ $project->source_of_fund ?? '—' }}
+                                {{ $project->funding_year ?? '' }}
+                            </div>
+                            <div class="small text-muted">
+                                P {{ number_format($project->amount, 2) }}
+                            </div>
                         </td>
 
-                        {{-- Source of Fund --}}
+                        {{-- TIMELINE --}}
                         <td>
                             <div class="small">
-                                <div>
-                                    <strong>Source:</strong>
-                                    {{ $project->source_of_fund }}
-                                </div>
-                                <div>
-                                    <strong>Funding Year:</strong>
-                                    {{ $project->funding_year }}
-                                </div>
-                                <div>
-                                    <strong>Amount:</strong>
-                                    PHP {{ number_format($project->amount, 2) }}
-                                </div>
+                                <strong>Start:</strong>
+                                {{ $project->start_date?->format('M. d, Y') ?? '—' }}
+                            </div>
+                            <div class="small text-muted">
+                                <strong>Due:</strong>
+                                <x-due-date
+                                    :dueDate="$project->due_date"
+                                    :progress="$project->progress" />
                             </div>
                         </td>
 
-                        {{-- Timeline --}}
-                        <td>
-                            <div class="small">
-                                <div>
-                                    <strong>Start Date:</strong>
-                                    {{ $project->start_date?->format('M. j, Y') ?? '—' }}
-                                </div>
-                                <div>
-                                    <strong>Due Date:</strong>
-                                    <x-due-date
-                                        :dueDate="$project->due_date"
-                                        :progress="$project->progress" />
-                                </div>
-                            </div>
-                        </td>
-
-                        {{-- Task Summary --}}
-                        <td class="text-center">
-                            <div class="small text-center">
-                                <div>
-                                    {{ $project->completed_tasks_count }} / {{ $project->tasks->count() }}
-                                </div>
-                            </div>
-                        </td>
-
-                        {{-- Progress (Computed) --}}
+                        {{-- PROGRESS --}}
                         <td class="text-center">
                             <x-progress-bar :value="$project->progress" />
                         </td>
 
-                        {{-- Actions --}}
-                        @php
-                        $isAdmin = auth()->user()->isAdmin();
-                        $isArchived = !is_null($project->archived_at);
-                        @endphp
-
+                        {{-- ACTIONS --}}
                         <td class="text-center">
-                            <div class="d-flex flex-wrap justify-content-center gap-1">
 
-                                {{-- VIEW --}}
-                                <a href="{{ route('projects.show', [
-            'project' => $project->id,
-            'from' => request()->routeIs('projects.my') ? 'my' : 'manage'
-        ]) }}"
-                                    class="btn btn-sm btn-secondary">
+                            <div class="d-flex justify-content-center gap-1 flex-wrap">
+
+                                <a href="{{ route('projects.show', $project->id) }}"
+                                    class="btn btn-sm btn-primary">
                                     View
                                 </a>
 
-                                @if($isAdmin && !$isArchived)
-
                                 <a href="{{ route('projects.edit', $project->id) }}"
-                                    class="btn btn-sm btn-primary">
+                                    class="btn btn-sm btn-secondary">
                                     Edit
                                 </a>
 
-                                <button type="button"
-                                    class="btn btn-sm btn-danger"
+                                <button class="btn btn-sm btn-danger"
                                     data-bs-toggle="modal"
                                     data-bs-target="#confirmActionModal"
                                     data-action="{{ route('projects.archive', $project->id) }}"
@@ -153,25 +124,20 @@ $pageTitle = $isAdmin
                                     Archive
                                 </button>
 
-                                @elseif($isAdmin && $isArchived)
-
-                                <span class="text-muted small">
-                                    Archived
-                                </span>
-
-                                @endif
-
                             </div>
+
                         </td>
 
                     </tr>
+
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted">
+                        <td colspan="6" class="text-center text-muted py-4">
                             No projects found.
                         </td>
                     </tr>
                     @endforelse
+
                 </tbody>
             </table>
 

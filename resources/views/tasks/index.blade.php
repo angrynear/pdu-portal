@@ -23,14 +23,13 @@ $pageTitle = $isAdmin
             <table class="table align-middle table-sm">
                 <thead class="table-light">
                     <tr>
-                        <th class="text-center" style="width: 50px;">No.</th>
-                        <th style="width: 130px;">Task</th>
-                        <th style="width: 150px;">Project Title</th>
-                        <th style="width: 120px;">Assigned Personnel</th>
-                        <th style="width: 120px;">Timeline</th>
-                        <th class="text-center" style="width: 90px;">Progress</th>
-                        <th class="text-center" style="width: 120px;">Remarks</th>
-                        <th style="width: 120px;" class="text-center">Actions</th>
+                        <th class="text-center" style="width: 60px;">No.</th>
+                        <th style="width: 260px;">Task</th>
+                        <th style="width: 140px;">Assigned Personnel</th>
+                        <th style="width: 180px;">Timeline</th>
+                        <th class="text-center" style="width: 120px;">Progress</th>
+                        <th style="width: 160px;" class="text-center">Remarks</th>
+                        <th style="width: 180px;" class="text-center">Actions</th>
                     </tr>
                 </thead>
 
@@ -42,14 +41,18 @@ $pageTitle = $isAdmin
                         </td>
 
                         {{-- Task --}}
-                        <td>{{ $task->task_type }}</td>
-
-                        {{-- Project --}}
+                        {{-- TASK + PROJECT --}}
                         <td>
-                            <a href="{{ route('projects.show', $task->project_id) }}?from=tasks"
-                                class="text-decoration-none text-dark fw-semibold link-hover">
-                                {{ $task->project->name }}
-                            </a>
+                            <div class="fw-semibold">
+                                {{ $task->task_type }}
+                            </div>
+
+                            <div class="small text-muted">
+                                <a href="{{ route('projects.show', $task->project_id) }}?from=tasks"
+                                    class="text-decoration-none text-muted fw-semibold link-hover">
+                                    {{ $task->project->name }}
+                                </a>
+                            </div>
                         </td>
 
                         {{-- Assigned --}}
@@ -221,7 +224,7 @@ $pageTitle = $isAdmin
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center text-muted">
+                        <td colspan="7" class="text-center text-muted">
                             No tasks found.
                         </td>
                     </tr>

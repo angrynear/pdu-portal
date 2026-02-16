@@ -25,14 +25,13 @@
                     <tr>
                         <th class="text-center" style="width: 60px;">No.</th>
                         <th class="text-center" style="width: 80px;">Photo</th>
-                        <th style="width: 200px;">Name</th>
+                        <th style="width: 220px;">Name</th>
                         <th style="width: 160px;">Designation</th>
-                        <th style="width: 180px;">Email</th>
-                        <th style="width: 100px;">Contact No.</th>
-                        <th class="text-center" style="width: 90px;">Role</th>
-                        <th class="text-center" style="width: 100px;">Tasks</th>
-                        <th class="text-center" style="width: 90px;">Status</th>
-                        <th class="text-center" style="width: 120px;">Actions</th>
+                        <th style="width: 200px;">Email</th>
+                        <th style="width: 120px;">Contact No.</th>
+                        <th class="text-center" style="width: 120px;">Tasks</th>
+                        <th class="text-center" style="width: 100px;">Status</th>
+                        <th class="text-center" style="width: 140px;">Actions</th>
                     </tr>
                 </thead>
 
@@ -56,7 +55,15 @@
                         </td>
 
                         {{-- Name --}}
-                        <td>{{ $user->name }}</td>
+                        <td>
+                            <div class="fw-semibold">
+                                {{ $user->name }}
+                            </div>
+
+                            <div class="small text-muted">
+                                {{ ucfirst($user->role) }}
+                            </div>
+                        </td>
 
                         {{-- Designation --}}
                         <td>
@@ -69,13 +76,6 @@
                         {{-- Contact Number --}}
                         <td>
                             {{ $user->contact_number ?? '—' }}
-                        </td>
-
-                        {{-- Role --}}
-                        <td class="text-center">
-                            <span class="badge bg-secondary">
-                                {{ ucfirst($user->role) }}
-                            </span>
                         </td>
 
                         {{-- Tasks --}}
@@ -128,7 +128,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="10" class="text-center text-muted">
+                        <td colspan="9" class="text-center text-muted">
                             No personnel found.
                         </td>
                     </tr>
