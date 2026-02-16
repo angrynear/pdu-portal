@@ -1,19 +1,35 @@
-<aside class="col-auto sidebar p-2">
-    
+<aside
+    class="sidebar offcanvas-md offcanvas-start p-2"
+    tabindex="-1"
+    id="appSidebar">
+
+    <div class="d-none d-md-flex justify-content-end mb-2">
+        <button id="sidebarToggle"
+            class="btn btn-sm btn-light border">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+    </div>
+
     {{-- MAIN --}}
-    <h6 class="text-uppercase text-muted">Main</h6>
+    <h6 class="text-uppercase text-muted">
+        Main
+    </h6>
+
     <ul class="nav flex-column">
         <li class="nav-item">
             <a href="{{ route('dashboard') }}"
                 class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                 <i class="bi bi-speedometer2 me-2"></i>
-                Dashboard
+                <span>Dashboard</span>
             </a>
         </li>
     </ul>
 
     {{-- PROJECT --}}
-    <h6 class="text-uppercase text-muted">Project</h6>
+    <h6 class="text-uppercase text-muted">
+        Project
+    </h6>
+
     <ul class="nav flex-column">
 
         @php
@@ -38,7 +54,7 @@
             <a href="{{ route('projects.index') }}"
                 class="nav-link {{ $manageActive ? 'active' : '' }}">
                 <i class="bi bi-kanban me-2"></i>
-                Manage Projects
+                <span>Manage Projects</span>
             </a>
         </li>
 
@@ -46,7 +62,7 @@
             <a href="{{ route('projects.my') }}"
                 class="nav-link {{ $myActive ? 'active' : '' }}">
                 <i class="bi bi-kanban me-2"></i>
-                My Projects
+                <span>My Projects</span>
             </a>
         </li>
 
@@ -57,7 +73,7 @@
             <a href="{{ route('projects.index') }}"
                 class="nav-link {{ $isProjectRoute ? 'active' : '' }}">
                 <i class="bi bi-kanban me-2"></i>
-                My Projects
+                <span>My Projects</span>
             </a>
         </li>
 
@@ -65,7 +81,10 @@
     </ul>
 
     {{-- TASK --}}
-    <h6 class="text-uppercase text-muted">Task</h6>
+    <h6 class="text-uppercase text-muted">
+        Task
+    </h6>
+
     <ul class="nav flex-column">
 
         @php
@@ -90,7 +109,7 @@
             <a href="{{ route('tasks.index') }}"
                 class="nav-link {{ $manageActive ? 'active' : '' }}">
                 <i class="bi bi-list-check me-2"></i>
-                Manage Tasks
+                <span>Manage Tasks</span>
             </a>
         </li>
 
@@ -98,7 +117,7 @@
             <a href="{{ route('tasks.my') }}"
                 class="nav-link {{ $myActive ? 'active' : '' }}">
                 <i class="bi bi-list-check me-2"></i>
-                My Tasks
+                <span>My Tasks</span>
             </a>
         </li>
 
@@ -109,7 +128,7 @@
             <a href="{{ route('tasks.index') }}"
                 class="nav-link {{ $isTaskRoute ? 'active' : '' }}">
                 <i class="bi bi-list-check me-2"></i>
-                My Tasks
+                <span>My Tasks</span>
             </a>
         </li>
 
@@ -120,19 +139,25 @@
     @if(auth()->user()->isAdmin())
 
     {{-- PERSONNEL --}}
-    <h6 class="text-uppercase text-muted">Personnel</h6>
+    <h6 class="text-uppercase text-muted">
+        Personnel
+    </h6>
+
     <ul class="nav flex-column">
         <li class="nav-item">
             <a href="{{ route('personnel.index') }}"
                 class="nav-link {{ request()->routeIs('personnel.index', 'personnel.create', 'personnel.edit') ? 'active' : '' }}">
                 <i class="bi bi-people me-2"></i>
-                Manage Personnel
+                <span>Manage Personnel</span>
             </a>
         </li>
     </ul>
 
     {{-- CONTENT --}}
-    <h6 class="text-uppercase text-muted">Content</h6>
+    <h6 class="text-uppercase text-muted">
+        Content
+    </h6>
+
     <ul class="nav flex-column">
         <li class="nav-item">
             <a href="{{ route('slides.index') }}"
@@ -142,26 +167,29 @@
         || request()->routeIs('slides.edit') 
         ? 'active' : '' }}">
                 <i class="bi bi-images me-2"></i>
-                Slideshow Manager
+                <span>Slideshow Manager</span>
             </a>
         </li>
     </ul>
 
     {{-- ARCHIVES --}}
-    <h6 class="text-uppercase text-muted">Archives</h6>
+    <h6 class="text-uppercase text-muted">
+        Archives
+    </h6>
+
     <ul class="nav flex-column">
         <li class="nav-item">
             <a href="{{ route('projects.archived') }}"
                 class="nav-link {{ request()->routeIs('projects.archived') ? 'active' : '' }}">
                 <i class="bi bi-archive me-2"></i>
-                Archived Projects
+                <span>Archived Projects</span>
             </a>
         </li>
         <li class="nav-item">
             <a href="{{ route('tasks.archived') }}"
                 class="nav-link {{ request()->routeIs('tasks.archived') ? 'active' : '' }}">
                 <i class="bi bi-archive me-2"></i>
-                Archived Tasks
+                <span>Archived Tasks</span>
             </a>
 
         </li>
@@ -170,7 +198,7 @@
             <a href="{{ route('slides.archived') }}"
                 class="nav-link {{ request()->routeIs('slides.archived') ? 'active' : '' }}">
                 <i class="bi bi-archive me-2"></i>
-                Archived Slides
+                <span>Archived Slides</span>
             </a>
         </li>
 
@@ -178,7 +206,7 @@
             <a href="{{ route('personnel.archived') }}"
                 class="nav-link {{ request()->routeIs('personnel.archived') ? 'active' : '' }}">
                 <i class="bi bi-person-x me-2"></i>
-                Deactivated Personnel
+                <span>Deactivated Personnel</span>
             </a>
         </li>
     </ul>
@@ -186,26 +214,32 @@
     @endif
 
     {{-- LOGS --}}
-    <h6 class="text-uppercase text-muted">Logs</h6>
+    <h6 class="text-uppercase text-muted">
+        Logs
+    </h6>
+
     <ul class="nav flex-column">
         <li class="nav-item">
             <a href="{{ route('logs.projects') }}"
                 class="nav-link {{ request()->routeIs('logs.projects') ? 'active' : '' }}">
                 <i class="bi bi-journal-text me-2"></i>
-                Project Activity Logs
+                <span>Project Activity Logs</span>
             </a>
         </li>
         <li class="nav-item">
             <a href="{{ route('logs.tasks') }}"
                 class="nav-link {{ request()->routeIs('logs.tasks') ? 'active' : '' }}">
                 <i class="bi bi-journal-check me-2"></i>
-                Task Activity Logs
+                <span>Task Activity Logs</span>
             </a>
         </li>
     </ul>
 
     {{-- ACCOUNT --}}
-    <h6 class="text-uppercase text-muted">Account</h6>
+    <h6 class="text-uppercase text-muted">
+        Account
+    </h6>
+
     <ul class="nav flex-column">
 
         {{-- My Profile --}}
@@ -213,7 +247,7 @@
             <a href="{{ route('profile.show') }}"
                 class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
                 <i class="bi bi-person-circle me-2"></i>
-                My Profile
+                <span>My Profile</span>
             </a>
         </li>
 
@@ -224,7 +258,7 @@
                 <button type="submit"
                     class="nav-link btn btn-link text-start text-danger w-100">
                     <i class="bi bi-box-arrow-right me-2"></i>
-                    Logout
+                    <span>Logout</span>
                 </button>
             </form>
         </li>

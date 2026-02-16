@@ -22,12 +22,30 @@
             z-index: 1030;
         }
 
+        /* Sidebar Humbergur on Mobile*/
         .sidebar {
             width: 260px;
-            min-height: 100vh;
             background-color: #ffffff;
             border-right: 1px solid #dee2e6;
         }
+
+        /* Desktop */
+        @media (min-width: 768px) {
+            .sidebar {
+                position: sticky;
+                top: 64px;
+                height: calc(100vh - 64px);
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 767.98px) {
+            .sidebar {
+                height: 100vh;
+            }
+        }
+
+        /*---------------*/
 
         .sidebar .nav-link {
             color: #212529;
@@ -52,6 +70,26 @@
             margin-top: 20px;
             margin-bottom: 8px;
         }
+
+        /* Collapsed Sidebar */
+        body.sidebar-collapsed .sidebar {
+            width: 80px !important;
+        }
+
+        body.sidebar-collapsed .sidebar .nav-link span,
+        body.sidebar-collapsed .sidebar h6 {
+            display: none;
+        }
+
+        body.sidebar-collapsed .sidebar .nav-link {
+            text-align: center;
+        }
+
+        body.sidebar-collapsed .sidebar .nav-link i {
+            margin-right: 0 !important;
+        }
+
+        /*-------------*/
 
         .content {
             padding: 20px;
@@ -199,9 +237,12 @@
     @include('layouts.navbar')
 
     <div class="container-fluid">
-        <div class="row">
+        <div class="row g-0">
+
             {{-- Sidebar --}}
-            @include('layouts.sidebar')
+            <div class="col-md-auto">
+                @include('layouts.sidebar')
+            </div>
 
             {{-- Main Content --}}
             <main class="col content">
@@ -424,6 +465,36 @@
                 const toast = new bootstrap.Toast(toastEl);
                 toast.show();
             });
+        });
+    </script>
+
+    {{-- Hide Sidebar Script--}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const toggleBtn = document.getElementById('sidebarToggle');
+
+            if (!toggleBtn) return;
+
+            // Restore state
+            if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                document.body.classList.add('sidebar-collapsed');
+                toggleBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
+            }
+
+            toggleBtn.addEventListener('click', function() {
+
+                document.body.classList.toggle('sidebar-collapsed');
+
+                const collapsed = document.body.classList.contains('sidebar-collapsed');
+
+                localStorage.setItem('sidebarCollapsed', collapsed);
+
+                toggleBtn.innerHTML = collapsed ?
+                    '<i class="bi bi-chevron-right"></i>' :
+                    '<i class="bi bi-chevron-left"></i>';
+            });
+
         });
     </script>
 

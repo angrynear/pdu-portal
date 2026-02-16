@@ -3,6 +3,13 @@
 
         {{-- LEFT: System Identity and Logo--}}
 
+        <button class="btn btn-outline-secondary d-md-none me-2"
+            type="button"
+            data-bs-toggle="offcanvas"
+            data-bs-target="#appSidebar">
+            <i class="bi bi-list"></i>
+        </button>
+
         <img
             src="{{ asset('images/mbhte-logo.png') }}"
             alt="MBHTE Logo"
