@@ -6,7 +6,8 @@
 <x-page-wrapper title="Edit Slide">
 
     <x-slot name="actions">
-        <a href="{{ route('slides.index') }}" class="btn btn-sm btn-secondary">
+        <a href="{{ route('slides.index') }}"
+           class="btn btn-sm btn-outline-secondary">
             ← Back to Slides
         </a>
     </x-slot>
@@ -20,50 +21,67 @@
 
         {{-- ================= IMAGE SECTION ================= --}}
         <div class="row mb-4">
-            <div class="col-md-8 mx-auto text-center">
+            <div class="col-12 text-center">
 
-                <div id="previewContainer"
-                     class="d-flex align-items-center justify-content-center p-4 mb-3"
-                     style="height:350px;">
+                <label class="form-label fw-semibold mb-2 d-block">
+                    Slide Image
+                </label>
 
-                    @if($slide->image_path)
-                        <img id="previewImage"
-                             src="{{ asset('storage/' . $slide->image_path) }}"
-                             class="img-fluid rounded"
-                             style="max-height:100%; object-fit:cover;">
-                        <span id="placeholderText" class="d-none"></span>
-                    @else
-                        <span id="placeholderText" class="text-muted">
-                            No image selected
-                        </span>
-                        <img id="previewImage"
-                             class="img-fluid rounded d-none"
-                             style="max-height:100%; object-fit:cover;">
-                    @endif
+                <div class="d-flex justify-content-center">
+                    <div id="previewContainer"
+                         class="border rounded overflow-hidden"
+                         style="width:100%; max-width:700px; aspect-ratio:16/9; background:#f8f9fa;">
+
+                        <div class="d-flex align-items-center justify-content-center h-100">
+
+                            @if($slide->image_path)
+                                <img id="previewImage"
+                                     src="{{ asset('storage/' . $slide->image_path) }}"
+                                     class="w-100 h-100"
+                                     style="object-fit: cover;">
+                                <span id="placeholderText" class="d-none"></span>
+                            @else
+                                <span id="placeholderText" class="text-muted">
+                                    No image selected
+                                </span>
+                                <img id="previewImage"
+                                     class="w-100 h-100 d-none"
+                                     style="object-fit: cover;">
+                            @endif
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <button type="button"
+                            class="btn btn-outline-primary btn-sm px-4"
+                            onclick="document.getElementById('imageInput').click();">
+                        Replace Photo
+                    </button>
                 </div>
 
                 <input type="file"
                        id="imageInput"
                        name="image"
-                       class="form-control d-none @error('image') is-invalid @enderror">
-
-                <button type="button"
-                        class="btn btn-outline-primary btn-sm"
-                        onclick="document.getElementById('imageInput').click();">
-                    Replace Photo
-                </button>
+                       class="d-none @error('image') is-invalid @enderror"
+                       accept="image/*">
 
                 @error('image')
                     <div class="text-danger small mt-2">{{ $message }}</div>
                 @enderror
+
             </div>
         </div>
 
+        {{-- ================= FORM FIELDS ================= --}}
         <div class="row g-4">
 
-            {{-- Title (REQUIRED) --}}
-            <div class="col-md-6">
-                <label class="form-label">Title <span class="text-danger">*</span></label>
+            {{-- TITLE --}}
+            <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold">
+                    Title <span class="text-danger">*</span>
+                </label>
                 <input type="text"
                        name="title"
                        value="{{ old('title', $slide->title) }}"
@@ -74,9 +92,9 @@
                 @enderror
             </div>
 
-            {{-- Display Order --}}
-            <div class="col-md-3">
-                <label class="form-label">Order</label>
+            {{-- ORDER --}}
+            <div class="col-12 col-md-3">
+                <label class="form-label fw-semibold">Order</label>
                 <input type="number"
                        name="display_order"
                        value="{{ old('display_order', $slide->display_order) }}"
@@ -87,9 +105,9 @@
                 @enderror
             </div>
 
-            {{-- Status --}}
-            <div class="col-md-3">
-                <label class="form-label">Status</label>
+            {{-- STATUS --}}
+            <div class="col-12 col-md-3">
+                <label class="form-label fw-semibold">Status</label>
                 <select name="is_active"
                         class="form-select @error('is_active') is-invalid @enderror"
                         required>
@@ -105,9 +123,9 @@
                 @enderror
             </div>
 
-            {{-- Description --}}
-            <div class="col-md-12">
-                <label class="form-label">Description</label>
+            {{-- DESCRIPTION --}}
+            <div class="col-12">
+                <label class="form-label fw-semibold">Description</label>
                 <textarea name="description"
                           rows="5"
                           class="form-control @error('description') is-invalid @enderror"
@@ -119,46 +137,59 @@
 
         </div>
 
-        <div class="mt-4 d-flex justify-content-end gap-2">
-            <a href="{{ route('slides.index') }}" class="btn btn-secondary">
+        {{-- ================= FOOTER ================= --}}
+        <div class="mt-4 d-flex flex-column flex-sm-row justify-content-end gap-2">
+
+            <a href="{{ route('slides.index') }}"
+               class="btn btn-secondary w-100 w-sm-auto flex-fill">
                 Cancel
             </a>
 
             <button type="submit"
                     id="editSlideBtn"
-                    class="btn btn-primary">
+                    class="btn btn-primary w-100 w-sm-auto flex-fill">
                 Update Slide
             </button>
+
         </div>
 
     </form>
 
-    {{-- Preview Script --}}
+    {{-- ================= SCRIPTS ================= --}}
     <script>
-        const imageInput = document.getElementById('imageInput');
-        const previewImage = document.getElementById('previewImage');
-        const placeholderText = document.getElementById('placeholderText');
+        document.addEventListener('DOMContentLoaded', function () {
 
-        imageInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
+            const imageInput = document.getElementById('imageInput');
+            const previewImage = document.getElementById('previewImage');
+            const placeholderText = document.getElementById('placeholderText');
+            const form = document.getElementById('editSlideForm');
+            const submitBtn = document.getElementById('editSlideBtn');
 
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function() {
-                    previewImage.src = reader.result;
-                    previewImage.classList.remove('d-none');
-                    if (placeholderText) {
-                        placeholderText.classList.add('d-none');
+            if (imageInput) {
+                imageInput.addEventListener('change', function(event) {
+                    const file = event.target.files[0];
+
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function() {
+                            previewImage.src = reader.result;
+                            previewImage.classList.remove('d-none');
+                            if (placeholderText) {
+                                placeholderText.classList.add('d-none');
+                            }
+                        };
+                        reader.readAsDataURL(file);
                     }
-                };
-                reader.readAsDataURL(file);
+                });
             }
-        });
 
-        document.getElementById('editSlideForm').addEventListener('submit', function(){
-            const btn = document.getElementById('editSlideBtn');
-            btn.disabled = true;
-            btn.innerText = "Updating...";
+            if (form && submitBtn) {
+                form.addEventListener('submit', function(){
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = "Updating...";
+                });
+            }
+
         });
     </script>
 

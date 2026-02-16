@@ -702,6 +702,7 @@
         <div class="card-body overflow-auto dashboard-scroll">
 
             <h6 class="fw-semibold mb-4">
+                <i class="bi bi-building-gear stat-icon text-primary"></i>
                 My Assigned Projects
             </h6>
 

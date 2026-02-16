@@ -5,123 +5,129 @@
 @section('content')
 <x-page-wrapper title="My Profile">
 
-    {{-- Edit Profile --}}
     <x-slot name="actions">
         <a href="{{ route('profile.edit') }}"
-            class="btn btn-sm btn-primary">
+           class="btn btn-sm btn-primary">
             <i class="bi bi-pencil-square me-1"></i>
             Edit Profile
         </a>
     </x-slot>
 
-
     <div class="row g-4">
 
-        {{-- LEFT: Profile Photo --}}
-        <div class="col-md-4 text-center">
+        {{-- ===================================================== --}}
+        {{-- PROFILE SUMMARY --}}
+        {{-- ===================================================== --}}
+        <div class="col-12 col-lg-4 text-center">
+
             <img
                 src="{{ $user->photo
                         ? asset('storage/' . $user->photo)
                         : asset('images/default-avatar.png') }}"
                 class="rounded-circle border mb-3"
-                style="width: 200px; height: 200px; object-fit: cover;"
+                style="width: 180px; height: 180px; object-fit: cover;"
                 alt="Profile Photo">
 
-            <h5 class="mb-0">{{ $user->name }}</h5>
-            <div class="text-muted small">{{ ucfirst($user->role) }}</div>
-
-            <div class="mt-2">
-                @if($user->account_status === 'active')
-                <span class="badge bg-success">Active</span>
-                @else
-                <span class="badge bg-secondary">Inactive</span>
-                @endif
+            <h5 class="mb-1">{{ $user->name }}</h5>
+            <div class="text-muted small mb-2">
+                {{ ucfirst($user->role) }}
             </div>
+
+            @if($user->account_status === 'active')
+                <span class="badge bg-success">Active</span>
+            @else
+                <span class="badge bg-secondary">Inactive</span>
+            @endif
+
         </div>
 
-        {{-- RIGHT: Profile Details --}}
-        <div class="col-md-8">
+
+        {{-- ===================================================== --}}
+        {{-- PROFILE DETAILS --}}
+        {{-- ===================================================== --}}
+        <div class="col-12 col-lg-8">
 
             {{-- ACCOUNT INFORMATION --}}
-            <h6 class="text-uppercase text-muted mb-2">Account Information</h6>
-            <table class="table table-sm table-borderless mb-4">
-                <tr>
-                    <th width="200">Email</th>
-                    <td>{{ $user->email }}</td>
-                </tr>
-                <tr>
-                    <th>Role</th>
-                    <td>{{ ucfirst($user->role) }}</td>
-                </tr>
-                <tr>
-                    <th>Member Since</th>
-                    <td>{{ $user->created_at->format('F d, Y') }}</td>
-                </tr>
-            </table>
+            <div class="mb-4">
+                <h6 class="text-uppercase text-muted mb-3">
+                    Account Information
+                </h6>
+
+                <div class="row g-2">
+
+                    <div class="col-12 col-md-6">
+                        <div class="small text-muted">Email</div>
+                        <div class="fw-semibold">{{ $user->email }}</div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="small text-muted">Role</div>
+                        <div class="fw-semibold">
+                            {{ ucfirst($user->role) }}
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="small text-muted">Member Since</div>
+                        <div class="fw-semibold">
+                            {{ $user->created_at->format('F d, Y') }}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
 
             {{-- PERSONNEL INFORMATION --}}
-            <h6 class="text-uppercase text-muted mb-2">Personnel Information</h6>
-            <table class="table table-sm table-borderless mb-4">
-                <tr>
-                    <th width="200">Profession</th>
-                    <td>{{ $user->profession ?? '—' }}</td>
-                </tr>
-                <tr>
-                    <th width="200">Designation</th>
-                    <td>{{ $user->designation ?? '—' }}</td>
-                </tr>
-                <tr>
-                    <th>Contact Number</th>
-                    <td>{{ $user->contact_number ?? '—' }}</td>
-                </tr>
-                <tr>
-                    <th>Employment Status</th>
-                    <td>{{ $user->employment_status ?? '—' }}</td>
-                </tr>
-                <tr>
-                    <th>Employment Started</th>
-                    <td>
-                        {{ $user->employment_started
-                            ? \Carbon\Carbon::parse($user->employment_started)->format('F d, Y')
-                            : '—' }}
-                    </td>
-                </tr>
-            </table>
+            <div>
+                <h6 class="text-uppercase text-muted mb-3">
+                    Personnel Information
+                </h6>
 
-            {{-- TASK SUMMARY
-            <h6 class="text-uppercase text-muted mb-2">Task Summary</h6>
-            <table class="table table-sm table-borderless">
+                <div class="row g-3">
 
-                <tr>
-                    <th>Total Tasks</th>
-                    <td>
-                        <span class="badge bg-primary">
-                            {{ $user->total_tasks_count ?? 0 }}
-            </span>
-            </td>
-            </tr>
+                    <div class="col-12 col-md-6">
+                        <div class="small text-muted">Profession</div>
+                        <div class="fw-semibold">
+                            {{ $user->profession ?? '—' }}
+                        </div>
+                    </div>
 
-            <tr>
-                <th width="200">Completed Tasks</th>
-                <td>
-                    <span class="badge bg-success">
-                        {{ $user->completed_tasks_count ?? 0 }}
-                    </span>
-                </td>
-            </tr>
+                    <div class="col-12 col-md-6">
+                        <div class="small text-muted">Designation</div>
+                        <div class="fw-semibold">
+                            {{ $user->designation ?? '—' }}
+                        </div>
+                    </div>
 
-            <tr>
-                <th width="200">Ongoing Tasks</th>
-                <td>
-                    <span class="badge bg-warning text-dark">
-                        {{ $user->ongoing_tasks_count ?? 0 }}
-                    </span>
-                </td>
-            </tr>
+                    <div class="col-12 col-md-6">
+                        <div class="small text-muted">Contact Number</div>
+                        <div class="fw-semibold">
+                            {{ $user->contact_number ?? '—' }}
+                        </div>
+                    </div>
 
-            </table>
-            --}}
+                    <div class="col-12 col-md-6">
+                        <div class="small text-muted">Employment Status</div>
+                        <div class="fw-semibold">
+                            {{ $user->employment_status ?? '—' }}
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <div class="small text-muted">Employment Started</div>
+                        <div class="fw-semibold">
+                            {{ $user->employment_started
+                                ? \Carbon\Carbon::parse($user->employment_started)->format('F d, Y')
+                                : '—' }}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </div>
+
     </div>
 
 </x-page-wrapper>

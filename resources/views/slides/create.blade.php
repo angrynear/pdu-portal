@@ -6,7 +6,8 @@
 <x-page-wrapper title="Create Slide">
 
     <x-slot name="actions">
-        <a href="{{ route('slides.index') }}" class="btn btn-sm btn-secondary">
+        <a href="{{ route('slides.index') }}"
+            class="btn btn-sm btn-outline-secondary">
             ← Back to Slides
         </a>
     </x-slot>
@@ -15,48 +16,62 @@
         action="{{ route('slides.store') }}"
         method="POST"
         enctype="multipart/form-data">
+
         @csrf
 
         {{-- ================= IMAGE SECTION ================= --}}
         <div class="row mb-4">
-            <div class="col-md-8 mx-auto text-center">
+            <div class="col-12 text-center">
 
+                <label class="form-label fw-semibold mb-2 d-block">
+                    Slide Image <span class="text-danger">*</span>
+                </label>
+
+                <div class="d-flex justify-content-center">
                     <div id="previewContainer"
-                        class="d-flex align-items-center justify-content-center p-4 mb-3"
-                        style="height:350px;">
+                        class="border rounded overflow-hidden"
+                        style="width:100%; max-width:700px; aspect-ratio:16/9; background:#f8f9fa;">
 
-                        <span id="placeholderText" class="text-muted">
-                            No image selected
-                        </span>
+                        <div class="d-flex align-items-center justify-content-center h-100">
 
-                        <img id="previewImage"
-                            class="img-fluid rounded d-none"
-                            style="max-height:100%; object-fit:cover;">
+                            <span id="placeholderText" class="text-muted">
+                                No image selected
+                            </span>
+
+                            <img id="previewImage"
+                                class="w-100 h-100 d-none"
+                                style="object-fit: cover;">
+                        </div>
                     </div>
+                </div>
+
+                <div class="mt-3">
+                    <button type="button"
+                        class="btn btn-primary btn-sm px-4"
+                        onclick="document.getElementById('imageInput').click();">
+                        Choose Photo
+                    </button>
+                </div>
 
                 <input type="file"
                     id="imageInput"
                     name="image"
-                    class="form-control d-none @error('image') is-invalid @enderror"
+                    class="d-none"
+                    accept="image/*"
                     required>
 
-                <button type="button"
-                    class="btn btn-outline-primary btn-sm"
-                    onclick="document.getElementById('imageInput').click();">
-                    Choose Photo
-                </button>
-
-                @error('image')
-                <div class="text-danger small mt-2">{{ $message }}</div>
-                @enderror
             </div>
         </div>
 
+
+        {{-- ================= FORM FIELDS ================= --}}
         <div class="row g-4">
 
-            {{-- Title (REQUIRED) --}}
-            <div class="col-md-6">
-                <label class="form-label">Title <span class="text-danger">*</span></label>
+            {{-- TITLE --}}
+            <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold">
+                    Title <span class="text-danger">*</span>
+                </label>
                 <input type="text"
                     name="title"
                     value="{{ old('title') }}"
@@ -67,9 +82,9 @@
                 @enderror
             </div>
 
-            {{-- Display Order --}}
-            <div class="col-md-3">
-                <label class="form-label">Order</label>
+            {{-- ORDER --}}
+            <div class="col-12 col-md-3">
+                <label class="form-label fw-semibold">Order</label>
                 <input type="number"
                     name="display_order"
                     value="{{ old('display_order', 0) }}"
@@ -80,9 +95,9 @@
                 @enderror
             </div>
 
-            {{-- Status --}}
-            <div class="col-md-3">
-                <label class="form-label">Status</label>
+            {{-- STATUS --}}
+            <div class="col-12 col-md-3">
+                <label class="form-label fw-semibold">Status</label>
                 <select name="is_active"
                     class="form-select @error('is_active') is-invalid @enderror"
                     required>
@@ -94,9 +109,9 @@
                 @enderror
             </div>
 
-            {{-- Description --}}
-            <div class="col-md-12">
-                <label class="form-label">Description</label>
+            {{-- DESCRIPTION --}}
+            <div class="col-12">
+                <label class="form-label fw-semibold">Description</label>
                 <textarea name="description"
                     rows="5"
                     class="form-control @error('description') is-invalid @enderror"
@@ -108,41 +123,59 @@
 
         </div>
 
-        <div class="mt-4 d-flex justify-content-end gap-2">
-            <a href="{{ route('slides.index') }}" class="btn btn-secondary">
+        {{-- ================= FOOTER ================= --}}
+        <div class="mt-4 d-flex flex-column flex-sm-row justify-content-end gap-2">
+
+            <a href="{{ route('slides.index') }}"
+                class="btn btn-secondary w-100 w-sm-auto flex-fill">
                 Cancel
             </a>
 
             <button type="submit"
                 id="createSlideBtn"
-                class="btn btn-primary">
+                class="btn btn-primary w-100 w-sm-auto flex-fill">
                 Create Slide
             </button>
+
         </div>
 
     </form>
 
-    {{-- Photo Preview Scripts --}}
+    {{-- ================= SCRIPTS ================= --}}
     <script>
-        const imageInput = document.getElementById('imageInput');
-        const previewImage = document.getElementById('previewImage');
-        const placeholderText = document.getElementById('placeholderText');
+        document.addEventListener('DOMContentLoaded', function() {
 
-        imageInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
+            const imageInput = document.getElementById('imageInput');
+            const previewImage = document.getElementById('previewImage');
+            const placeholderText = document.getElementById('placeholderText');
+            const form = document.getElementById('createSlideForm');
+            const submitBtn = document.getElementById('createSlideBtn');
 
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function() {
-                    previewImage.src = reader.result;
-                    previewImage.classList.remove('d-none');
-                    placeholderText.classList.add('d-none');
-                };
-                reader.readAsDataURL(file);
+            if (imageInput) {
+                imageInput.addEventListener('change', function(event) {
+                    const file = event.target.files[0];
+
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function() {
+                            previewImage.src = reader.result;
+                            previewImage.classList.remove('d-none');
+                            placeholderText.classList.add('d-none');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
             }
+
+            if (form && submitBtn) {
+                form.addEventListener('submit', function() {
+                    submitBtn.disabled = true;
+                    submitBtn.innerText = "Creating...";
+                });
+            }
+
         });
     </script>
-
 
 </x-page-wrapper>
 @endsection
