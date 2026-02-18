@@ -82,11 +82,13 @@
         {{ $displayDate->format('M. j, Y') }}
     </span>
 
+   {{-- comment out 
     @if($relativeText)
-        <div class="ps-4">
-            {{ $relativeText }}
-        </div>
+        <span class="small">
+            ({{ $relativeText }})
+        </span>
     @endif
+    --}}
 @else
     <span>—</span>
 @endif

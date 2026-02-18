@@ -1,8 +1,7 @@
-{{-- Add Task Modal --}}
-{{-- Add Task Modal --}}
+{{-- ================= ADD TASK MODAL ================= --}}
 <div class="modal fade" id="addTaskModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content">
+        <div class="modal-content border-0 shadow">
 
             <form id="addTaskForm" action="{{ route('tasks.store') }}" method="POST">
                 @csrf
@@ -10,18 +9,31 @@
                 <input type="hidden" name="form_context" value="add_task">
                 <input type="hidden" name="project_id" value="{{ $project->id }}">
 
-                <div class="modal-header">
-                    <h6 class="modal-title">Add Task</h6>
+                {{-- HEADER --}}
+                <div class="modal-header border-0 pb-2">
+                    <div>
+                        <h5 class="modal-title fw-semibold mb-0">Add Task</h5>
+                        <small class="text-muted">
+                            Project Date Range:
+                            {{ $project->start_date?->format('M. d, Y') }}
+                            →
+                            {{ $project->due_date?->format('M. d, Y') }}
+                        </small>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
-                <div class="modal-body">
+                <hr class="mt-2 mb-0">
 
-                    <div class="row g-3">
+                <div class="modal-body pt-4">
+
+                    <div class="row g-4">
+
+                        {{-- TASK INFORMATION --}}
 
                         {{-- Task Type --}}
                         <div class="col-md-6">
-                            <label class="form-label">Task Type</label>
+                            <label class="form-label fw-semibold small">Task Type</label>
                             <select name="task_type_select"
                                 id="taskTypeSelect"
                                 class="form-select @error('task_type_select') is-invalid @enderror"
@@ -42,7 +54,7 @@
                         {{-- Custom Task --}}
                         <div class="col-md-6 {{ old('task_type_select') === 'Custom' ? '' : 'd-none' }}"
                             id="customTaskWrapper">
-                            <label class="form-label">Custom Task Name</label>
+                            <label class="form-label fw-semibold small">Custom Task Name</label>
                             <input type="text"
                                 name="custom_task_name"
                                 class="form-control @error('custom_task_name') is-invalid @enderror"
@@ -52,9 +64,10 @@
                             @enderror
                         </div>
 
-                        {{-- Assigned --}}
+                        {{-- ASSIGNMENT --}}
+
                         <div class="col-md-6">
-                            <label class="form-label">Assign To</label>
+                            <label class="form-label fw-semibold small">Assign To</label>
                             <select name="assigned_user_id"
                                 class="form-select @error('assigned_user_id') is-invalid @enderror"
                                 required>
@@ -68,9 +81,10 @@
                             </select>
                         </div>
 
-                        {{-- Dates --}}
+                        {{-- TIMELINE --}}
+
                         <div class="col-md-3">
-                            <label class="form-label">Start Date</label>
+                            <label class="form-label fw-semibold small">Start Date</label>
                             <input type="date"
                                 id="add_start_date"
                                 name="start_date"
@@ -79,7 +93,7 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label">Due Date</label>
+                            <label class="form-label fw-semibold small">Due Date</label>
                             <input type="date"
                                 id="add_due_date"
                                 name="due_date"
@@ -90,16 +104,19 @@
                     </div>
                 </div>
 
-                <div class="modal-footer">
+                <hr class="mb-0">
+
+                {{-- FOOTER --}}
+                <div class="modal-footer border-0 pt-3">
                     <button type="button"
-                        class="btn btn-secondary"
+                        class="btn btn-light"
                         data-bs-dismiss="modal">
                         Cancel
                     </button>
 
                     <button type="submit"
                         id="createTaskBtn"
-                        class="btn btn-success">
+                        class="btn btn-success px-4">
                         Create Task
                     </button>
                 </div>
@@ -108,7 +125,6 @@
         </div>
     </div>
 </div>
-
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

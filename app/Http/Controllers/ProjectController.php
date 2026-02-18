@@ -16,18 +16,78 @@ class ProjectController extends Controller
     /**
      * Display a listing of active projects.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $filter = $request->get('filter', 'all');
+
         $query = Project::whereNull('archived_at')
             ->withCount([
-                'tasks as total_tasks_count' => function ($query) {
-                    $query->whereNull('archived_at');
+
+                // Total active tasks
+                'tasks as total_tasks_count' => function ($q) {
+                    $q->whereNull('archived_at');
                 },
-                'tasks as completed_tasks_count' => function ($query) {
-                    $query->where('progress', 100)
+
+                // Completed tasks
+                'tasks as completed_tasks_count' => function ($q) {
+                    $q->where('progress', 100)
                         ->whereNull('archived_at');
                 },
+
+                // Started tasks (progress > 0)
+                'tasks as started_tasks_count' => function ($q) {
+                    $q->where('progress', '>', 0)
+                        ->whereNull('archived_at');
+                },
+
             ]);
+
+        /*
+    |--------------------------------------------------------------------------
+    | FILTER LOGIC
+    |--------------------------------------------------------------------------
+    */
+
+        if ($filter === 'not_started') {
+
+            $query->whereDoesntHave('tasks', function ($q) {
+                $q->whereNull('archived_at')
+                    ->where('progress', '>', 0);
+            });
+        } elseif ($filter === 'ongoing') {
+
+            $query->whereDate('due_date', '>=', now())
+                ->whereHas('tasks', function ($q) {
+                    $q->whereNull('archived_at')
+                        ->where('progress', '>', 0);
+                })
+                ->whereHas('tasks', function ($q) {
+                    $q->whereNull('archived_at')
+                        ->where('progress', '<', 100);
+                });
+        } elseif ($filter === 'completed') {
+
+            $query->whereHas('tasks', function ($q) {
+                $q->whereNull('archived_at');
+            })
+                ->whereDoesntHave('tasks', function ($q) {
+                    $q->whereNull('archived_at')
+                        ->where('progress', '<', 100);
+                });
+        } elseif ($filter === 'overdue') {
+
+            $query->whereDate('due_date', '<', now())
+                ->whereHas('tasks', function ($q) {
+                    $q->whereNull('archived_at')
+                        ->where('progress', '<', 100);
+                });
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | NON-ADMIN RESTRICTION
+    |--------------------------------------------------------------------------
+    */
 
         if (!auth()->user()->isAdmin()) {
             $query->whereHas('tasks', function ($q) {
@@ -35,9 +95,11 @@ class ProjectController extends Controller
             });
         }
 
-        $projects = $query->latest()->paginate(10)->withQueryString();
+        $projects = $query->latest()
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('projects.index', compact('projects'));
+        return view('projects.index', compact('projects', 'filter'));
     }
 
     public function create()
@@ -61,13 +123,13 @@ class ProjectController extends Controller
             ],
             'source_of_fund' => [
                 'required',
-                'in:GAAB,QRF,TDIF,SDF,CF,SB,BEFF,ODA,LOCAL,For Approval'
+                'in:GAAB,QRF,TDIF,SDF,CF,SB,BEFF,ODA,LOCAL,FOR APPROVAL'
             ],
             'funding_year' => [
                 'required',
                 function ($attribute, $value, $fail) {
-                    if ($value !== 'For Approval' && !is_numeric($value)) {
-                        $fail('Funding year must be a valid year or For Approval.');
+                    if ($value !== 'FOR APPROVAL' && !is_numeric($value)) {
+                        $fail('Funding year must be a valid year or FOR APPROVAL.');
                     }
                 }
             ],
@@ -148,13 +210,13 @@ class ProjectController extends Controller
             ],
             'source_of_fund' => [
                 'required',
-                'in:GAAB,QRF,TDIF,SDF,CF,SB,BEFF,ODA,LOCAL,For Approval'
+                'in:GAAB,QRF,TDIF,SDF,CF,SB,BEFF,ODA,LOCAL,FOR APPROVAL'
             ],
             'funding_year' => [
                 'required',
                 function ($attribute, $value, $fail) {
-                    if ($value !== 'For Approval' && !is_numeric($value)) {
-                        $fail('Funding year must be a valid year or For Approval.');
+                    if ($value !== 'FOR APPROVAL' && !is_numeric($value)) {
+                        $fail('Funding year must be a valid year or FOR APPROVAL.');
                     }
                 }
             ],

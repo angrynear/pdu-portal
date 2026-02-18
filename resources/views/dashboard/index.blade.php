@@ -135,7 +135,7 @@
                             Overdue Projects
                         </h6>
 
-                        <a href="{{ route('projects.index') }}"
+                        <a href="{{ route('projects.index', ['filter' => 'overdue']) }}"
                             class="small text-decoration-none text-muted">
                             View All →
                         </a>
