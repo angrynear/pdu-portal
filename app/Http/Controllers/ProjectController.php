@@ -18,89 +18,31 @@ class ProjectController extends Controller
      */
     public function index(Request $request)
     {
-        $filter = $request->get('filter', 'all');
+        $scope = $request->get('scope', 'all');
 
-        $query = Project::whereNull('archived_at')
-            ->withCount([
-
-                // Total active tasks
-                'tasks as total_tasks_count' => function ($q) {
-                    $q->whereNull('archived_at');
-                },
-
-                // Completed tasks
-                'tasks as completed_tasks_count' => function ($q) {
-                    $q->where('progress', 100)
-                        ->whereNull('archived_at');
-                },
-
-                // Started tasks (progress > 0)
-                'tasks as started_tasks_count' => function ($q) {
-                    $q->where('progress', '>', 0)
-                        ->whereNull('archived_at');
-                },
-
-            ]);
-
-        /*
-    |--------------------------------------------------------------------------
-    | FILTER LOGIC
-    |--------------------------------------------------------------------------
-    */
-
-        if ($filter === 'not_started') {
-
-            $query->whereDoesntHave('tasks', function ($q) {
-                $q->whereNull('archived_at')
-                    ->where('progress', '>', 0);
-            });
-        } elseif ($filter === 'ongoing') {
-
-            $query->whereDate('due_date', '>=', now())
-                ->whereHas('tasks', function ($q) {
-                    $q->whereNull('archived_at')
-                        ->where('progress', '>', 0);
-                })
-                ->whereHas('tasks', function ($q) {
-                    $q->whereNull('archived_at')
-                        ->where('progress', '<', 100);
-                });
-        } elseif ($filter === 'completed') {
-
-            $query->whereHas('tasks', function ($q) {
-                $q->whereNull('archived_at');
-            })
-                ->whereDoesntHave('tasks', function ($q) {
-                    $q->whereNull('archived_at')
-                        ->where('progress', '<', 100);
-                });
-        } elseif ($filter === 'overdue') {
-
-            $query->whereDate('due_date', '<', now())
-                ->whereHas('tasks', function ($q) {
-                    $q->whereNull('archived_at')
-                        ->where('progress', '<', 100);
-                });
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | NON-ADMIN RESTRICTION
-    |--------------------------------------------------------------------------
-    */
+        $baseQuery = Project::whereNull('archived_at');
 
         if (!auth()->user()->isAdmin()) {
-            $query->whereHas('tasks', function ($q) {
+            // Normal user → only assigned projects
+            $baseQuery->whereHas('tasks', function ($q) {
                 $q->where('assigned_user_id', auth()->id());
             });
         }
 
-        $projects = $query->latest()
-            ->paginate(10)
-            ->withQueryString();
+        if ($scope === 'my' && auth()->user()->isAdmin()) {
+            // Admin personal assigned projects
+            $baseQuery->whereHas('tasks', function ($q) {
+                $q->where('assigned_user_id', auth()->id());
+            });
+        }
 
-        return view('projects.index', compact('projects', 'filter'));
+        return $this->buildProjectIndex($baseQuery, $request);
     }
+
+    /**
+     * Display a listing of archived projects.
+     */
+
 
     public function create()
     {
@@ -364,26 +306,116 @@ class ProjectController extends Controller
         return view('logs.projects', compact('logs'));
     }
 
-    public function myProjects()
+    private function buildProjectIndex($baseQuery, Request $request)
     {
-        $userId = auth()->id();
+        $status = $request->get('filter', 'all');
+        $search = $request->get('search');
 
-        $projects = Project::whereNull('archived_at')
-            ->whereHas('tasks', function ($q) use ($userId) {
-                $q->where('assigned_user_id', $userId);
-            })
+        /*
+    |--------------------------------------------------------------------------
+    | SEARCH
+    |--------------------------------------------------------------------------
+    */
+
+        if (!empty($search)) {
+            $baseQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('location', 'like', "%{$search}%")
+                    ->orWhere('sub_sector', 'like', "%{$search}%")
+                    ->orWhere('source_of_fund', 'like', "%{$search}%")
+                    ->orWhere('funding_year', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | STATUS COUNTS
+    |--------------------------------------------------------------------------
+    */
+
+        $countQuery = clone $baseQuery;
+
+        $statusCounts = [
+            'all' => (clone $countQuery)->count(),
+
+            'completed' => (clone $countQuery)
+                ->where('progress', 100)
+                ->count(),
+
+            'overdue' => (clone $countQuery)
+                ->where('progress', '<', 100)
+                ->whereDate('due_date', '<', today())
+                ->count(),
+
+            'ongoing' => (clone $countQuery)
+                ->whereBetween('progress', [1, 99])
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                })
+                ->count(),
+
+            'not_started' => (clone $countQuery)
+                ->where('progress', 0)
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                })
+                ->count(),
+        ];
+
+        /*
+    |--------------------------------------------------------------------------
+    | APPLY STATUS FILTER
+    |--------------------------------------------------------------------------
+    */
+
+        $query = clone $baseQuery;
+
+        if ($status === 'completed') {
+            $query->where('progress', '>=', 100);
+        } elseif ($status === 'ongoing') {
+            $query->whereBetween('progress', [1, 99])
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                });
+        } elseif ($status === 'not_started') {
+            $query->where('progress', 0)
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                });
+        } elseif ($status === 'overdue') {
+            $query->where('progress', '<', 100)
+                ->whereDate('due_date', '<', today());
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | FETCH PROJECTS
+    |--------------------------------------------------------------------------
+    */
+
+        $projects = $query
             ->withCount([
-                'tasks as total_tasks_count' => function ($q) {
-                    $q->whereNull('archived_at');
-                },
+                'tasks as total_tasks_count',
                 'tasks as completed_tasks_count' => function ($q) {
-                    $q->where('progress', 100)
-                        ->whereNull('archived_at');
+                    $q->where('progress', 100);
                 }
             ])
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('projects.index', compact('projects'));
+        if ($request->ajax()) {
+            return view('projects.partials.project-list', compact('projects'))->render();
+        }
+
+        return view('projects.index', compact(
+            'projects',
+            'statusCounts'
+        ));
     }
 }

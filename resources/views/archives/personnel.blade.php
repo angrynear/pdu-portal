@@ -7,7 +7,7 @@
 
     <x-slot name="actions">
         <a href="{{ route('personnel.index') }}"
-            class="btn btn-sm btn-secondary">
+            class="btn btn-sm btn-outline-secondary">
             ← Back to Personnel
         </a>
     </x-slot>

@@ -8,7 +8,7 @@
 
     <x-slot name="actions">
         <a href="{{ route('slides.create') }}"
-           class="btn btn-sm btn-primary">
+           class="btn btn-sm btn-outline-primary">
             + Add Slide
         </a>
     </x-slot>

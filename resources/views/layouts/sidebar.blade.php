@@ -1,14 +1,7 @@
 <aside
-    class="sidebar offcanvas-md offcanvas-start p-2"
+    class="sidebar p-2"
     tabindex="-1"
     id="appSidebar">
-
-    <div class="d-none d-md-flex justify-content-end mb-2">
-        <button id="sidebarToggle"
-            class="btn btn-sm btn-light border">
-            <i class="bi bi-chevron-left"></i>
-        </button>
-    </div>
 
     {{-- MAIN --}}
     <h6 class="text-uppercase text-muted">
@@ -44,10 +37,7 @@
 
         @php
         $manageActive = $route === 'projects.index' ||
-        ($route === 'projects.show' && $from !== 'my');
-
-        $myActive = $route === 'projects.my' ||
-        ($route === 'projects.show' && $from === 'my');
+        ($route === 'projects.show');
         @endphp
 
         <li class="nav-item">
@@ -55,14 +45,6 @@
                 class="nav-link {{ $manageActive ? 'active' : '' }}">
                 <i class="bi bi-kanban me-2"></i>
                 <span>Manage Projects</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="{{ route('projects.my') }}"
-                class="nav-link {{ $myActive ? 'active' : '' }}">
-                <i class="bi bi-kanban me-2"></i>
-                <span>My Projects</span>
             </a>
         </li>
 
@@ -101,8 +83,6 @@
         $manageActive = $route === 'tasks.index' ||
         ($route === 'tasks.show' && $from !== 'my');
 
-        $myActive = $route === 'tasks.my' ||
-        ($route === 'tasks.show' && $from === 'my');
         @endphp
 
         <li class="nav-item">
@@ -110,14 +90,6 @@
                 class="nav-link {{ $manageActive ? 'active' : '' }}">
                 <i class="bi bi-list-check me-2"></i>
                 <span>Manage Tasks</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="{{ route('tasks.my') }}"
-                class="nav-link {{ $myActive ? 'active' : '' }}">
-                <i class="bi bi-list-check me-2"></i>
-                <span>My Tasks</span>
             </a>
         </li>
 

@@ -18,74 +18,91 @@
 <body>
 
     {{-- Toast Container --}}
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100">
-
-        @foreach (['success', 'error', 'warning'] as $type)
-        @if (session($type))
-        <div class="toast align-items-center border-0
-                {{ $type === 'success' ? 'text-bg-success' : '' }}
-                {{ $type === 'error' ? 'text-bg-danger' : '' }}
-                {{ $type === 'warning' ? 'text-bg-warning text-dark' : '' }}"
-            role="alert"
-            aria-live="assertive"
-            aria-atomic="true"
-            data-bs-delay="2000">
-
-            <div class="d-flex">
-                <div class="toast-body">
-                    {{ session($type) }}
-                </div>
-
-                <button type="button"
-                    class="btn-close {{ $type === 'warning' ? '' : 'btn-close-white' }} me-2 m-auto"
-                    data-bs-dismiss="toast">
-                </button>
-            </div>
-        </div>
-        @endif
-        @endforeach
-
-    </div>
+    @include('layouts.partials.toasts')
 
     {{-- Top Navbar --}}
     @include('layouts.navbar')
 
-    <div class="app-layout">
+    <div class="app-layout d-flex">
 
-        {{-- Sidebar --}}
-        @include('layouts.sidebar')
+        {{-- Desktop Sidebar --}}
+        <div class="d-none d-md-block sidebar-desktop">
+            @include('layouts.sidebar')
+        </div>
+
+        {{-- Mobile Offcanvas Sidebar --}}
+        <div class="offcanvas offcanvas-start d-md-none mobile-sidebar"
+            tabindex="-1"
+            id="mobileSidebar">
+
+            <div class="offcanvas-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-buildings fs-5 text-success"></i>
+                    <span class="fw-semibold">
+                        Planning and Design Unit Portal
+                    </span>
+                </div>
+                <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="offcanvas">
+                </button>
+            </div>
+
+            <div class="offcanvas-body p-0">
+                @include('layouts.sidebar')
+            </div>
+        </div>
 
         {{-- Main Content --}}
-        <main class="app-content">
+        <main class="app-content flex-fill">
             @yield('content')
         </main>
 
     </div>
 
-    {{-- Confirmation Modal --}}
+
+    {{-- ================= CONFIRMATION MODAL (UPGRADED) ================= --}}
     <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content border-0 shadow">
 
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmModalTitle"></h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
+                <div class="modal-body text-center p-4">
 
-                <div class="modal-body">
-                    <p id="confirmModalMessage" class="mb-0"></p>
-                </div>
+                    {{-- ICON --}}
+                    <div id="confirmModalIconWrapper" class="mb-3">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
+                            style="width:70px; height:70px;"
+                            id="confirmModalIconContainer">
+                            <i class="bi fs-3" id="confirmModalIcon"></i>
+                        </div>
+                    </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cancel
-                    </button>
+                    {{-- TITLE --}}
+                    <h5 class="fw-semibold mb-2" id="confirmModalTitle"></h5>
 
-                    <form id="confirmActionForm" method="POST">
-                        @csrf
-                        <input type="hidden" name="_method" id="confirmActionMethod">
-                        <button type="submit" class="btn" id="confirmActionButton"></button>
-                    </form>
+                    {{-- MESSAGE --}}
+                    <p class="text-muted mb-4" id="confirmModalMessage"></p>
+
+                    {{-- ACTIONS --}}
+                    <div class="d-flex justify-content-center gap-2">
+
+                        <button type="button"
+                            class="btn btn-light px-4"
+                            data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+
+                        <form id="confirmActionForm" method="POST">
+                            @csrf
+                            <input type="hidden" name="_method" id="confirmActionMethod">
+                            <button type="submit"
+                                class="btn px-4"
+                                id="confirmActionButton">
+                            </button>
+                        </form>
+
+                    </div>
+
                 </div>
 
             </div>
@@ -116,6 +133,10 @@
                 const confirmText = button.getAttribute('data-confirm-text');
                 const confirmClass = button.getAttribute('data-confirm-class');
 
+                const iconContainer = document.getElementById('confirmModalIconContainer');
+                const icon = document.getElementById('confirmModalIcon');
+
+                // Set basic content
                 document.getElementById('confirmModalTitle').textContent = title;
                 document.getElementById('confirmModalMessage').textContent = message;
 
@@ -123,16 +144,36 @@
                 document.getElementById('confirmActionMethod').value = method;
 
                 confirmBtn.textContent = confirmText;
-                confirmBtn.className = `btn ${confirmClass}`;
                 confirmBtn.disabled = false;
+
+                // Reset button class cleanly
+                confirmBtn.className = 'btn px-4';
+                confirmBtn.classList.add(confirmClass);
+
+                // Reset icon styles
+                iconContainer.className = 'rounded-circle d-inline-flex align-items-center justify-content-center';
+                iconContainer.style.width = "70px";
+                iconContainer.style.height = "70px";
+
+                // Dynamic visual styling based on action type
+                if (confirmClass.includes('danger')) {
+                    iconContainer.classList.add('bg-danger-subtle');
+                    icon.className = 'bi bi-exclamation-triangle-fill text-danger fs-3';
+                } else if (confirmClass.includes('success')) {
+                    iconContainer.classList.add('bg-success-subtle');
+                    icon.className = 'bi bi-check-circle-fill text-success fs-3';
+                } else {
+                    iconContainer.classList.add('bg-secondary-subtle');
+                    icon.className = 'bi bi-question-circle-fill text-secondary fs-3';
+                }
+
             });
 
-            // 🔥 Dynamic loading state
+            // 🔥 Loading State (Preserved + Improved)
             if (confirmForm && confirmBtn) {
                 confirmForm.addEventListener('submit', function() {
 
                     const originalText = confirmBtn.textContent.trim().toLowerCase();
-
                     let loadingText = "Processing...";
 
                     if (originalText.includes('archive')) {
@@ -148,7 +189,10 @@
                     }
 
                     confirmBtn.disabled = true;
-                    confirmBtn.textContent = loadingText;
+                    confirmBtn.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                ${loadingText}
+            `;
                 });
             }
 
@@ -276,7 +320,6 @@
         });
     </script>
 
-    {{-- Hide Sidebar Script--}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
@@ -284,27 +327,22 @@
 
             if (!toggleBtn) return;
 
-            // Restore state
-            if (localStorage.getItem('sidebarCollapsed') === 'true') {
-                document.body.classList.add('sidebar-collapsed');
-                toggleBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
-            }
-
             toggleBtn.addEventListener('click', function() {
-
-                document.body.classList.toggle('sidebar-collapsed');
-
-                const collapsed = document.body.classList.contains('sidebar-collapsed');
-
-                localStorage.setItem('sidebarCollapsed', collapsed);
-
-                toggleBtn.innerHTML = collapsed ?
-                    '<i class="bi bi-chevron-right"></i>' :
-                    '<i class="bi bi-chevron-left"></i>';
+                document.body.classList.toggle('sidebar-hidden');
+                localStorage.setItem(
+                    'sidebarHidden',
+                    document.body.classList.contains('sidebar-hidden')
+                );
             });
+
+            // Restore state
+            if (localStorage.getItem('sidebarHidden') === 'true') {
+                document.body.classList.add('sidebar-hidden');
+            }
 
         });
     </script>
+
 
     @stack('scripts')
 

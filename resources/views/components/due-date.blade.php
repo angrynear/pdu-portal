@@ -15,7 +15,7 @@
     // ================================
     // COMPLETED (Highest Priority)
     // ================================
-    if ($progress === 100) {
+    if ($progress !== null && $progress >= 100) {
 
         $statusClass = 'text-success fw-semibold';
         $statusIcon = 'bi-check-circle-fill';

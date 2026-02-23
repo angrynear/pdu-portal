@@ -3,11 +3,11 @@
 
         {{-- LEFT: System Identity and Logo--}}
 
-        <button class="btn btn-outline-secondary d-md-none me-2"
+        <button class="btn btn-sm btn-outline-secondary d-md-none"
             type="button"
             data-bs-toggle="offcanvas"
-            data-bs-target="#appSidebar">
-            <i class="bi bi-list"></i>
+            data-bs-target="#mobileSidebar">
+            <i class="bi bi-list fs-4"></i>
         </button>
 
         <img

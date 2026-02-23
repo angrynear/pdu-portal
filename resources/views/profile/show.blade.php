@@ -7,7 +7,7 @@
 
     <x-slot name="actions">
         <a href="{{ route('profile.edit') }}"
-           class="btn btn-sm btn-primary">
+           class="btn btn-sm btn-outline-primary">
             <i class="bi bi-pencil-square me-1"></i>
             Edit Profile
         </a>

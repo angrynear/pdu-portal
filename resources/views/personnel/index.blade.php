@@ -8,7 +8,7 @@
 
     <x-slot name="actions">
         <a href="{{ route('personnel.create') }}"
-            class="btn btn-sm btn-success">
+            class="btn btn-sm btn-outline-success">
             <i class="bi bi-plus-circle me-1"></i>
             Add Personnel
         </a>

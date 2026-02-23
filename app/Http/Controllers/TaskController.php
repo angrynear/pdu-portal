@@ -15,45 +15,22 @@ use App\Models\User;
 
 class TaskController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $query = Task::with([
-            'project',
-            'assignedUser',
-            'activityLogs' => function ($query) {
-                $query->latest();
-            }
-        ])
-            ->whereNull('archived_at');
+        $scope = $request->get('scope', 'all');
+
+        $baseQuery = Task::whereNull('archived_at');
 
         if (!auth()->user()->isAdmin()) {
-            $query->where('assigned_user_id', auth()->id());
-        }
-
-        $tasks = $query->paginate(20)->withQueryString();
-
-        /*
-    |--------------------------------------------------------------------------
-    | Compute Latest Remark Per Task (No Extra Queries)
-    |--------------------------------------------------------------------------
-    */
-
-        foreach ($tasks as $task) {
-            $task->latest_remark = null;
-
-            foreach ($task->activityLogs as $log) {
-                if (!empty($log->changes['remark']['new'] ?? null)) {
-                    $task->latest_remark = $log->changes['remark']['new'];
-                    break;
-                }
+            $baseQuery->where('assigned_user_id', auth()->id());
+        } else {
+            if ($scope === 'my') {
+                $baseQuery->where('assigned_user_id', auth()->id());
             }
         }
 
-        $users = User::where('account_status', 'active')->get();
-
-        return view('tasks.index', compact('tasks', 'users'));
+        return $this->buildTaskIndex($baseQuery, $request);
     }
-
 
     public function store(Request $request)
     {
@@ -112,6 +89,8 @@ class TaskController extends Controller
             'description' => 'Task created',
         ]);
 
+        $project->recalculateProgress();
+
         return back()->with('success', FlashMessage::success('task_created'));
     }
 
@@ -135,6 +114,8 @@ class TaskController extends Controller
             'action'  => 'archived',
             'description' => 'Task archived',
         ]);
+
+        $task->project->recalculateProgress();
 
         return back()->with('success', FlashMessage::success('task_archived'));
     }
@@ -164,6 +145,8 @@ class TaskController extends Controller
             'action'  => 'restored',
             'description' => 'Task restored',
         ]);
+
+        $task->project->recalculateProgress();
 
         return back()->with('success', FlashMessage::success('task_restored'));
     }
@@ -274,6 +257,7 @@ class TaskController extends Controller
 
             if ($progressChanged || $dateChanged) {
                 $task->save();
+                $task->project->recalculateProgress();
             }
 
             // ===== REMARK =====
@@ -605,25 +589,77 @@ class TaskController extends Controller
         return back()->with('success', FlashMessage::success('task_re-assign'));
     }
 
-    public function myTasks()
+    private function buildTaskIndex($baseQuery, Request $request)
     {
-        $userId = auth()->id();
+        $status     = $request->get('filter', 'all');
+        $type       = $request->get('type');
+        $personnel  = $request->get('personnel');
 
-        $tasks = Task::with([
-            'project',
-            'assignedUser',
-            'activityLogs' => function ($query) {
-                $query->latest();
-            }
-        ])
-            ->whereNull('archived_at')
-            ->where('assigned_user_id', $userId)
-            ->latest()
-            ->paginate(20);
+        $predefined = [
+            'Perspective',
+            'Architectural',
+            'Structural',
+            'Mechanical',
+            'Electrical',
+            'Plumbing'
+        ];
 
         /*
     |--------------------------------------------------------------------------
-    | Compute Latest Remark Per Task
+    | BASE QUERY WITH PERSONNEL FILTER (if selected)
+    |--------------------------------------------------------------------------
+    */
+
+        $filteredBase = clone $baseQuery;
+
+        if (!empty($personnel)) {
+            $filteredBase->where('assigned_user_id', $personnel);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | MAIN FILTERED QUERY (Personnel + Status + Type)
+    |--------------------------------------------------------------------------
+    */
+
+        $query = clone $filteredBase;
+
+        // STATUS FILTER
+        if ($status === 'completed') {
+            $query->where('progress', 100);
+        } elseif ($status === 'overdue') {
+            $query->where('progress', '<', 100)
+                ->whereDate('due_date', '<', today());
+        } elseif ($status === 'not_started') {
+            $query->where('progress', 0)
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                });
+        } elseif ($status === 'ongoing') {
+            $query->whereBetween('progress', [1, 99])
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                });
+        }
+
+        // TYPE FILTER
+        if ($type === 'Custom') {
+            $query->whereNotIn('task_type', $predefined);
+        } elseif (!empty($type)) {
+            $query->where('task_type', $type);
+        }
+
+        $tasks = $query
+            ->with(['project', 'assignedUser', 'activityLogs'])
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        /*
+    |--------------------------------------------------------------------------
+    | PRELOAD LATEST REMARK
     |--------------------------------------------------------------------------
     */
 
@@ -631,15 +667,163 @@ class TaskController extends Controller
             $task->latest_remark = null;
 
             foreach ($task->activityLogs as $log) {
-                if (!empty($log->changes['remark']['new'] ?? null)) {
-                    $task->latest_remark = $log->changes['remark']['new'];
+                $remark = data_get($log->changes, 'remark.new');
+
+                if (!empty($remark)) {
+                    $task->latest_remark = $remark;
                     break;
                 }
             }
         }
 
+        /*
+    |--------------------------------------------------------------------------
+    | STATUS COUNTS (Respect Personnel + Type)
+    |--------------------------------------------------------------------------
+    */
+
+        $statusCountQuery = clone $filteredBase;
+
+        if ($type === 'Custom') {
+            $statusCountQuery->whereNotIn('task_type', $predefined);
+        } elseif (!empty($type)) {
+            $statusCountQuery->where('task_type', $type);
+        }
+
+        $statusCounts = [
+            'all' => (clone $statusCountQuery)->count(),
+
+            'not_started' => (clone $statusCountQuery)
+                ->where('progress', 0)
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                })->count(),
+
+            'ongoing' => (clone $statusCountQuery)
+                ->whereBetween('progress', [1, 99])
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                })->count(),
+
+            'completed' => (clone $statusCountQuery)
+                ->where('progress', 100)
+                ->count(),
+
+            'overdue' => (clone $statusCountQuery)
+                ->where('progress', '<', 100)
+                ->whereDate('due_date', '<', today())
+                ->count(),
+        ];
+
+        /*
+    |--------------------------------------------------------------------------
+    | TYPE COUNTS (Respect Personnel + Status)
+    |--------------------------------------------------------------------------
+    */
+
+        $typeCountQuery = clone $filteredBase;
+
+        if ($status === 'completed') {
+            $typeCountQuery->where('progress', 100);
+        } elseif ($status === 'overdue') {
+            $typeCountQuery->where('progress', '<', 100)
+                ->whereDate('due_date', '<', today());
+        } elseif ($status === 'not_started') {
+            $typeCountQuery->where('progress', 0)
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                });
+        } elseif ($status === 'ongoing') {
+            $typeCountQuery->whereBetween('progress', [1, 99])
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                });
+        }
+
+        $rawTypes = $typeCountQuery
+            ->select('task_type')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('task_type')
+            ->pluck('total', 'task_type')
+            ->toArray();
+
+        $taskTypes   = [];
+        $customCount = 0;
+
+        foreach ($rawTypes as $key => $value) {
+            if (in_array($key, $predefined)) {
+                $taskTypes[$key] = $value;
+            } else {
+                $customCount += $value;
+            }
+        }
+
+        if ($customCount > 0) {
+            $taskTypes['Custom'] = $customCount;
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | PERSONNEL COUNTS (Respect Status + Type)
+    |--------------------------------------------------------------------------
+    */
+
+        $personnelCountQuery = clone $baseQuery;
+
+        // apply status filter
+        if ($status === 'completed') {
+            $personnelCountQuery->where('progress', 100);
+        } elseif ($status === 'overdue') {
+            $personnelCountQuery->where('progress', '<', 100)
+                ->whereDate('due_date', '<', today());
+        } elseif ($status === 'not_started') {
+            $personnelCountQuery->where('progress', 0)
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                });
+        } elseif ($status === 'ongoing') {
+            $personnelCountQuery->whereBetween('progress', [1, 99])
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                });
+        }
+
+        // apply type filter
+        if ($type === 'Custom') {
+            $personnelCountQuery->whereNotIn('task_type', $predefined);
+        } elseif (!empty($type)) {
+            $personnelCountQuery->where('task_type', $type);
+        }
+
+        $personnelCounts = $personnelCountQuery
+            ->select('assigned_user_id')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('assigned_user_id')
+            ->pluck('total', 'assigned_user_id')
+            ->toArray();
+
+        $personnelList = User::whereIn('id', array_keys($personnelCounts))
+            ->pluck('name', 'id')
+            ->toArray();
+
+        $totalTasksCount = $statusCounts['all'];
+
         $users = User::where('account_status', 'active')->get();
 
-        return view('tasks.index', compact('tasks', 'users'));
+        return view('tasks.index', [
+            'tasks'            => $tasks,
+            'statusCounts'     => $statusCounts,
+            'taskTypes'        => $taskTypes,
+            'personnelCounts'  => $personnelCounts,
+            'personnelList'    => $personnelList,
+            'totalTasksCount'  => $totalTasksCount,
+            'users'            => $users,
+        ]);
     }
 }

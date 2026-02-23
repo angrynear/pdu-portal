@@ -6,7 +6,7 @@
 <x-page-wrapper title="Edit Project">
 
     <x-slot name="actions">
-        <a href="{{ route('projects.index') }}" class="btn btn-sm btn-secondary">
+        <a href="{{ route('projects.index') }}" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i> Back to Projects
         </a>
     </x-slot>

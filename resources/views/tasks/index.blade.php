@@ -15,167 +15,217 @@ $pageTitle = $isAdmin
 
 <x-page-wrapper :title="$pageTitle">
 
-    {{-- ============================= --}}
-    {{-- DESKTOP TABLE VIEW --}}
-    {{-- ============================= --}}
-    <div class="d-none d-lg-block">
-        <div class="table-responsive">
-            <table class="table align-middle table-sm">
-                <thead class="table-light">
-                    <tr>
-                        <th class="text-center" style="width: 60px;">No.</th>
-                        <th style="width: 260px;">Task</th>
-                        <th style="width: 140px;">Assigned Personnel</th>
-                        <th style="width: 180px;">Timeline</th>
-                        <th class="text-center" style="width: 120px;">Progress</th>
-                        <th style="width: 160px;" class="text-center">Remarks</th>
-                        <th style="width: 180px;" class="text-center">Actions</th>
-                    </tr>
-                </thead>
+    <x-slot name="actions">
 
-                <tbody>
-                    @forelse ($tasks as $task)
-                    <tr>
-                        <td class="text-center">
-                            {{ $tasks->firstItem() + $loop->index }}
-                        </td>
+        @php
+        $status = request('filter', 'all');
+        $type = request('type');
+        $personnel = request('personnel');
+        $scope = request('scope', 'all');
 
-                        {{-- Task --}}
-                        {{-- TASK + PROJECT --}}
-                        <td>
-                            <div class="fw-semibold">
-                                {{ $task->task_type }}
+        $statusLabels = [
+        'all' => 'All Status',
+        'not_started' => 'Not Started',
+        'ongoing' => 'Ongoing',
+        'completed' => 'Completed',
+        'overdue' => 'Overdue',
+        ];
+        @endphp
+
+        <form method="GET"
+            action="{{ route('tasks.index') }}"
+            class="w-100">
+
+            <input type="hidden" name="scope" value="{{ $scope }}">
+
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+
+                {{-- LEFT SIDE FILTERS --}}
+                <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+
+                    {{-- SEARCH --}}
+                    <div class="position-relative search-wrapper">
+
+                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 small text-muted"></i>
+
+                        <input type="text"
+                            name="search"
+                            value="{{ request('search') }}"
+                            class="form-control form-control-sm ps-5 shadow-sm"
+                            placeholder="Search task..."
+                            autocomplete="off">
+                    </div>
+
+                    {{-- PERSONNEL (ADMIN ONLY, ALL SCOPE ONLY) --}}
+                    @if(auth()->user()->isAdmin() && $scope === 'all')
+                    <select name="personnel"
+                        class="form-select form-select-sm shadow-sm w-auto"
+                        onchange="this.form.submit()">
+
+                        <option value="">
+                            All Personnel ({{ array_sum($personnelCounts ?? []) }})
+                        </option>
+
+                        @foreach($personnelList as $id => $name)
+                        @php $count = $personnelCounts[$id] ?? 0; @endphp
+                        @if($count > 0 || $personnel == $id)
+                        <option value="{{ $id }}"
+                            {{ $personnel == $id ? 'selected' : '' }}>
+                            {{ $name }} ({{ $count }})
+                        </option>
+                        @endif
+                        @endforeach
+                    </select>
+                    @endif
+
+                    {{-- STATUS --}}
+                    <select name="filter"
+                        class="form-select form-select-sm shadow-sm w-auto"
+                        onchange="this.form.submit()">
+
+                        @foreach($statusCounts as $key => $count)
+                        @if($count > 0 || $status === $key)
+                        <option value="{{ $key }}"
+                            {{ $status === $key ? 'selected' : '' }}>
+                            {{ $statusLabels[$key] }} ({{ $count }})
+                        </option>
+                        @endif
+                        @endforeach
+                    </select>
+
+                    {{-- TYPE --}}
+                    <select name="type"
+                        class="form-select form-select-sm shadow-sm w-auto"
+                        onchange="this.form.submit()">
+
+                        <option value="">
+                            All Types ({{ $totalTasksCount ?? 0 }})
+                        </option>
+
+                        @foreach($taskTypes as $taskType => $count)
+                        <option value="{{ $taskType }}"
+                            {{ $type === $taskType ? 'selected' : '' }}>
+                            {{ $taskType }} ({{ $count }})
+                        </option>
+                        @endforeach
+                    </select>
+
+                    {{-- RESET --}}
+                    <a href="{{ route('tasks.index', ['scope' => $scope]) }}"
+                        class="btn btn-sm btn-outline-secondary px-3">
+                        Reset
+                    </a>
+
+                </div>
+
+                {{-- RIGHT: SCOPE TOGGLE --}}
+                @if(auth()->user()->isAdmin())
+                <div class="btn-group scope-toggle">
+                    <a href="{{ route('tasks.index', ['scope' => 'all']) }}"
+                        class="btn btn-sm {{ $scope === 'all' ? 'btn-dark active-scope' : 'btn-outline-secondary' }}">
+                        All Tasks
+                    </a>
+
+                    <a href="{{ route('tasks.index', ['scope' => 'my']) }}"
+                        class="btn btn-sm {{ $scope === 'my' ? 'btn-dark active-scope' : 'btn-outline-secondary' }}">
+                        My Assigned
+                    </a>
+                </div>
+                @endif
+
+            </div>
+
+        </form>
+
+    </x-slot>
+
+    {{-- ================= TASK CARDS ================= --}}
+    <div class="project-list">
+
+        @forelse($tasks as $task)
+
+        @php
+        $isAssignedUser = auth()->id() === $task->assigned_user_id;
+        $remark = $task->latest_remark;
+        @endphp
+
+        {{-- ================= DESKTOP ================= --}}
+        <div class="d-none d-md-block">
+            <div class="card project-card {{ $task->status_border_class }} shadow-sm border-0 mb-3">
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-start">
+
+                        <div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <span class="text-muted fw-semibold">
+                                    #{{ $tasks->firstItem() + $loop->index }}
+                                </span>
+
+                                <div class="fw-semibold">
+                                    {{ $task->task_type }}
+                                </div>
                             </div>
 
-                            <div class="small text-muted">
+                            <div class="small text-muted mt-1">
                                 <a href="{{ route('projects.show', $task->project_id) }}?from=tasks"
                                     class="text-decoration-none text-muted fw-semibold link-hover">
                                     {{ $task->project->name }}
                                 </a>
                             </div>
-                        </td>
 
-                        {{-- Assigned --}}
-                        <td>{{ $task->assignedUser->name ?? '—' }}</td>
-
-                        {{-- Timeline --}}
-                        <td class="small">
-                            <div>
-                                <strong>Start Date:</strong>
-                                {{ $task->start_date?->format('M. j, Y') ?? '—' }}
+                            <div class="small text-muted mt-1">
+                                <i class="bi bi-person me-1"></i>
+                                {{ $task->assignedUser->name ?? '—' }}
                             </div>
-                            <div>
-                                <strong>Due Date: </strong>
-                                <x-due-date
-                                    :dueDate="$task->due_date"
-                                    :progress="$task->progress" />
-                            </div>
-                        </td>
+                        </div>
 
-                        {{-- Progress --}}
-                        <td class="text-center align-middle">
-                            <x-progress-bar :value="$task->progress" />
-                        </td>
+                        <div class="d-flex align-items-center gap-2">
 
-                        <td class="small align-middle">
+                            <span class="badge rounded-pill {{ $task->status_badge_class }}">
+                                <i class="bi 
+                    {{ $task->status === 'completed' ? 'bi-check-circle-fill' :
+                       ($task->status === 'overdue' ? 'bi-exclamation-triangle-fill' :
+                       ($task->status === 'not_started' ? 'bi-dash-circle-fill' :
+                       'bi-arrow-repeat')) }} 
+                    me-1">
+                                </i>
+                                {{ $task->status_label }}
+                            </span>
 
-                            @php
-                            $remark = $task->latest_remark;
-                            @endphp
-
-
-                            @if($remark)
-
-                            <div>
-                                <span id="preview-{{ $task->id }}">
-                                    {{ Str::limit($remark, 60) }}
-                                </span>
-
-                                <span id="full-{{ $task->id }}" class="d-none text-dark">
-                                    {{ $remark }}
-                                </span>
-                            </div>
-
-                            @if(strlen($remark) > 60)
-                            <button type="button"
-                                class="btn btn-link btn-sm p-0"
-                                onclick="toggleRemark({{ $task->id }})"
-                                id="btn-{{ $task->id }}">
-                                View Full
-                            </button>
-                            @endif
-
-                            @else
-                            <span class="text-muted">—</span>
-                            @endif
-
-                        </td>
-
-                        {{-- Actions --}}
-                        <td class="text-center">
-
-                            {{-- Always can View --}}
                             <a href="{{ route('tasks.show', [
-        'task' => $task->id,
-        'from' => request()->routeIs('tasks.my') ? 'my' : 'manage'
-    ]) }}"
-                                class="btn btn-sm btn-secondary">
-                                View
+'task' => $task->id,
+'from' => request()->routeIs('tasks.my') ? 'my' : 'manage'
+]) }}"
+                                class="btn btn-sm btn-light p-2">
+                                <i class="bi bi-eye-fill"></i>
                             </a>
 
-                            @if (is_null($task->archived_at) && is_null($task->project->archived_at))
-
-                            @php
-                            $isAdmin = auth()->user()->isAdmin();
-                            $isAssignedUser = auth()->id() === $task->assigned_user_id;
-                            @endphp
-
-                            {{-- ========================= --}}
-                            {{-- ASSIGN (ADMIN ONLY) --}}
-                            {{-- ========================= --}}
                             @if($isAdmin && !$task->assigned_user_id)
-                            <button
-                                class="btn btn-sm btn-info"
+                            <button class="btn btn-sm btn-light p-2"
                                 data-bs-toggle="modal"
                                 data-bs-target="#assignTaskModal"
                                 data-task-id="{{ $task->id }}">
-                                Assign
+                                <i class="bi bi-person-plus-fill"></i>
                             </button>
                             @endif
 
-
-                            {{-- ========================= --}}
-                            {{-- SET DATE --}}
-                            {{-- ========================= --}}
                             @if($task->assigned_user_id && (!$task->start_date || !$task->due_date))
-
                             @if($isAdmin || $isAssignedUser)
-                            <button
-                                class="btn btn-sm btn-warning"
+                            <button class="btn btn-sm btn-light p-2"
                                 data-bs-toggle="modal"
                                 data-bs-target="#setTaskDateModal"
                                 data-task-id="{{ $task->id }}"
                                 data-project-start="{{ $task->project->start_date->format('Y-m-d') }}"
                                 data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
-                                Set Date
-                            </button>
-                            @else
-                            <button class="btn btn-sm btn-warning" disabled>
-                                Set Date
+                                <i class="bi bi-calendar-plus"></i>
                             </button>
                             @endif
-
                             @endif
 
-
-                            {{-- ========================= --}}
-                            {{-- UPDATE PROGRESS --}}
-                            {{-- ========================= --}}
                             @if($task->assigned_user_id && $task->start_date && $task->due_date)
-
                             @if($isAdmin || $isAssignedUser)
-                            <button
-                                class="btn btn-sm btn-primary ms-1"
+                            <button class="btn btn-sm btn-light p-2"
                                 data-bs-toggle="modal"
                                 data-bs-target="#updateTaskProgressModal"
                                 data-task-id="{{ $task->id }}"
@@ -184,24 +234,13 @@ $pageTitle = $isAdmin
                                 data-due-date="{{ $task->due_date?->format('Y-m-d') }}"
                                 data-project-start="{{ $task->project->start_date->format('Y-m-d') }}"
                                 data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
-                                Update
-                            </button>
-                            @else
-                            <button class="btn btn-sm btn-primary ms-1" disabled>
-                                Update
+                                <i class="bi bi-arrow-repeat"></i>
                             </button>
                             @endif
-
                             @endif
 
-
-                            {{-- ========================= --}}
-                            {{-- ARCHIVE (ADMIN ONLY) --}}
-                            {{-- ========================= --}}
                             @if($isAdmin)
-                            <button
-                                type="button"
-                                class="btn btn-sm btn-danger ms-1"
+                            <button class="btn btn-sm btn-light p-2"
                                 data-bs-toggle="modal"
                                 data-bs-target="#confirmActionModal"
                                 data-action="{{ route('tasks.archive', $task->id) }}"
@@ -210,243 +249,168 @@ $pageTitle = $isAdmin
                                 data-message="Are you sure you want to archive this task?"
                                 data-confirm-text="Archive"
                                 data-confirm-class="btn-danger">
-                                Archive
+                                <i class="bi bi-archive-fill"></i>
                             </button>
                             @endif
 
-                            @else
-                            <span class="d-block text-muted small mt-1">
-                                {{ $task->project->archived_at ? 'Project Archived' : 'Task Archived' }}
-                            </span>
+                        </div>
+                    </div>
+
+                    <div class="project-meta mt-3">
+                        <div class="d-flex flex-wrap align-items-center gap-4">
+
+                            <div class="meta-item small text-muted">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                {{ $task->start_date?->format('M. d, Y') ?? '—' }}
+                                <span class="mx-1">→</span>
+                                <x-due-date :dueDate="$task->due_date" :progress="$task->progress" />
+                            </div>
+
+                            @if($task->latest_remark)
+                            <div class="meta-item small text-muted mt-1">
+                                <i class="bi bi-chat-left-text me-1"></i>
+                                {{ Str::limit($task->latest_remark, 100) }}
+                            </div>
                             @endif
-                        </td>
 
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="7" class="text-center text-muted">
-                            No tasks found.
-                        </td>
-                    </tr>
-                    @endforelse
+                        </div>
+                    </div>
 
-                </tbody>
-            </table>
+                    <div class="mt-3">
+                        <x-progress-bar :value="$task->progress" />
+                    </div>
 
-            <div class="mt-3">
-                {{ $tasks->links() }}
+                </div>
             </div>
         </div>
-    </div>
 
-    {{-- ============================= --}}
-    {{-- MOBILE CARD VIEW --}}
-    {{-- ============================= --}}
-    <div class="d-lg-none">
+        {{-- ================= MOBILE ================= --}}
+        <div class="d-md-none">
+            <div class="card project-card {{ $task->status_border_class }} shadow-sm border-0 mb-3">
+                <div class="card-body">
 
-        @forelse ($tasks as $task)
+                    <div class="fw-semibold mb-1">
+                        #{{ $tasks->firstItem() + $loop->index }}
+                        {{ $task->task_type }}
+                    </div>
 
-        @php
-        $isAdmin = auth()->user()->isAdmin();
-        $isAssignedUser = auth()->id() === $task->assigned_user_id;
-        $remark = $task->latestRemarkLog->changes['remark']['new'] ?? null;
-        @endphp
-
-        <div class="card shadow-sm mb-3 border-0">
-            <div class="card-body">
-
-                {{-- Task Title --}}
-                <h6 class="fw-bold mb-1">
-                    {{ $task->task_type }}
-                </h6>
-
-                {{-- Project --}}
-                <div class="small mb-2">
-                    Project:
-                    <a href="{{ route('projects.show', $task->project_id) }}?from=tasks"
-                        class="text-decoration-none text-dark fw-semibold link-hover">
+                    <div class="small text-muted">
                         {{ $task->project->name }}
-                    </a>
-                </div>
-
-                {{-- Assigned --}}
-                <div class="small mb-1">
-                    Assigned:
-                    {{ $task->assignedUser->name ?? '—' }}
-                </div>
-
-                {{-- Timeline --}}
-                <div class="small mb-2">
-                    <div>
-                        Start:
-                        {{ $task->start_date?->format('M. j, Y') ?? '—' }}
                     </div>
-                    <div>
-                        Due:
-                        <x-due-date
-                            :dueDate="$task->due_date"
-                            :progress="$task->progress" />
+
+                    <div class="small text-muted mb-2">
+                        <i class="bi bi-person me-1"></i>
+                        {{ $task->assignedUser->name ?? '—' }}
                     </div>
-                </div>
 
-                {{-- Remarks --}}
-                <div class="small mb-2">
+                    <div class="small text-muted mb-2">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        {{ $task->start_date?->format('M. d, Y') ?? '—' }}
+                        →
+                        <x-due-date :dueDate="$task->due_date" :progress="$task->progress" />
+                    </div>
 
-                    <div class="fw-semibold">Remarks</div>
-
-                    @php
-                    $remark = $task->latest_remark;
-                    @endphp
-
-                    @if($remark)
-
-                    <span id="preview-mobile-{{ $task->id }}">
-                        {{ Str::limit($remark, 80) }}
-                    </span>
-
-                    <span id="full-mobile-{{ $task->id }}" class="d-none">
-                        {{ $remark }}
-                    </span>
-
-                    @if(strlen($remark) > 80)
-                    <button type="button"
-                        class="btn btn-link btn-sm p-0"
-                        onclick="toggleRemarkMobile({{ $task->id }})"
-                        id="btn-mobile-{{ $task->id }}">
-                        View Full
-                    </button>
-                    @endif
-
-                    @else
-                    <span class="text-muted">—</span>
-                    @endif
-
-                </div>
-
-                {{-- Progress --}}
-                <div class="mb-2">
-                    <x-progress-bar :value="$task->progress" />
-                </div>
-
-                {{-- Actions --}}
-                <div class="d-flex gap-2 flex-wrap">
-
-                    {{-- VIEW --}}
-                    <a href="{{ route('tasks.show', [
-                    'task' => $task->id,
-                    'from' => request()->routeIs('tasks.my') ? 'my' : 'manage'
-                ]) }}"
-                        class="btn btn-sm btn-secondary flex-fill">
-                        View
-                    </a>
-
-                    @if (is_null($task->archived_at) && is_null($task->project->archived_at))
-
-                    {{-- ASSIGN --}}
-                    @if($isAdmin && !$task->assigned_user_id)
-                    <button
-                        class="btn btn-sm btn-info flex-fill"
-                        data-bs-toggle="modal"
-                        data-bs-target="#assignTaskModal"
-                        data-task-id="{{ $task->id }}">
-                        Assign
-                    </button>
-                    @endif
-
-                    {{-- SET DATE --}}
-                    @if($task->assigned_user_id && (!$task->start_date || !$task->due_date))
-
-                    @if($isAdmin || $isAssignedUser)
-                    <button
-                        class="btn btn-sm btn-warning flex-fill"
-                        data-bs-toggle="modal"
-                        data-bs-target="#setTaskDateModal"
-                        data-task-id="{{ $task->id }}"
-                        data-project-start="{{ $task->project->start_date->format('Y-m-d') }}"
-                        data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
-                        Set Date
-                    </button>
-                    @else
-                    <button class="btn btn-sm btn-warning flex-fill" disabled>
-                        Set Date
-                    </button>
-                    @endif
-
-                    @endif
-
-                    {{-- UPDATE --}}
-                    @if($task->assigned_user_id && $task->start_date && $task->due_date)
-
-                    @if($isAdmin || $isAssignedUser)
-                    <button
-                        class="btn btn-sm btn-primary flex-fill"
-                        data-bs-toggle="modal"
-                        data-bs-target="#updateTaskProgressModal"
-                        data-task-id="{{ $task->id }}"
-                        data-progress="{{ $task->progress }}"
-                        data-start-date="{{ $task->start_date?->format('Y-m-d') }}"
-                        data-due-date="{{ $task->due_date?->format('Y-m-d') }}"
-                        data-project-start="{{ $task->project->start_date->format('Y-m-d') }}"
-                        data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
-                        Update
-                    </button>
-                    @else
-                    <button class="btn btn-sm btn-primary flex-fill" disabled>
-                        Update
-                    </button>
-                    @endif
-
-                    @endif
-
-                    {{-- ARCHIVE --}}
-                    @if($isAdmin)
-                    <button
-                        type="button"
-                        class="btn btn-sm btn-danger flex-fill"
-                        data-bs-toggle="modal"
-                        data-bs-target="#confirmActionModal"
-                        data-action="{{ route('tasks.archive', $task->id) }}"
-                        data-method="PATCH"
-                        data-title="Archive Task"
-                        data-message="Are you sure you want to archive this task?"
-                        data-confirm-text="Archive"
-                        data-confirm-class="btn-danger">
-                        Archive
-                    </button>
-                    @endif
-
-                    @else
-                    <div class="text-muted small">
-                        {{ $task->project->archived_at ? 'Project Archived' : 'Task Archived' }}
+                    @if($task->latest_remark)
+                    <div class="small text-muted mb-2">
+                        <i class="bi bi-chat-left-text me-1"></i>
+                        {{ Str::limit($task->latest_remark, 120) }}
                     </div>
                     @endif
 
-                </div>
+                    <div class="mt-2">
+                        <x-progress-bar :value="$task->progress" />
+                    </div>
 
+                    <div class="mt-3">
+                        <div class="mb-2">
+                            <span class="badge rounded-pill {{ $task->status_badge_class }}">
+                                {{ $task->status_label }}
+                            </span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+
+                            <a href="{{ route('tasks.show', [
+'task' => $task->id,
+'from' => request()->routeIs('tasks.my') ? 'my' : 'manage'
+]) }}"
+                                class="btn btn-sm btn-light flex-fill">
+                                <i class="bi bi-eye-fill"></i>
+                            </a>
+
+                            @if($isAdmin && !$task->assigned_user_id)
+                            <button class="btn btn-sm btn-light flex-fill"
+                                data-bs-toggle="modal"
+                                data-bs-target="#assignTaskModal"
+                                data-task-id="{{ $task->id }}">
+                                <i class="bi bi-person-plus-fill"></i>
+                            </button>
+                            @endif
+
+                            @if($task->assigned_user_id && (!$task->start_date || !$task->due_date))
+                            @if($isAdmin || $isAssignedUser)
+                            <button class="btn btn-sm btn-light flex-fill"
+                                data-bs-toggle="modal"
+                                data-bs-target="#setTaskDateModal"
+                                data-task-id="{{ $task->id }}"
+                                data-project-start="{{ $task->project->start_date->format('Y-m-d') }}"
+                                data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
+                                <i class="bi bi-calendar-plus"></i>
+                            </button>
+                            @endif
+                            @endif
+
+                            @if($task->assigned_user_id && $task->start_date && $task->due_date)
+                            @if($isAdmin || $isAssignedUser)
+                            <button class="btn btn-sm btn-light flex-fill"
+                                data-bs-toggle="modal"
+                                data-bs-target="#updateTaskProgressModal"
+                                data-task-id="{{ $task->id }}"
+                                data-progress="{{ $task->progress }}"
+                                data-start-date="{{ $task->start_date?->format('Y-m-d') }}"
+                                data-due-date="{{ $task->due_date?->format('Y-m-d') }}"
+                                data-project-start="{{ $task->project->start_date->format('Y-m-d') }}"
+                                data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </button>
+                            @endif
+                            @endif
+
+                            @if($isAdmin)
+                            <button class="btn btn-sm btn-light flex-fill"
+                                data-bs-toggle="modal"
+                                data-bs-target="#confirmActionModal"
+                                data-action="{{ route('tasks.archive', $task->id) }}"
+                                data-method="PATCH"
+                                data-title="Archive Task"
+                                data-message="Are you sure you want to archive this task?"
+                                data-confirm-text="Archive"
+                                data-confirm-class="btn-danger">
+                                <i class="bi bi-archive-fill"></i>
+                            </button>
+                            @endif
+
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
 
         @empty
-        <div class="text-center text-muted py-4">
+        <div class="text-center text-muted py-0">
             No tasks found.
         </div>
         @endforelse
 
-        <div class="mt-3">
+        <div class="mt-4">
             {{ $tasks->links() }}
         </div>
 
     </div>
 
-    </div>
-
-    {{-- UPDATE TASK MODAL --}}
     @include('tasks.partials.update-task-modal')
-
-    {{-- ASSIGN TASK MODAL --}}
     @include('tasks.partials.assign-task-modal')
-
-    {{-- SET TASK DATE MODAL --}}
     @include('tasks.partials.set-task-date-modal')
 
     @push('scripts')

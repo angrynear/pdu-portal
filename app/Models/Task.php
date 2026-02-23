@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Task extends Model
 {
@@ -47,5 +48,93 @@ class Task extends Model
     public function activityLogs()
     {
         return $this->hasMany(TaskActivityLog::class)->latest();
+    }
+
+    public function getStatusAttribute()
+    {
+        $progress = (int) $this->progress;
+        $due = $this->due_date ? Carbon::parse($this->due_date) : null;
+        $today = Carbon::today();
+
+        // COMPLETED
+        if ($progress === 100) {
+            return 'completed';
+        }
+
+        // OVERDUE (only if not completed)
+        if ($due && $due->lt($today)) {
+            return 'overdue';
+        }
+
+        // NOT STARTED
+        if ($progress === 0) {
+            return 'not_started';
+        }
+
+        // ONGOING
+        return 'ongoing';
+    }
+
+    public function getStatusLabelAttribute()
+    {
+        return match ($this->status) {
+            'completed' => 'Completed',
+            'overdue' => 'Overdue',
+            'not_started' => 'Not Started',
+            'ongoing' => 'Ongoing',
+            default => '—',
+        };
+    }
+
+    public function getStatusBadgeClassAttribute()
+    {
+        return match ($this->status) {
+            'completed' => 'bg-success-subtle text-success',
+            'overdue' => 'bg-danger-subtle text-danger',
+            'not_started' => 'bg-secondary-subtle text-secondary',
+            'ongoing' => 'bg-primary-subtle text-primary',
+            default => 'bg-light text-dark',
+        };
+    }
+
+    public function getStatusBorderClassAttribute()
+    {
+        return match ($this->status) {
+            'completed' => 'status-completed',
+            'overdue' => 'status-overdue',
+            'not_started' => 'status-not-started',
+            'ongoing' => 'status-ongoing',
+            default => '',
+        };
+    }
+
+    public function scopeStatus($query, $filter)
+    {
+        if ($filter === 'completed') {
+            return $query->where('progress', 100);
+        }
+
+        if ($filter === 'overdue') {
+            return $query->where('progress', '<', 100)
+                ->whereDate('due_date', '<', today());
+        }
+
+        if ($filter === 'not_started') {
+            return $query->where('progress', 0)
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                });
+        }
+
+        if ($filter === 'ongoing') {
+            return $query->whereBetween('progress', [1, 99])
+                ->where(function ($q) {
+                    $q->whereNull('due_date')
+                        ->orWhereDate('due_date', '>=', today());
+                });
+        }
+
+        return $query;
     }
 }
