@@ -115,7 +115,7 @@ $pageTitle = $isAdmin
 
                     <a href="{{ route('tasks.index', ['scope' => 'my']) }}"
                         class="btn btn-sm {{ $scope === 'my' ? 'btn-dark active-scope' : 'btn-outline-secondary' }}">
-                        My Assigned
+                        My Tasks
                     </a>
                 </div>
                 @endif
@@ -155,7 +155,7 @@ $pageTitle = $isAdmin
                             </div>
 
                             <div class="small text-muted mt-1">
-                                <a href="{{ route('projects.show', $task->project_id) }}?from=tasks"
+                                <a href="{{ route('projects.show', ['project' => $task->project_id,'from' => 'tasks','scope' => request('scope')]) }}"
                                     class="text-decoration-none text-muted fw-semibold link-hover">
                                     {{ $task->project->name }}
                                 </a>
@@ -180,10 +180,7 @@ $pageTitle = $isAdmin
                                 {{ $task->status_label }}
                             </span>
 
-                            <a href="{{ route('tasks.show', [
-'task' => $task->id,
-'from' => request()->routeIs('tasks.my') ? 'my' : 'manage'
-]) }}"
+                            <a href="{{ route('tasks.show', [ 'task'  => $task->id, 'from'  => 'tasks', 'scope' => request('scope') ]) }}"
                                 class="btn btn-sm btn-light p-2">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
@@ -282,7 +279,10 @@ $pageTitle = $isAdmin
                     </div>
 
                     <div class="small text-muted">
-                        {{ $task->project->name }}
+                        <a href="{{ route('projects.show', ['project' => $task->project_id,'from' => 'tasks','scope' => request('scope')]) }}"
+                            class="text-decoration-none text-muted fw-semibold link-hover">
+                            {{ $task->project->name }}
+                        </a>
                     </div>
 
                     <div class="small text-muted mb-2">
@@ -317,11 +317,8 @@ $pageTitle = $isAdmin
 
                         <div class="d-flex gap-2">
 
-                            <a href="{{ route('tasks.show', [
-'task' => $task->id,
-'from' => request()->routeIs('tasks.my') ? 'my' : 'manage'
-]) }}"
-                                class="btn btn-sm btn-light flex-fill">
+                            <a href="{{ route('tasks.show', [ 'task'  => $task->id, 'from'  => 'tasks', 'scope' => request('scope') ]) }}"
+                                class="btn btn-sm btn-light p-2">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
 

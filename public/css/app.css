@@ -50,6 +50,28 @@ body {
     padding: 16px;
 }
 
+/* =========================================
+   Sticky Sidebar
+========================================= */
+
+.sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding-bottom: 2rem;
+}
+
+/* Optional: smoother scrolling */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
 /* =====================================================
    SIDEBAR NAV
 ===================================================== */

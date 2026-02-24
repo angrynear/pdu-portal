@@ -8,6 +8,7 @@ use App\Http\Controllers\TaskController;
 use \App\Http\Controllers\Admin\SlideController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ArchiveController;
+use App\Http\Controllers\LogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +77,9 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::get('/logs/tasks', [TaskController::class, 'taskLogs'])
         ->name('logs.tasks');
+
+    Route::get('/logs', [LogController::class, 'index'])
+        ->name('logs.index');
 
     /*
     |--------------------------------------------------------------------------

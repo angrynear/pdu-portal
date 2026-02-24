@@ -6,12 +6,23 @@
 <x-page-wrapper title="Edit Project">
 
     <x-slot name="actions">
-        <a href="{{ route('projects.index') }}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Back to Projects
+        @php
+        $scope = request('scope') ?? (auth()->user()->isAdmin() ? 'all' : 'my');
+
+        $label = $scope === 'my' ? 'My Projects' : 'All Projects';
+        @endphp
+
+        <a href="{{ route('projects.index', ['scope' => $scope]) }}"
+            class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>
+            Back to {{ $label }}
         </a>
     </x-slot>
 
-    <form id="editProjectForm" action="{{ route('projects.update', $project) }}" method="POST">
+    <form id="editProjectForm" action="{{ route('projects.update', ['project' => $project->id,'scope' => request('scope')]) }}" method="POST">
+
+        <input type="hidden" name="scope" value="{{ request('scope') }}">
+        
         @csrf
         @method('PUT')
 
@@ -31,7 +42,7 @@
                         value="{{ old('name', $project->name) }}"
                         required>
                     @error('name')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -43,7 +54,7 @@
                         value="{{ old('location', $project->location) }}"
                         required>
                     @error('location')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -56,24 +67,24 @@
                         <option value="">— Select Sub-sector —</option>
 
                         @php
-                            $subSectors = [
-                                'basic_education' => 'Basic Education',
-                                'higher_education' => 'Higher Education',
-                                'madaris_education' => 'Madaris Education',
-                                'technical_education' => 'Technical Education',
-                                'others' => 'Others',
-                            ];
+                        $subSectors = [
+                        'basic_education' => 'Basic Education',
+                        'higher_education' => 'Higher Education',
+                        'madaris_education' => 'Madaris Education',
+                        'technical_education' => 'Technical Education',
+                        'others' => 'Others',
+                        ];
                         @endphp
 
                         @foreach ($subSectors as $key => $label)
-                            <option value="{{ $key }}"
-                                {{ old('sub_sector', $project->sub_sector) === $key ? 'selected' : '' }}>
-                                {{ $label }}
-                            </option>
+                        <option value="{{ $key }}"
+                            {{ old('sub_sector', $project->sub_sector) === $key ? 'selected' : '' }}>
+                            {{ $label }}
+                        </option>
                         @endforeach
                     </select>
                     @error('sub_sector')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -97,19 +108,19 @@
                         <option value="">— Select Source of Fund —</option>
 
                         @php
-                            $sources = ['GAAB','QRF','TDIF','SDF','CF','SB','BEFF','ODA','LOCAL','FOR APPROVAL'];
+                        $sources = ['GAAB','QRF','TDIF','SDF','CF','SB','BEFF','ODA','LOCAL','FOR APPROVAL'];
                         @endphp
 
                         @foreach ($sources as $source)
-                            <option value="{{ $source }}"
-                                {{ old('source_of_fund', $project->source_of_fund) === $source ? 'selected' : '' }}>
-                                {{ $source }}
-                            </option>
+                        <option value="{{ $source }}"
+                            {{ old('source_of_fund', $project->source_of_fund) === $source ? 'selected' : '' }}>
+                            {{ $source }}
+                        </option>
                         @endforeach
 
                     </select>
                     @error('source_of_fund')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -123,19 +134,19 @@
 
                         @for ($year = 2025; $year <= 2035; $year++)
                             <option value="{{ $year }}"
-                                {{ old('funding_year', $project->funding_year) == $year ? 'selected' : '' }}>
-                                {{ $year }}
+                            {{ old('funding_year', $project->funding_year) == $year ? 'selected' : '' }}>
+                            {{ $year }}
                             </option>
-                        @endfor
+                            @endfor
 
-                        <option value="FOR APPROVAL"
-                            {{ old('funding_year', $project->funding_year) === 'FOR APPROVAL' ? 'selected' : '' }}>
-                            FOR APPROVAL
-                        </option>
+                            <option value="FOR APPROVAL"
+                                {{ old('funding_year', $project->funding_year) === 'FOR APPROVAL' ? 'selected' : '' }}>
+                                FOR APPROVAL
+                            </option>
 
                     </select>
                     @error('funding_year')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -148,7 +159,7 @@
                         value="{{ old('amount', $project->amount) }}"
                         required>
                     @error('amount')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -172,7 +183,7 @@
                         class="form-control @error('description') is-invalid @enderror"
                         placeholder="Brief description of the project">{{ old('description', $project->description) }}</textarea>
                     @error('description')
-                        <div class="invalid-feedback">{{ $message }}</div>
+                    <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
 
@@ -187,7 +198,7 @@
                                 value="{{ old('start_date', optional($project->start_date)->format('Y-m-d')) }}"
                                 required>
                             @error('start_date')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -199,7 +210,7 @@
                                 value="{{ old('due_date', optional($project->due_date)->format('Y-m-d')) }}"
                                 required>
                             @error('due_date')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
@@ -214,7 +225,7 @@
         {{-- ========================= --}}
         <div class="mt-4 d-flex justify-content-end gap-2 flex-wrap">
 
-            <a href="{{ route('projects.index') }}" class="btn btn-light">
+            <a href="{{ route('projects.index', ['scope' => request('scope') ?? (auth()->user()->isAdmin() ? 'all' : 'my')]) }}" class="btn btn-light">
                 Cancel
             </a>
 

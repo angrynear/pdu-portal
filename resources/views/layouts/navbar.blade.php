@@ -3,7 +3,8 @@
 
         {{-- LEFT: System Identity and Logo--}}
 
-        <button class="btn btn-sm btn-outline-secondary d-md-none"
+
+        <button class="btn btn-sm btn-light d-md-none"
             type="button"
             data-bs-toggle="offcanvas"
             data-bs-target="#mobileSidebar">

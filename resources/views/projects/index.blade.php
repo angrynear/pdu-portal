@@ -88,7 +88,7 @@ $pageTitle = $isAdmin
 
                     {{-- ADD --}}
                     @if(auth()->user()->isAdmin())
-                    <a href="{{ route('projects.create') }}"
+                    <a href="{{ route('projects.create', ['scope' => request('scope')]) }}"
                         class="btn btn-sm btn-success px-3 shadow-sm">
                         <i class="bi bi-plus-lg"></i>
                     </a>
@@ -104,7 +104,7 @@ $pageTitle = $isAdmin
 
                         <a href="{{ route('projects.index', ['scope' => 'my']) }}"
                             class="btn btn-sm {{ $scope === 'my' ? 'btn-dark active-scope' : 'btn-outline-secondary' }}">
-                            My Assigned
+                            My Projects
                         </a>
                     </div>
                     @endif

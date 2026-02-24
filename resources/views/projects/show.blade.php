@@ -9,27 +9,41 @@
     <x-slot name="actions">
         @php
         $from = request('from');
+        $scope = request('scope');
 
         switch ($from) {
+
+        // =========================
+        // From Projects Index
+        // =========================
+        case 'projects':
+        $effectiveScope = $scope ?? (auth()->user()->isAdmin() ? 'all' : 'my');
+        $backUrl = route('projects.index', [ 'scope' => $effectiveScope ]);
+        $label = $effectiveScope === 'my' ? 'My Projects' : 'All Projects';
+        break;
+
+        // =========================
+        // From Tasks Index
+        // =========================
         case 'tasks':
-        $backUrl = route('tasks.index');
-        $label = 'Tasks';
+        $backUrl = route('tasks.index', ['scope' => $scope ?? 'all' ]);
+        $label = $scope === 'my' ? 'My Tasks' : 'All Tasks';
         break;
-        case 'task_logs':
-        $backUrl = route('logs.tasks');
-        $label = 'Task Logs';
+
+        // =========================
+        // From Logs
+        // =========================
+        case 'logs':
+        $backUrl = route('logs.index', ['scope' => $scope ?? 'projects']);
+        $label = $scope === 'tasks' ? 'Task Logs' : 'Project Logs';
         break;
-        case 'project_logs':
-        $backUrl = route('logs.projects');
-        $label = 'Project Logs';
-        break;
-        case 'my':
-        $backUrl = route('projects.my');
-        $label = 'My Projects';
-        break;
+
+        // =========================
+        // Default
+        // =========================
         default:
-        $backUrl = route('projects.index');
-        $label = auth()->user()->isAdmin() ? 'Manage Projects' : 'My Projects';
+        $backUrl = route('projects.index', ['scope' => auth()->user()->isAdmin() ? 'all' : 'my']);
+        $label = auth()->user()->isAdmin() ? 'All Projects' : 'My Projects';
         }
         @endphp
 
@@ -220,7 +234,7 @@
                             <div class="mt-auto d-flex gap-2 flex-wrap">
 
                                 {{-- View --}}
-                                <a href="{{ route('tasks.show', $task->id) }}?from=project"
+                                <a href="{{ route('tasks.show', [ 'task'  => $task->id, 'from'  => 'projects', 'scope' => request('scope') ]) }}"
                                     class="btn btn-sm btn-light">
                                     <i class="bi bi-eye-fill"></i>
                                 </a>

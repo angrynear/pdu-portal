@@ -9,30 +9,43 @@
     <x-slot name="actions">
 
         @php
+        $from = request('from');
+        $scope = request('scope');
+
         switch ($from) {
-        case 'project':
-        $backUrl = route('projects.show', $task->project_id);
+
+        // =========================
+        // From Project Show
+        // =========================
+        case 'projects':
+        $projectScope = $scope ?? (auth()->user()->isAdmin() ? 'all' : 'my');
+        $backUrl = route('projects.show', [ 'project' => $task->project_id, 'from' => 'tasks', 'scope' => $projectScope ]);
         $label = 'Project';
         break;
-        case 'task_logs':
-        $backUrl = route('logs.tasks');
+
+        // =========================
+        // From Logs
+        // =========================
+        case 'logs':
+        $backUrl = route('logs.index', [ 'scope' => 'tasks' ]);
         $label = 'Task Logs';
         break;
-        case 'my':
-        $backUrl = route('tasks.my');
-        $label = 'My Tasks';
-        break;
-        case 'manage':
+
+
+        // =========================
+        // From Tasks Index
+        // =========================
+        case 'tasks':
         default:
-        $backUrl = route('tasks.index');
-        $label = auth()->user()->isAdmin() ? 'Manage Tasks' : 'My Tasks';
-        break;
-        }
+        $effectiveScope = $scope ?? (auth()->user()->isAdmin() ? 'all' : 'my');
+        $backUrl = route('tasks.index', [ 'scope' => $effectiveScope ]);
+        $label = $effectiveScope === 'my' ? 'My Tasks' : 'All Tasks'; }
         @endphp
 
         <a href="{{ $backUrl }}" class="btn btn-sm btn-outline-secondary">
             ← Back to {{ $label }}
         </a>
+
     </x-slot>
 
     {{-- ================= TASK HEADER CARD ================= --}}

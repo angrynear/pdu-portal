@@ -91,7 +91,10 @@ class ProjectController extends Controller
         ]);
 
         return redirect()
-            ->route('projects.index')
+            ->route('projects.index', [
+                'scope' => $request->get('scope')
+                    ?? (auth()->user()->isAdmin() ? 'all' : 'my')
+            ])
             ->with('success', FlashMessage::success('project_created'));
     }
 
@@ -207,7 +210,10 @@ class ProjectController extends Controller
         ]);
 
         return redirect()
-            ->route('projects.index')
+            ->route('projects.index', [
+                'scope' => request('scope')
+                    ?? (auth()->user()->isAdmin() ? 'all' : 'my')
+            ])
             ->with('success', FlashMessage::success('project_updated'));
     }
 

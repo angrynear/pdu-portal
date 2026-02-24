@@ -6,13 +6,10 @@
 <x-page-wrapper title="Personnel Profile">
 
     <x-slot name="actions">
-        @if(auth()->user()->isAdmin() || auth()->id() === $user->id)
-        <a href="{{ route('personnel.edit', $user->id) }}"
-            class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-pencil-square me-1"></i>
-            Edit Profile
+        <a href="{{ route('personnel.index') }}"
+            class="btn btn-sm btn-outline-secondary">
+            ← Back to Personnel
         </a>
-        @endif
     </x-slot>
 
     <div class="row g-4">

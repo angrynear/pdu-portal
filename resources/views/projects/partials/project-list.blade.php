@@ -68,13 +68,13 @@
                                 {{ $project->status_label }}
                             </span>
 
-                            <a href="{{ route('projects.show', $project->id) }}"
+                            <a href="{{ route('projects.show', ['project' => $project->id,'from' => 'projects','scope' => request('scope')]) }}"
                                 class="btn btn-sm btn-light p-2">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
 
                             @if($isAdmin)
-                            <a href="{{ route('projects.edit', $project->id) }}"
+                            <a href="{{ route('projects.edit', ['project' => $project->id,'scope' => request('scope')]) }}"
                                 class="btn btn-sm btn-light p-2">
                                 <i class="bi bi-pencil-fill"></i>
                             </a>
@@ -190,13 +190,13 @@
 
                         <div class="d-flex gap-2">
 
-                            <a href="{{ route('projects.show', $project->id) }}"
+                            <a href="{{ route('projects.show', ['project' => $project->id,'from' => 'projects','scope' => request('scope')]) }}"
                                 class="btn btn-sm btn-light flex-fill">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
 
                             @if($isAdmin)
-                            <a href="{{ route('projects.edit', $project->id) }}"
+                            <a href="{{ route('projects.edit', ['project' => $project->id,'scope' => request('scope')]) }}"
                                 class="btn btn-sm btn-light flex-fill">
                                 <i class="bi bi-pencil-fill"></i>
                             </a>

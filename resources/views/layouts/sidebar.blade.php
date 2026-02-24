@@ -36,8 +36,7 @@
         @if($isAdmin)
 
         @php
-        $manageActive = $route === 'projects.index' ||
-        ($route === 'projects.show');
+        $manageActive = str_starts_with($route, 'projects.');
         @endphp
 
         <li class="nav-item">
@@ -52,7 +51,7 @@
 
         {{-- USER LOGIC --}}
         <li class="nav-item">
-            <a href="{{ route('projects.index') }}"
+            <a href="{{ route('projects.index', [ 'scope' => auth()->user()->isAdmin() ? 'all' : 'my' ]) }}"
                 class="nav-link {{ $isProjectRoute ? 'active' : '' }}">
                 <i class="bi bi-kanban me-2"></i>
                 <span>My Projects</span>
@@ -118,7 +117,7 @@
     <ul class="nav flex-column">
         <li class="nav-item">
             <a href="{{ route('personnel.index') }}"
-                class="nav-link {{ request()->routeIs('personnel.index', 'personnel.create', 'personnel.edit') ? 'active' : '' }}">
+                class="nav-link {{ request()->routeIs('personnel.*') ? 'active' : '' }}">
                 <i class="bi bi-people me-2"></i>
                 <span>Manage Personnel</span>
             </a>
@@ -168,17 +167,10 @@
 
     <ul class="nav flex-column">
         <li class="nav-item">
-            <a href="{{ route('logs.projects') }}"
-                class="nav-link {{ request()->routeIs('logs.projects') ? 'active' : '' }}">
+            <a href="{{ route('logs.index') }}"
+                class="nav-link {{ request()->routeIs('logs.index') ? 'active' : '' }}">
                 <i class="bi bi-journal-text me-2"></i>
-                <span>Project Activity Logs</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('logs.tasks') }}"
-                class="nav-link {{ request()->routeIs('logs.tasks') ? 'active' : '' }}">
-                <i class="bi bi-journal-check me-2"></i>
-                <span>Task Activity Logs</span>
+                <span>Activity Logs</span>
             </a>
         </li>
     </ul>
