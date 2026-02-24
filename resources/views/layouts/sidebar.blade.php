@@ -151,34 +151,10 @@
 
     <ul class="nav flex-column">
         <li class="nav-item">
-            <a href="{{ route('projects.archived') }}"
-                class="nav-link {{ request()->routeIs('projects.archived') ? 'active' : '' }}">
+            <a href="{{ route('archives.index') }}"
+                class="nav-link {{ request()->routeIs('archives.*') ? 'active' : '' }}">
                 <i class="bi bi-archive me-2"></i>
-                <span>Archived Projects</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="{{ route('tasks.archived') }}"
-                class="nav-link {{ request()->routeIs('tasks.archived') ? 'active' : '' }}">
-                <i class="bi bi-archive me-2"></i>
-                <span>Archived Tasks</span>
-            </a>
-
-        </li>
-
-        <li class="nav-item">
-            <a href="{{ route('slides.archived') }}"
-                class="nav-link {{ request()->routeIs('slides.archived') ? 'active' : '' }}">
-                <i class="bi bi-archive me-2"></i>
-                <span>Archived Slides</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a href="{{ route('personnel.archived') }}"
-                class="nav-link {{ request()->routeIs('personnel.archived') ? 'active' : '' }}">
-                <i class="bi bi-person-x me-2"></i>
-                <span>Deactivated Personnel</span>
+                <span>Archives</span>
             </a>
         </li>
     </ul>

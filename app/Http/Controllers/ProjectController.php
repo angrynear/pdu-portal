@@ -286,7 +286,7 @@ class ProjectController extends Controller
 
 
         return redirect()
-            ->route('projects.archived')
+            ->route('archives.index', ['scope' => 'projects'])
             ->with('success', FlashMessage::success('project_restored'));
     }
 

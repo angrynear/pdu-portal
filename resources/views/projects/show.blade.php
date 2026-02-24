@@ -143,7 +143,7 @@
 
         @if(auth()->user()->isAdmin() && is_null($project->archived_at))
         <div class="text-end mb-3">
-            <button class="btn btn-sm btn-outline-success"
+            <button class="btn btn-sm btn-success"
                 data-bs-toggle="modal"
                 data-bs-target="#addTaskModal">
                 <i class="bi bi-plus-lg me-1"></i> Add Task
@@ -253,7 +253,7 @@
                                     data-message="Are you sure you want to archive this task?"
                                     data-confirm-text="Archive"
                                     data-confirm-class="btn-danger">
-                                    <i class="bi bi-archive-fill"></i>
+                                    <i class="bi bi-archive-fill text-danger"></i>
                                 </button>
 
                                 @endif

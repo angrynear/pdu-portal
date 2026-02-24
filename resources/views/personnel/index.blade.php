@@ -1,256 +1,189 @@
 @extends('layouts.app')
 
-@section('title', 'Manage Personnel')
+@section('title', auth()->user()->isAdmin() ? 'Manage Personnel' : 'Personnel')
 
 @section('content')
 <x-page-wrapper
     title="Personnel List">
 
     <x-slot name="actions">
-        <a href="{{ route('personnel.create') }}"
-            class="btn btn-sm btn-outline-success">
-            <i class="bi bi-plus-circle me-1"></i>
-            Add Personnel
-        </a>
-    </x-slot>
 
-    {{-- ============================= --}}
-    {{-- DESKTOP TABLE VIEW --}}
-    {{-- ============================= --}}
-    <div class="d-none d-lg-block">
-        <div class="table-responsive">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 w-100">
 
-            <table class="table table-sm align-middle table-projects">
-                <thead class="table-light">
-                    <tr>
-                        <th class="text-center" style="width: 60px;">No.</th>
-                        <th class="text-center" style="width: 80px;">Photo</th>
-                        <th style="width: 220px;">Name</th>
-                        <th style="width: 160px;">Designation</th>
-                        <th style="width: 200px;">Email</th>
-                        <th style="width: 120px;">Contact No.</th>
-                        <th class="text-center" style="width: 120px;">Tasks</th>
-                        <th class="text-center" style="width: 100px;">Status</th>
-                        <th class="text-center" style="width: 140px;">Actions</th>
-                    </tr>
-                </thead>
+            <div class="d-flex align-items-center gap-2 ms-auto">
 
-                <tbody>
-                    @forelse($users as $user)
-                    <tr>
-                        {{-- No. --}}
-                        <td class="text-center">
-                            {{ $users->firstItem() + $loop->index }}
-                        </td>
+                {{-- ADD --}}
+                @if(auth()->user()->isAdmin())
+                <a href="{{ route('personnel.create') }}"
+                    class="btn btn-sm btn-success px-3 shadow-sm">
+                    <i class="bi bi-plus-lg"></i>
+                </a>
+                @endif
 
-                        {{-- Photo --}}
-                        <td class="text-center">
-                            <img
-                                src="{{ $user->photo
-                                        ? asset('storage/' . $user->photo)
-                                        : asset('images/default-avatar.png') }}"
-                                alt="Photo"
-                                class="rounded-circle border"
-                                style="width: 50px; height: 50px; object-fit: cover;">
-                        </td>
-
-                        {{-- Name --}}
-                        <td>
-                            <div class="fw-semibold">
-                                {{ $user->name }}
-                            </div>
-
-                            <div class="small text-muted">
-                                {{ ucfirst($user->role) }}
-                            </div>
-                        </td>
-
-                        {{-- Designation --}}
-                        <td>
-                            {{ $user->designation ?? '—' }}
-                        </td>
-
-                        {{-- Email --}}
-                        <td>{{ $user->email }}</td>
-
-                        {{-- Contact Number --}}
-                        <td>
-                            {{ $user->contact_number ?? '—' }}
-                        </td>
-
-                        {{-- Tasks --}}
-                        <td class="text-center">
-                            <div class="small">
-                                <span>
-                                    Ongoing: <strong>{{ $user->ongoing_tasks_count }}</strong>
-                                </span><br />
-                                <span>
-                                    Total: <strong>{{ $user->total_tasks_count }}</strong>
-                                </span>
-                            </div>
-                        </td>
-
-                        {{-- Status --}}
-                        <td class="text-center">
-                            @if($user->account_status === 'active')
-                            <span class="badge bg-success">Active</span>
-                            @else
-                            <span class="badge bg-secondary">Inactive</span>
-                            @endif
-                        </td>
-
-                        {{-- Actions --}}
-                        <td class="text-center">
-
-                            {{-- Edit --}}
-                            <a href="{{ route('personnel.edit', $user->id) }}"
-                                class="btn btn-sm btn-primary">
-                                Edit
-                            </a>
-
-                            {{-- Deactivate/ User --}}
-                            @if($user->account_status === 'active' && auth()->id() !== $user->id)
-                            <button
-                                class="btn btn-sm btn-danger"
-                                data-bs-toggle="modal"
-                                data-bs-target="#confirmActionModal"
-                                data-action="{{ route('personnel.deactivate', $user->id) }}"
-                                data-method="PATCH"
-                                data-title="Deactivate Personnel"
-                                data-message="Are you sure you want to deactivate this personnel?"
-                                data-confirm-text="Deactivate"
-                                data-confirm-class="btn-danger">
-                                Deactivate
-                            </button>
-                            @endif
-
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="9" class="text-center text-muted">
-                            No personnel found.
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-
-            <div class="mt-3">
-                {{ $users->links() }}
             </div>
 
         </div>
-    </div>
 
-    {{-- ============================= --}}
-    {{-- MOBILE CARD VIEW --}}
-    {{-- ============================= --}}
-    <div class="d-lg-none">
+    </x-slot>
+
+    <div class="row g-4">
 
         @forelse($users as $user)
 
-        <div class="card shadow-sm border-0 mb-3">
-            <div class="card-body">
+        <div class="col-12 col-lg-6">
+            <div class="card personnel-card shadow-sm border-0 h-100">
+                <div class="card-body">
 
-                {{-- Header Row --}}
-                <div class="d-flex align-items-center mb-2">
+                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
 
-                    <img
-                        src="{{ $user->photo
-                                    ? asset('storage/' . $user->photo)
-                                    : asset('images/default-avatar.png') }}"
-                        class="rounded-circle border me-2"
-                        style="width: 50px; height: 50px; object-fit: cover;">
+                        {{-- ================= LEFT PROFILE SECTION ================= --}}
+                        <div class="d-flex align-items-start gap-3">
 
-                    <div>
-                        <div class="fw-bold">
-                            {{ $user->name }}
+                            {{-- Photo --}}
+                            <img
+                                src="{{ $user->photo
+                                ? asset('storage/' . $user->photo)
+                                : asset('images/default-avatar.png') }}"
+                                class="rounded-circle border"
+                                style="width: 150px; height: 150px; object-fit: cover;">
+
+                            <div>
+
+                                {{-- Name + Role --}}
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <a href="{{ route('personnel.show', $user->id) }}"
+                                        class="fw-semibold fs-6 text-decoration-none text-dark link-hover">
+                                        {{ $user->name }}
+                                    </a>
+
+                                    <span class="badge {{ $user->role_badge_class }}">
+                                        {{ ucfirst($user->role) }}
+                                    </span>
+                                </div>
+
+                                {{-- Designation --}}
+                                <div class="small text-muted">
+                                    {{ $user->designation ?? '—' }}
+                                </div>
+
+                                {{-- Contact Info --}}
+                                <div class="small text-muted mt-2">
+                                    <div>
+                                        <i class="bi bi-envelope me-1"></i>
+                                        {{ $user->email }}
+                                    </div>
+
+                                    <div>
+                                        <i class="bi bi-telephone me-1"></i>
+                                        {{ $user->contact_number ?? '—' }}
+                                    </div>
+                                </div>
+
+                                {{-- Task Summary --}}
+                                <div class="small mt-2">
+                                    <span class="text-muted">
+                                        Ongoing:
+                                        <strong>{{ $user->ongoing_tasks_count }}</strong>
+                                    </span>
+                                    <span class="mx-2 text-muted">•</span>
+                                    <span class="text-muted">
+                                        Total:
+                                        <strong>{{ $user->total_tasks_count }}</strong>
+                                    </span>
+                                </div>
+
+                            </div>
+
                         </div>
 
-                        <div class="small text-muted">
-                            {{ $user->designation ?? '—' }}
+                        {{-- ================= RIGHT ACTION SECTION ================= --}}
+                        <div class="d-flex flex-column align-items-md-end gap-2 mt-3 mt-md-0">
+
+                            {{-- Status --}}
+                            <span class="badge rounded-pill {{ $user->status_badge_class }}">
+                                {{ ucfirst($user->account_status) }}
+                            </span>
+
+                            {{-- Action Buttons --}}
+                            <div class="d-flex gap-2">
+
+                                <a href="{{ route('personnel.edit', $user->id) }}"
+                                    class="btn btn-sm btn-light">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>
+
+                                @if($user->account_status === 'active' && auth()->id() !== $user->id)
+                                <button class="btn btn-sm btn-light"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#confirmActionModal"
+                                    data-action="{{ route('personnel.deactivate', $user->id) }}"
+                                    data-method="PATCH"
+                                    data-title="Deactivate Personnel"
+                                    data-message="Are you sure you want to deactivate this personnel?"
+                                    data-confirm-text="Deactivate"
+                                    data-confirm-class="btn-danger">
+                                    <i class="bi bi-person-x-fill text-danger"></i>
+                                </button>
+                                @endif
+
+                            </div>
+
                         </div>
+
                     </div>
 
                 </div>
-
-                {{-- Email --}}
-                <div class="small mb-1">
-                    <strong>Email:</strong> {{ $user->email }}
-                </div>
-
-                {{-- Contact --}}
-                <div class="small mb-1">
-                    <strong>Contact:</strong> {{ $user->contact_number ?? '—' }}
-                </div>
-
-                {{-- Role --}}
-                <div class="small mb-1">
-                    <strong>Role:</strong>
-                    <span class="badge bg-secondary">
-                        {{ ucfirst($user->role) }}
-                    </span>
-                </div>
-
-                {{-- Tasks --}}
-                <div class="small mb-2">
-                    <strong>Tasks:</strong><br>
-                    Ongoing: <strong>{{ $user->ongoing_tasks_count }}</strong><br>
-                    Total: <strong>{{ $user->total_tasks_count }}</strong>
-                </div>
-
-                {{-- Status --}}
-                <div class="small mb-3">
-                    <strong>Status:</strong>
-                    @if($user->account_status === 'active')
-                    <span class="badge bg-success">Active</span>
-                    @else
-                    <span class="badge bg-secondary">Inactive</span>
-                    @endif
-                </div>
-
-                {{-- Actions --}}
-                <div class="d-grid d-flex gap-1">
-
-                    {{-- Edit --}}
-                    <a href="{{ route('personnel.edit', $user->id) }}"
-                        class="btn btn-sm btn-primary flex-fill">
-                        Edit
-                    </a>
-
-                    {{-- Deactivate --}}
-                    @if($user->account_status === 'active' && auth()->id() !== $user->id)
-                    <button
-                        class="btn btn-sm btn-danger flex-fill"
-                        data-bs-toggle="modal"
-                        data-bs-target="#confirmActionModal"
-                        data-action="{{ route('personnel.deactivate', $user->id) }}"
-                        data-method="PATCH"
-                        data-title="Deactivate Personnel"
-                        data-message="Are you sure you want to deactivate this personnel?"
-                        data-confirm-text="Deactivate"
-                        data-confirm-class="btn-danger">
-                        Deactivate
-                    </button>
-                    @endif
-
-                </div>
-
             </div>
         </div>
 
         @empty
-        <div class="text-center text-muted py-4">
+        <div class="text-center text-muted py-0">
             No personnel found.
         </div>
         @endforelse
 
-        <div class="mt-3">
+        <div class="mt-4">
             {{ $users->links() }}
         </div>
 
     </div>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const searchInput = document.getElementById('personnelSearch');
+            const clearBtn = document.getElementById('clearSearch');
+
+            function toggleClearButton() {
+                if (!searchInput || !clearBtn) return;
+
+                if (searchInput.value.length > 0) {
+                    clearBtn.classList.remove('d-none');
+                } else {
+                    clearBtn.classList.add('d-none');
+                }
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    toggleClearButton();
+                });
+
+                toggleClearButton();
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function() {
+                    searchInput.value = '';
+                    toggleClearButton();
+                    searchInput.form.submit();
+                });
+            }
+
+        });
+    </script>
+    @endpush
 
 </x-page-wrapper>
 

@@ -68,4 +68,25 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $task->assigned_user_id === $this->id;
     }
+
+    public function getStatusBadgeClassAttribute()
+    {
+        return $this->account_status === 'active'
+            ? 'bg-success'
+            : 'bg-secondary';
+    }
+
+    public function getStatusBorderClassAttribute()
+    {
+        return $this->account_status === 'active'
+            ? 'border-success'
+            : 'border-secondary';
+    }
+
+    public function getRoleBadgeClassAttribute()
+    {
+        return $this->role === 'admin'
+            ? 'bg-dark'
+            : 'bg-primary';
+    }
 }

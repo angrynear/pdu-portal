@@ -148,7 +148,9 @@ class TaskController extends Controller
 
         $task->project->recalculateProgress();
 
-        return back()->with('success', FlashMessage::success('task_restored'));
+        return redirect()
+        ->route('archives.index', ['scope' => 'tasks'])
+        ->with('success', FlashMessage::success('task_restored'));
     }
 
     public function updateProgress(Request $request)

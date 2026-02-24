@@ -12,23 +12,57 @@ use App\Models\Task;
 
 class PersonnelController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::where('account_status', 'active')
-            ->withCount([
-                // Total tasks
-                'tasks as total_tasks_count',
+        $search = $request->search;
+        $status = $request->filter ?? 'active'; // default active
 
-                // Ongoing tasks (progress 1–99)
-                'tasks as ongoing_tasks_count' => function ($query) {
-                    $query->whereBetween('progress', [1, 99]);
+        $query = User::query()
+            ->withCount([
+                'tasks as total_tasks_count',
+                'tasks as ongoing_tasks_count' => function ($q) {
+                    $q->whereBetween('progress', [1, 99]);
                 }
-            ])
+            ]);
+
+        // =========================
+        // STATUS FILTER
+        // =========================
+        if ($status === 'inactive') {
+            $query->where('account_status', 'inactive');
+        } elseif ($status === 'all') {
+            // no filter
+        } else {
+            $query->where('account_status', 'active');
+        }
+
+        // =========================
+        // SEARCH
+        // =========================
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('designation', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query
             ->orderBy('name')
             ->paginate(10)
             ->withQueryString();
 
-        return view('personnel.index', compact('users'));
+        // Status counts (for dropdown labels)
+        $statusCounts = [
+            'active' => User::where('account_status', 'active')->count(),
+            'inactive' => User::where('account_status', 'inactive')->count(),
+            'all' => User::count(),
+        ];
+
+        return view('personnel.index', compact(
+            'users',
+            'statusCounts'
+        ));
     }
 
     public function create()
@@ -281,7 +315,7 @@ class PersonnelController extends Controller
         ]);
 
         return redirect()
-            ->route('personnel.archived')
+            ->route('archives.index', ['scope' => 'personnel'])
             ->with('success', FlashMessage::success('personnel_reactivated'));
     }
 
@@ -304,5 +338,15 @@ class PersonnelController extends Controller
             ->withQueryString();
 
         return view('archives.personnel', compact('users'));
+    }
+
+    public function show(User $user)
+    {
+        // Only admins can view other personnel profiles
+        if (!auth()->user()->isAdmin() && auth()->id() !== $user->id) {
+            abort(403);
+        }
+
+        return view('personnel.show', compact('user'));
     }
 }

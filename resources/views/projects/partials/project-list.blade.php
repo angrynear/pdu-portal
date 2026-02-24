@@ -88,7 +88,7 @@
                                 data-message="Are you sure you want to archive this project?"
                                 data-confirm-text="Archive"
                                 data-confirm-class="btn-danger">
-                                <i class="bi bi-archive-fill"></i>
+                                <i class="bi bi-archive-fill text-danger"></i>
                             </button>
                             @endif
 
@@ -206,7 +206,7 @@
                                 data-bs-target="#confirmActionModal"
                                 data-action="{{ route('projects.archive', $project->id) }}"
                                 data-method="PATCH">
-                                <i class="bi bi-archive-fill"></i>
+                                <i class="bi bi-archive-fill text-danger"></i>
                             </button>
                             @endif
 

@@ -43,19 +43,6 @@ $pageTitle = $isAdmin
                 {{-- LEFT SIDE FILTERS --}}
                 <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
 
-                    {{-- SEARCH --}}
-                    <div class="position-relative search-wrapper">
-
-                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 small text-muted"></i>
-
-                        <input type="text"
-                            name="search"
-                            value="{{ request('search') }}"
-                            class="form-control form-control-sm ps-5 shadow-sm"
-                            placeholder="Search task..."
-                            autocomplete="off">
-                    </div>
-
                     {{-- PERSONNEL (ADMIN ONLY, ALL SCOPE ONLY) --}}
                     @if(auth()->user()->isAdmin() && $scope === 'all')
                     <select name="personnel"
@@ -249,14 +236,14 @@ $pageTitle = $isAdmin
                                 data-message="Are you sure you want to archive this task?"
                                 data-confirm-text="Archive"
                                 data-confirm-class="btn-danger">
-                                <i class="bi bi-archive-fill"></i>
+                                <i class="bi bi-archive-fill text-danger"></i>
                             </button>
                             @endif
 
                         </div>
                     </div>
 
-                    <div class="project-meta mt-3">
+                    <div class="project-meta mt-1">
                         <div class="d-flex flex-wrap align-items-center gap-4">
 
                             <div class="meta-item small text-muted">
@@ -386,7 +373,7 @@ $pageTitle = $isAdmin
                                 data-message="Are you sure you want to archive this task?"
                                 data-confirm-text="Archive"
                                 data-confirm-class="btn-danger">
-                                <i class="bi bi-archive-fill"></i>
+                                <i class="bi bi-archive-fill text-danger"></i>
                             </button>
                             @endif
 

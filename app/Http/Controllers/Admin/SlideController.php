@@ -21,7 +21,10 @@ class SlideController extends Controller
 
     public function create()
     {
-        return view('slides.create');
+
+        $nextOrder = \App\Models\Slide::max('display_order') + 1;
+
+        return view('slides.create', compact('nextOrder'));
     }
 
     public function store(Request $request)
@@ -119,7 +122,7 @@ class SlideController extends Controller
         $slide->restore();
 
         return redirect()
-            ->route('slides.archived')
+            ->route('archives.index', ['scope' => 'slides'])
             ->with('success', 'Slide restored successfully.');
     }
 }

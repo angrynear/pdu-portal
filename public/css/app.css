@@ -186,10 +186,21 @@ body.sidebar-collapsed .sidebar-desktop .sidebar .nav-link i {
    SYSTEM STATUS SYSTEM
 ===================================================== */
 
-.status-not-started { border-left: 4px solid #9ca3af; }
-.status-ongoing { border-left: 4px solid #2563eb; }
-.status-completed { border-left: 4px solid #16a34a; }
-.status-overdue { border-left: 4px solid #dc2626; }
+.status-not-started {
+    border-left: 4px solid #9ca3af;
+}
+
+.status-ongoing {
+    border-left: 4px solid #2563eb;
+}
+
+.status-completed {
+    border-left: 4px solid #16a34a;
+}
+
+.status-overdue {
+    border-left: 4px solid #dc2626;
+}
 
 .status-not-started .badge,
 .status-ongoing .badge,
@@ -293,10 +304,21 @@ body.sidebar-collapsed .sidebar-desktop .sidebar .nav-link i {
     box-shadow: 0 14px 28px rgba(0, 0, 0, 0.08);
 }
 
-.tile-blue { background: linear-gradient(135deg, #2563eb, #1e40af); }
-.tile-green { background: linear-gradient(135deg, #16a34a, #166534); }
-.tile-orange { background: linear-gradient(135deg, #f59e0b, #b45309); }
-.tile-red { background: linear-gradient(135deg, #dc2626, #7f1d1d); }
+.tile-blue {
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+}
+
+.tile-green {
+    background: linear-gradient(135deg, #16a34a, #166534);
+}
+
+.tile-orange {
+    background: linear-gradient(135deg, #f59e0b, #b45309);
+}
+
+.tile-red {
+    background: linear-gradient(135deg, #dc2626, #7f1d1d);
+}
 
 .stat-label {
     font-size: 0.75rem;
@@ -333,6 +355,7 @@ body.sidebar-collapsed .sidebar-desktop .sidebar .nav-link i {
 ===================================================== */
 
 @media (max-width: 991.98px) {
+
     .project-card .card-body,
     .task-card .card-body {
         padding: 18px;
@@ -340,6 +363,7 @@ body.sidebar-collapsed .sidebar-desktop .sidebar .nav-link i {
 }
 
 @media (max-width: 767.98px) {
+
     .project-card .card-body,
     .task-card .card-body {
         padding: 16px;
@@ -361,6 +385,7 @@ body.sidebar-collapsed .sidebar-desktop .sidebar .nav-link i {
         opacity: 0;
         transform: translateY(6px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -396,4 +421,96 @@ body.sidebar-collapsed .sidebar-desktop .sidebar .nav-link i {
 .search-wrapper input:focus {
     box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
     border-color: #16a34a;
+}
+
+
+/* =========================
+   Personnel Cards
+========================= */
+.personnel-card {
+    border-radius: 14px;
+    transition: all 0.2s ease-in-out;
+}
+
+.personnel-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+.slide-card {
+    border-radius: 14px;
+    transition: all 0.2s ease-in-out;
+}
+
+.slide-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+/* =========================
+   Slideshow Hover Effects
+========================= */
+.slide-image-wrapper {
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.slide-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+}
+
+.slide-image-wrapper:hover .slide-overlay {
+    opacity: 1;
+}
+
+.slide-thumbnail {
+    transition: transform 0.3s ease;
+}
+
+.slide-image-wrapper:hover .slide-thumbnail {
+    transform: scale(1.05);
+}
+
+/* =========================================
+   ARCHIVE SCOPE TOGGLE (MOBILE FIX)
+========================================= */
+
+.archive-toggle-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.archive-toggle-wrapper .btn-group {
+    flex-wrap: nowrap;
+    min-width: max-content;
+}
+
+.archive-toggle-wrapper::-webkit-scrollbar {
+    height: 6px;
+}
+
+.archive-toggle-wrapper::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+}
+
+.archive-toggle-wrapper {
+    position: relative;
+}
+
+.archive-toggle-wrapper::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    width: 20px;
+    pointer-events: none;
+    background: linear-gradient(to right, transparent, white);
 }

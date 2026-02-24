@@ -7,6 +7,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use \App\Http\Controllers\Admin\SlideController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ArchiveController;
 
 /*
 |--------------------------------------------------------------------------
@@ -128,6 +129,9 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::patch('/personnel/{user}/reactivate', [PersonnelController::class, 'reactivate'])
             ->name('personnel.reactivate');
 
+        Route::get('/personnel/{user}', [PersonnelController::class, 'show'])
+            ->name('personnel.show');
+
         /*
         |--------------------------------------------------------------------------
         | PROJECT MANAGEMENT (ADMIN)
@@ -190,6 +194,15 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         Route::patch('/slides/{slide}/archive', [SlideController::class, 'archive'])
             ->name('slides.archive');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ALL ARCHIVE ROUTES (ADMIN)
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/archives', [ArchiveController::class, 'index'])
+            ->name('archives.index');
     });
 
     /*

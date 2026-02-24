@@ -210,7 +210,6 @@ $pageTitle = $isAdmin
         });
     </script>
 
-
     @endpush
 
 </x-page-wrapper>

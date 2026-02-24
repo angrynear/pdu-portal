@@ -87,7 +87,7 @@
                 <label class="form-label fw-semibold">Order</label>
                 <input type="number"
                     name="display_order"
-                    value="{{ old('display_order', 0) }}"
+                    value="{{ old('display_order', $nextOrder ?? 1) }}"
                     class="form-control @error('display_order') is-invalid @enderror"
                     required>
                 @error('display_order')
