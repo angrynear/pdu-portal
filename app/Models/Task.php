@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
 
 class Task extends Model
@@ -136,5 +137,62 @@ class Task extends Model
         }
 
         return $query;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BASE SCOPES
+    |--------------------------------------------------------------------------
+    */
+
+    public function scopeActive(Builder $query)
+    {
+        return $query->whereNull('archived_at');
+    }
+
+    public function scopeAssignedTo(Builder $query, $userId)
+    {
+        return $query->where('assigned_user_id', $userId);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | STATUS SCOPES
+    |--------------------------------------------------------------------------
+    */
+
+    public function scopeCompleted(Builder $query)
+    {
+        return $query->where('progress', 100);
+    }
+
+    public function scopeOverdue(Builder $query)
+    {
+        return $query->where('progress', '<', 100)
+            ->whereDate('due_date', '<', today());
+    }
+
+    public function scopeOngoing(Builder $query)
+    {
+        return $query->whereBetween('progress', [1, 99])
+            ->where(function ($q) {
+                $q->whereNull('due_date')
+                    ->orWhereDate('due_date', '>=', today());
+            });
+    }
+
+    public function scopeNotStarted(Builder $query)
+    {
+        return $query->where('progress', 0)
+            ->where(function ($q) {
+                $q->whereNull('due_date')
+                    ->orWhereDate('due_date', '>=', today());
+            });
+    }
+
+    public function scopeDueSoon(Builder $query)
+    {
+        return $query->where('progress', '<', 100)
+            ->whereBetween('due_date', [today(), today()->addDays(7)]);
     }
 }

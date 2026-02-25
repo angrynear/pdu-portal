@@ -536,3 +536,13 @@ body.sidebar-collapsed .sidebar-desktop .sidebar .nav-link i {
     pointer-events: none;
     background: linear-gradient(to right, transparent, white);
 }
+
+.stat-tile {
+    transition: all 0.2s ease;
+}
+
+.stat-tile:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+}

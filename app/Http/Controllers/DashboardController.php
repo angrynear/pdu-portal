@@ -10,123 +10,82 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $user = auth()->user();
+        $user  = auth()->user();
+        $scope = $request->get('scope', $user->isAdmin() ? 'all' : 'my');
 
-        if ($user->isAdmin()) {
+        /*
+        |--------------------------------------------------------------------------
+        | SYSTEM DASHBOARD (ADMIN - ALL)
+        |--------------------------------------------------------------------------
+        */
+
+        if ($user->isAdmin() && $scope === 'all') {
 
             $today = Carbon::today();
-            $nextWeek = Carbon::today()->addDays(7);
 
             /*
             |--------------------------------------------------------------------------
-            | PROJECT DATA (progress is computed, not DB column)
+            | PROJECT STATS
             |--------------------------------------------------------------------------
             */
 
-            $projects = Project::whereNull('archived_at')->get();
+            $projectsQuery = Project::active();
 
-            $totalProjects = $projects->count();
-
-            $completedProjects = $projects->filter(function ($project) {
-                return $project->progress == 100;
-            })->count();
-
-            $ongoingProjects = $projects->filter(function ($project) {
-                return $project->progress > 0 && $project->progress < 100;
-            })->count();
-
-            $overdueProjectsCount = $projects->filter(function ($project) use ($today) {
-                return $project->due_date &&
-                    $project->due_date < $today &&
-                    $project->progress < 100;
-            })->count();
-
+            $totalProjects        = (clone $projectsQuery)->count();
+            $completedProjects    = (clone $projectsQuery)->completed()->count();
+            $ongoingProjects      = (clone $projectsQuery)->ongoing()->count();
+            $overdueProjectsCount = (clone $projectsQuery)->overdue()->count();
 
             /*
             |--------------------------------------------------------------------------
-            | TASK STATS (tasks have progress column in DB)
+            | TASK STATS
             |--------------------------------------------------------------------------
             */
 
-            $totalTasks = Task::whereNull('archived_at')->count();
+            $tasksQuery = Task::active();
 
-            $ongoingTasks = Task::whereNull('archived_at')
-                ->where('progress', '>', 0)
-                ->where('progress', '<', 100)
-                ->count();
-
-            $overdueTasksCount = Task::whereNull('archived_at')
-                ->whereDate('due_date', '<', $today)
-                ->where('progress', '<', 100)
-                ->count();
-
+            $totalTasks        = (clone $tasksQuery)->count();
+            $completedTasks    = (clone $tasksQuery)->completed()->count();
+            $ongoingTasks      = (clone $tasksQuery)->ongoing()->count();
+            $overdueTasksCount = (clone $tasksQuery)->overdue()->count();
 
             /*
             |--------------------------------------------------------------------------
-            | TOP 5 OVERDUE PROJECTS
+            | SUMMARIES
             |--------------------------------------------------------------------------
             */
 
-            $overdueProjects = $projects->filter(function ($project) use ($today) {
-                return $project->due_date &&
-                    $project->due_date < $today &&
-                    $project->progress < 100;
-            })
-                ->sortBy('due_date')
-                ->take(3);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | TOP 5 OVERDUE TASKS
-            |--------------------------------------------------------------------------
-            */
-
-            $overdueTasks = Task::with(['project', 'assignedUser'])
-                ->whereNull('archived_at')
-                ->whereDate('due_date', '<', $today)
-                ->where('progress', '<', 100)
+            $overdueProjects = Project::active()
+                ->overdue()
                 ->orderBy('due_date')
                 ->limit(3)
                 ->get();
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | TOP 5 PROJECTS DUE SOON
-            |--------------------------------------------------------------------------
-            */
-
-            $dueSoonProjects = $projects->filter(function ($project) use ($today, $nextWeek) {
-                return $project->due_date &&
-                    $project->due_date >= $today &&
-                    $project->due_date <= $nextWeek &&
-                    $project->progress < 100;
-            })
-                ->sortBy('due_date')
-                ->take(3);
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | TOP 5 TASKS DUE SOON
-            |--------------------------------------------------------------------------
-            */
-
-            $dueSoonTasks = Task::with(['project', 'assignedUser'])
-                ->whereNull('archived_at')
-                ->whereBetween('due_date', [$today, $nextWeek])
-                ->where('progress', '<', 100)
+            $overdueTasks = Task::active()
+                ->overdue()
+                ->with(['project', 'assignedUser'])
                 ->orderBy('due_date')
                 ->limit(3)
                 ->get();
 
+            $dueSoonProjects = Project::active()
+                ->dueSoon()
+                ->orderBy('due_date')
+                ->limit(3)
+                ->get();
+
+            $dueSoonTasks = Task::active()
+                ->dueSoon()
+                ->with(['project', 'assignedUser'])
+                ->orderBy('due_date')
+                ->limit(3)
+                ->get();
 
             /*
             |--------------------------------------------------------------------------
-            | WORKLOAD DISTRIBUTION (TOP 5 USERS)
+            | WORKLOAD DISTRIBUTION
             |--------------------------------------------------------------------------
             */
 
@@ -145,20 +104,21 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get();
 
-
             return view('dashboard.index', compact(
+                'scope',
+
                 'totalProjects',
-                'ongoingProjects',
                 'completedProjects',
+                'ongoingProjects',
                 'overdueProjectsCount',
 
                 'totalTasks',
+                'completedTasks',
                 'ongoingTasks',
                 'overdueTasksCount',
 
                 'overdueProjects',
                 'overdueTasks',
-
                 'dueSoonProjects',
                 'dueSoonTasks',
 
@@ -167,81 +127,54 @@ class DashboardController extends Controller
         }
 
         /*
-|--------------------------------------------------------------------------
-| USER DASHBOARD
-|--------------------------------------------------------------------------
-*/
+        |--------------------------------------------------------------------------
+        | MY DASHBOARD (ADMIN scope=my OR NORMAL USER)
+        |--------------------------------------------------------------------------
+        */
 
-        $today = Carbon::today();
-        $nextWeek = Carbon::today()->addDays(7);
+        return $this->buildMyDashboard($user, $scope);
+    }
 
-        $userTasksQuery = Task::with('project')
-            ->where('assigned_user_id', $user->id)
-            ->whereNull('archived_at');
+    /*
+    |--------------------------------------------------------------------------
+    | SHARED MY DASHBOARD LOGIC
+    |--------------------------------------------------------------------------
+    */
 
-        $userTasks = $userTasksQuery->get();
+    private function buildMyDashboard($user, $scope)
+    {
+        $tasksQuery = Task::active()->assignedTo($user->id);
 
-        /*
-|--------------------------------------------------------------------------
-| USER TASK STATS
-|--------------------------------------------------------------------------
-*/
+        $userTotalTasks        = (clone $tasksQuery)->count();
+        $userCompletedTasks    = (clone $tasksQuery)->completed()->count();
+        $userOngoingTasks      = (clone $tasksQuery)->ongoing()->count();
+        $userOverdueTasksCount = (clone $tasksQuery)->overdue()->count();
 
-        $userTotalTasks = $userTasks->count();
+        $userOverdueTasks = (clone $tasksQuery)
+            ->overdue()
+            ->with('project')
+            ->orderBy('due_date')
+            ->limit(3)
+            ->get();
 
-        $userCompletedTasks = $userTasks->where('progress', 100)->count();
+        $userDueSoonTasks = (clone $tasksQuery)
+            ->dueSoon()
+            ->with('project')
+            ->orderBy('due_date')
+            ->limit(3)
+            ->get();
 
-        $userOngoingTasks = $userTasks->filter(function ($task) {
-            return $task->progress > 0 && $task->progress < 100;
-        })->count();
-
-        $userOverdueTasksCount = $userTasks->filter(function ($task) use ($today) {
-            return $task->due_date &&
-                $task->due_date < $today &&
-                $task->progress < 100;
-        })->count();
-
-        /*
-|--------------------------------------------------------------------------
-| TOP 5 USER OVERDUE TASKS
-|--------------------------------------------------------------------------
-*/
-
-        $userOverdueTasks = $userTasks->filter(function ($task) use ($today) {
-            return $task->due_date &&
-                $task->due_date < $today &&
-                $task->progress < 100;
-        })
-            ->sortBy('due_date')
-            ->take(3);
-
-        /*
-|--------------------------------------------------------------------------
-| TOP 5 USER TASKS DUE SOON
-|--------------------------------------------------------------------------
-*/
-
-        $userDueSoonTasks = $userTasks->filter(function ($task) use ($today, $nextWeek) {
-            return $task->due_date &&
-                $task->due_date >= $today &&
-                $task->due_date <= $nextWeek &&
-                $task->progress < 100;
-        })
-            ->sortBy('due_date')
-            ->take(3);
-
-        /*
-|--------------------------------------------------------------------------
-| USER ASSIGNED PROJECTS (Top 5)
-|--------------------------------------------------------------------------
-*/
-
-        $userProjects = $userTasks->pluck('project')
+        $userProjects = (clone $tasksQuery)
+            ->with('project')
+            ->get()
+            ->pluck('project')
             ->filter()
             ->unique('id')
             ->take(5);
 
         return view('dashboard.index', compact(
+            'scope',
+
             'userTotalTasks',
             'userCompletedTasks',
             'userOngoingTasks',

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
+use Carbon\Carbon;
 
 class Project extends Model
 {
@@ -180,5 +181,59 @@ class Project extends Model
             'not_started' => 'status-not-started',
             default       => 'status-ongoing',
         };
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BASE SCOPES
+    |--------------------------------------------------------------------------
+    */
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('progress', 100);
+    }
+
+    public function scopeOverdue($query)
+    {
+        return $query->where('progress', '<', 100)
+            ->whereDate('due_date', '<', today());
+    }
+
+    public function scopeOngoing($query)
+    {
+        return $query->whereBetween('progress', [1, 99])
+            ->where(function ($q) {
+                $q->whereNull('due_date')
+                    ->orWhereDate('due_date', '>=', today());
+            });
+    }
+
+    public function scopeNotStarted($query)
+    {
+        return $query->where('progress', 0)
+            ->where(function ($q) {
+                $q->whereNull('due_date')
+                    ->orWhereDate('due_date', '>=', today());
+            });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ROLE SCOPE
+    |--------------------------------------------------------------------------
+    */
+
+    public function scopeAssignedTo(Builder $query, $userId)
+    {
+        return $query->whereHas('tasks', function ($q) use ($userId) {
+            $q->where('assigned_user_id', $userId);
+        });
+    }
+
+    public function scopeDueSoon($query)
+    {
+        return $query->where('progress', '<', 100)
+            ->whereBetween('due_date', [today(), today()->addDays(7)]);
     }
 }

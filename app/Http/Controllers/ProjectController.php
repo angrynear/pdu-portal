@@ -19,21 +19,18 @@ class ProjectController extends Controller
     public function index(Request $request)
     {
         $scope = $request->get('scope', 'all');
+        $user = auth()->user();
 
-        $baseQuery = Project::whereNull('archived_at');
+        $baseQuery = Project::active();
 
-        if (!auth()->user()->isAdmin()) {
-            // Normal user → only assigned projects
-            $baseQuery->whereHas('tasks', function ($q) {
-                $q->where('assigned_user_id', auth()->id());
-            });
+        // Normal user → only assigned projects
+        if (!$user->isAdmin()) {
+            $baseQuery->assignedTo($user->id);
         }
 
-        if ($scope === 'my' && auth()->user()->isAdmin()) {
-            // Admin personal assigned projects
-            $baseQuery->whereHas('tasks', function ($q) {
-                $q->where('assigned_user_id', auth()->id());
-            });
+        // Admin personal scope
+        if ($user->isAdmin() && $scope === 'my') {
+            $baseQuery->assignedTo($user->id);
         }
 
         return $this->buildProjectIndex($baseQuery, $request);
@@ -344,31 +341,11 @@ class ProjectController extends Controller
 
         $statusCounts = [
             'all' => (clone $countQuery)->count(),
-
-            'completed' => (clone $countQuery)
-                ->where('progress', 100)
-                ->count(),
-
-            'overdue' => (clone $countQuery)
-                ->where('progress', '<', 100)
-                ->whereDate('due_date', '<', today())
-                ->count(),
-
-            'ongoing' => (clone $countQuery)
-                ->whereBetween('progress', [1, 99])
-                ->where(function ($q) {
-                    $q->whereNull('due_date')
-                        ->orWhereDate('due_date', '>=', today());
-                })
-                ->count(),
-
-            'not_started' => (clone $countQuery)
-                ->where('progress', 0)
-                ->where(function ($q) {
-                    $q->whereNull('due_date')
-                        ->orWhereDate('due_date', '>=', today());
-                })
-                ->count(),
+            'completed' => (clone $countQuery)->completed()->count(),
+            'overdue' => (clone $countQuery)->overdue()->count(),
+            'ongoing' => (clone $countQuery)->ongoing()->count(),
+            'not_started' => (clone $countQuery)->notStarted()->count(),
+            'due_soon' => (clone $countQuery)->dueSoon()->count(),
         ];
 
         /*
@@ -380,22 +357,15 @@ class ProjectController extends Controller
         $query = clone $baseQuery;
 
         if ($status === 'completed') {
-            $query->where('progress', '>=', 100);
-        } elseif ($status === 'ongoing') {
-            $query->whereBetween('progress', [1, 99])
-                ->where(function ($q) {
-                    $q->whereNull('due_date')
-                        ->orWhereDate('due_date', '>=', today());
-                });
-        } elseif ($status === 'not_started') {
-            $query->where('progress', 0)
-                ->where(function ($q) {
-                    $q->whereNull('due_date')
-                        ->orWhereDate('due_date', '>=', today());
-                });
+            $query->completed();
         } elseif ($status === 'overdue') {
-            $query->where('progress', '<', 100)
-                ->whereDate('due_date', '<', today());
+            $query->overdue();
+        } elseif ($status === 'ongoing') {
+            $query->ongoing();
+        } elseif ($status === 'not_started') {
+            $query->notStarted();
+        } elseif ($status === 'due_soon') {
+            $query->dueSoon();
         }
 
         /*

@@ -19,10 +19,14 @@ class TaskController extends Controller
     {
         $scope = $request->get('scope', 'all');
 
-        $baseQuery = Task::whereNull('archived_at');
+        $baseQuery = Task::active();
 
-        if (!auth()->user()->isAdmin()) {
-            $baseQuery->where('assigned_user_id', auth()->id());
+        $user = auth()->user();
+
+        if (!$user->isAdmin()) {
+            $baseQuery->assignedTo($user->id);
+        } elseif ($scope === 'my') {
+            $baseQuery->assignedTo($user->id);
         } else {
             if ($scope === 'my') {
                 $baseQuery->where('assigned_user_id', auth()->id());
@@ -149,8 +153,8 @@ class TaskController extends Controller
         $task->project->recalculateProgress();
 
         return redirect()
-        ->route('archives.index', ['scope' => 'tasks'])
-        ->with('success', FlashMessage::success('task_restored'));
+            ->route('archives.index', ['scope' => 'tasks'])
+            ->with('success', FlashMessage::success('task_restored'));
     }
 
     public function updateProgress(Request $request)
@@ -628,22 +632,15 @@ class TaskController extends Controller
 
         // STATUS FILTER
         if ($status === 'completed') {
-            $query->where('progress', 100);
+            $query->completed();
         } elseif ($status === 'overdue') {
-            $query->where('progress', '<', 100)
-                ->whereDate('due_date', '<', today());
+            $query->overdue();
         } elseif ($status === 'not_started') {
-            $query->where('progress', 0)
-                ->where(function ($q) {
-                    $q->whereNull('due_date')
-                        ->orWhereDate('due_date', '>=', today());
-                });
+            $query->notStarted();
         } elseif ($status === 'ongoing') {
-            $query->whereBetween('progress', [1, 99])
-                ->where(function ($q) {
-                    $q->whereNull('due_date')
-                        ->orWhereDate('due_date', '>=', today());
-                });
+            $query->ongoing();
+        } elseif ($status === 'due_soon') {
+            $query->dueSoon();
         }
 
         // TYPE FILTER
@@ -694,29 +691,11 @@ class TaskController extends Controller
 
         $statusCounts = [
             'all' => (clone $statusCountQuery)->count(),
-
-            'not_started' => (clone $statusCountQuery)
-                ->where('progress', 0)
-                ->where(function ($q) {
-                    $q->whereNull('due_date')
-                        ->orWhereDate('due_date', '>=', today());
-                })->count(),
-
-            'ongoing' => (clone $statusCountQuery)
-                ->whereBetween('progress', [1, 99])
-                ->where(function ($q) {
-                    $q->whereNull('due_date')
-                        ->orWhereDate('due_date', '>=', today());
-                })->count(),
-
-            'completed' => (clone $statusCountQuery)
-                ->where('progress', 100)
-                ->count(),
-
-            'overdue' => (clone $statusCountQuery)
-                ->where('progress', '<', 100)
-                ->whereDate('due_date', '<', today())
-                ->count(),
+            'not_started' => (clone $statusCountQuery)->notStarted()->count(),
+            'ongoing' => (clone $statusCountQuery)->ongoing()->count(),
+            'completed' => (clone $statusCountQuery)->completed()->count(),
+            'overdue' => (clone $statusCountQuery)->overdue()->count(),
+            'due_soon' => (clone $statusCountQuery)->dueSoon()->count(),
         ];
 
         /*

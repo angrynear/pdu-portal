@@ -70,14 +70,19 @@ $pageTitle = $isAdmin
                         class="form-select form-select-sm shadow-sm w-auto"
                         onchange="this.form.submit()">
 
-                        @foreach($statusCounts as $key => $count)
+                        @foreach($statusLabels as $key => $label)
+                        @php
+                        $count = $statusCounts[$key] ?? 0;
+                        @endphp
+
                         @if($count > 0)
                         <option value="{{ $key }}"
                             {{ $status === $key ? 'selected' : '' }}>
-                            {{ $statusLabels[$key] }} ({{ $count }})
+                            {{ $label }} ({{ $count }})
                         </option>
                         @endif
                         @endforeach
+
                     </select>
 
                     {{-- RESET --}}
