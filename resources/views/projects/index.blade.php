@@ -99,22 +99,21 @@ $pageTitle = $isAdmin
                     </a>
                     @endif
 
-                    {{-- RIGHT SIDE: Scope Toggle --}}
-                    @if(auth()->user()->isAdmin())
-                    <div class="btn-group scope-toggle">
-                        <a href="{{ route('projects.index', ['scope' => 'all']) }}"
-                            class="btn btn-sm {{ $scope === 'all' ? 'btn-dark active-scope' : 'btn-outline-secondary' }}">
-                            All Projects
-                        </a>
-
-                        <a href="{{ route('projects.index', ['scope' => 'my']) }}"
-                            class="btn btn-sm {{ $scope === 'my' ? 'btn-dark active-scope' : 'btn-outline-secondary' }}">
-                            My Projects
-                        </a>
-                    </div>
-                    @endif
-
                 </div>
+                {{-- RIGHT SIDE: Scope Toggle --}}
+                @if(auth()->user()->isAdmin())
+                <div class="btn-group scope-toggle">
+                    <a href="{{ route('projects.index', ['scope' => 'all']) }}"
+                        class="btn btn-sm {{ $scope === 'all' ? 'btn-dark active-scope' : 'btn-outline-secondary' }}">
+                        All Projects
+                    </a>
+
+                    <a href="{{ route('projects.index', ['scope' => 'my']) }}"
+                        class="btn btn-sm {{ $scope === 'my' ? 'btn-dark active-scope' : 'btn-outline-secondary' }}">
+                        My Projects
+                    </a>
+                </div>
+                @endif
 
             </div>
 

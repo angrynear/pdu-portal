@@ -18,19 +18,21 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $scope = $request->get('scope', 'all');
+        $user  = auth()->user();
 
         $baseQuery = Task::active();
 
-        $user = auth()->user();
+        /*
+    |--------------------------------------------------------------------------
+    | Scope Handling
+    |--------------------------------------------------------------------------
+    | - Normal users → always see only their tasks
+    | - Admin + scope=my → see only their tasks
+    | - Admin + scope=all → see all tasks
+    */
 
-        if (!$user->isAdmin()) {
+        if (!$user->isAdmin() || $scope === 'my') {
             $baseQuery->assignedTo($user->id);
-        } elseif ($scope === 'my') {
-            $baseQuery->assignedTo($user->id);
-        } else {
-            if ($scope === 'my') {
-                $baseQuery->where('assigned_user_id', auth()->id());
-            }
         }
 
         return $this->buildTaskIndex($baseQuery, $request);
@@ -38,17 +40,21 @@ class TaskController extends Controller
 
     public function store(Request $request)
     {
-        $project = Project::findOrFail($request->project_id);
+        $project = null;
 
-        if ($project->archived_at) {
-            abort(403, 'Cannot add tasks to an archived project.');
+        if (!empty($validated['project_id'])) {
+            $project = Project::findOrFail($validated['project_id']);
+
+            if ($project->archived_at) {
+                abort(403, 'Cannot add tasks to an archived project.');
+            }
         }
 
         $validated = $request->validate([
-            'form_context'       => ['required'],
-            'project_id'         => ['required', 'exists:projects,id'],
-            'task_type_select'   => ['required', 'string'],
-            'custom_task_name'   => [
+            'form_context'      => ['required'],
+            'project_id'        => 'nullable|exists:projects,id',
+            'task_type_select'  => ['required', 'string'],
+            'custom_task_name'  => [
                 'required_if:task_type_select,Custom',
                 'nullable',
                 'string',
@@ -60,13 +66,13 @@ class TaskController extends Controller
         ]);
 
         // ENFORCE PROJECT DATE RANGE
-        if (!empty($validated['start_date']) && $validated['start_date'] < $project->start_date) {
+        if ($project && !empty($validated['start_date']) && $validated['start_date'] < $project->start_date) {
             return back()
                 ->withErrors(['start_date' => 'Task start date cannot be before project start date.'])
                 ->withInput();
         }
 
-        if (!empty($validated['due_date']) && $validated['due_date'] > $project->due_date) {
+        if ($project && !empty($validated['due_date']) && $validated['due_date'] > $project->due_date) {
             return back()
                 ->withErrors(['due_date' => 'Task due date cannot exceed project due date.'])
                 ->withInput();
@@ -93,7 +99,9 @@ class TaskController extends Controller
             'description' => 'Task created',
         ]);
 
-        $project->recalculateProgress();
+        if ($project) {
+            $project->recalculateProgress();
+        }
 
         return back()->with('success', FlashMessage::success('task_created'));
     }
@@ -106,7 +114,7 @@ class TaskController extends Controller
             abort(403);
         }
 
-        if ($task->project->archived_at !== null) {
+        if ($task->project && $task->project->archived_at !== null) {
             abort(403, 'Cannot archive task under an archived project.');
         }
 
@@ -119,7 +127,9 @@ class TaskController extends Controller
             'description' => 'Task archived',
         ]);
 
-        $task->project->recalculateProgress();
+        if ($task->project) {
+            $task->project->recalculateProgress();
+        }
 
         return back()->with('success', FlashMessage::success('task_archived'));
     }
@@ -137,7 +147,7 @@ class TaskController extends Controller
 
     public function restore(Task $task)
     {
-        if ($task->project->archived_at) {
+        if ($task->project && $task->project->archived_at) {
             abort(403, 'Cannot restore task while its project is archived.');
         }
 
@@ -150,7 +160,9 @@ class TaskController extends Controller
             'description' => 'Task restored',
         ]);
 
-        $task->project->recalculateProgress();
+        if ($task->project) {
+            $task->project->recalculateProgress();
+        }
 
         return redirect()
             ->route('archives.index', ['scope' => 'tasks'])
@@ -171,7 +183,7 @@ class TaskController extends Controller
 
         $task = Task::findOrFail($request->task_id);
 
-        if ($task->archived_at || $task->project->archived_at) {
+        if ($task->archived_at || ($task->project && $task->project->archived_at)) {
             abort(403, 'Cannot update archived task.');
         }
 
@@ -191,13 +203,13 @@ class TaskController extends Controller
         $oldDue   = $task->due_date ? $task->due_date->format('Y-m-d') : null;
 
         // Enforce project date range
-        if ($newStart && $newStart < $project->start_date) {
+        if ($project && $newStart && $newStart < $project->start_date) {
             return back()->withErrors([
                 'start_date' => 'Task start date cannot be before project start date.'
             ]);
         }
 
-        if ($newDue && $newDue > $project->due_date) {
+        if ($project && $newDue && $newDue > $project->due_date) {
             return back()->withErrors([
                 'due_date' => 'Task due date cannot exceed project due date.'
             ]);
@@ -217,6 +229,7 @@ class TaskController extends Controller
 
         DB::transaction(function () use (
             $task,
+            $project,
             $newProgress,
             $newRemark,
             $newStart,
@@ -261,9 +274,12 @@ class TaskController extends Controller
                 }
             }
 
+            // not sure //
             if ($progressChanged || $dateChanged) {
                 $task->save();
-                $task->project->recalculateProgress();
+                if ($project) {
+                    $project->recalculateProgress();
+                }
             }
 
             // ===== REMARK =====
@@ -329,7 +345,7 @@ class TaskController extends Controller
 
         $task = Task::findOrFail($request->task_id);
 
-        if ($task->archived_at || $task->project->archived_at) {
+        if ($task->archived_at || ($task->project && $task->project->archived_at)) {
             abort(403);
         }
 
@@ -411,18 +427,26 @@ class TaskController extends Controller
 
         if (!$user->isAdmin()) {
 
-            $userId = $user->id;
+            if (!$task->project) {
+                // Personal task
+                if ($task->assigned_user_id !== $user->id) {
+                    abort(403);
+                }
+            } else {
+                // Project task
+                $userId = $user->id;
 
-            $isAssigned = $task->assigned_user_id === $userId;
+                $isAssigned = $task->assigned_user_id === $userId;
 
-            $isInRelatedProject = $task->project()
-                ->whereHas('tasks', function ($query) use ($userId) {
-                    $query->where('assigned_user_id', $userId);
-                })
-                ->exists();
+                $isInRelatedProject = $task->project()
+                    ->whereHas('tasks', function ($query) use ($userId) {
+                        $query->where('assigned_user_id', $userId);
+                    })
+                    ->exists();
 
-            if (!$isAssigned && !$isInRelatedProject) {
-                abort(403);
+                if (!$isAssigned && !$isInRelatedProject) {
+                    abort(403);
+                }
             }
         }
 
@@ -514,13 +538,13 @@ class TaskController extends Controller
             abort(403);
         }
 
-        if ($request->start_date < $project->start_date) {
+        if ($project && $request->start_date < $project->start_date) {
             return back()->withErrors([
                 'start_date' => 'Task start date cannot be before project start date.'
             ]);
         }
 
-        if ($request->due_date > $project->due_date) {
+        if ($project && $request->due_date > $project->due_date) {
             return back()->withErrors([
                 'due_date' => 'Task due date cannot exceed project due date.'
             ]);

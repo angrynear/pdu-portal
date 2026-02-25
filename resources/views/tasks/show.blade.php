@@ -63,7 +63,11 @@
 
                     <div class="small text-muted mt-1">
                         <i class="bi bi-folder me-1"></i>
+                        @if($task->project)
                         {{ $task->project->name ?? '—' }}
+                        @else
+                        <span class="badge bg-secondary">Personal Custom Task</span>
+                        @endif
                     </div>
 
                 </div>

@@ -29,7 +29,7 @@
                                 {{ $log->task->project->name }}
                             </a>
                             @else
-                            —
+                            <span class="badge bg-secondary">Personal Custom Task</span>
                             @endif
                         </div>
 

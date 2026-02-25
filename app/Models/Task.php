@@ -195,4 +195,24 @@ class Task extends Model
         return $query->where('progress', '<', 100)
             ->whereBetween('due_date', [today(), today()->addDays(7)]);
     }
+
+    public function scopePersonal($query)
+    {
+        return $query->whereNull('project_id');
+    }
+
+    public function scopeProjectBased($query)
+    {
+        return $query->whereNotNull('project_id');
+    }
+
+    public function getProjectStartDateAttribute()
+    {
+        return $this->project?->start_date?->format('Y-m-d');
+    }
+
+    public function getProjectDueDateAttribute()
+    {
+        return $this->project?->due_date?->format('Y-m-d');
+    }
 }

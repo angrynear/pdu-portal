@@ -108,6 +108,14 @@ $pageTitle = $isAdmin
                         Reset
                     </a>
 
+                    {{-- ADD --}}
+                    <button type="button"
+                        class="btn btn-sm btn-success px-3 shadow-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addPersonalTaskModal">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+
                 </div>
 
                 {{-- RIGHT: SCOPE TOGGLE --}}
@@ -160,10 +168,14 @@ $pageTitle = $isAdmin
                             </div>
 
                             <div class="small text-muted mt-1">
+                                @if($task->project)
                                 <a href="{{ route('projects.show', ['project' => $task->project_id,'from' => 'tasks','scope' => request('scope')]) }}"
                                     class="text-decoration-none text-muted fw-semibold link-hover">
                                     {{ $task->project->name }}
                                 </a>
+                                @else
+                                <span class="badge bg-secondary">Personal Custom Task</span>
+                                @endif
                             </div>
 
                             <div class="small text-muted mt-1">
@@ -199,14 +211,14 @@ $pageTitle = $isAdmin
                             </button>
                             @endif
 
-                            @if($task->assigned_user_id && (!$task->start_date || !$task->due_date))
+                            @if($task->project && $task->assigned_user_id && (!$task->start_date || !$task->due_date))
                             @if($isAdmin || $isAssignedUser)
                             <button class="btn btn-sm btn-light p-2"
                                 data-bs-toggle="modal"
                                 data-bs-target="#setTaskDateModal"
                                 data-task-id="{{ $task->id }}"
-                                data-project-start="{{ $task->project->start_date->format('Y-m-d') }}"
-                                data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
+                                data-project-start="{{ $task->project?->start_date?->format('Y-m-d') }}"
+                                data-project-due="{{ $task->project?->due_date?->format('Y-m-d') }}">
                                 <i class="bi bi-calendar-plus"></i>
                             </button>
                             @endif
@@ -221,8 +233,8 @@ $pageTitle = $isAdmin
                                 data-progress="{{ $task->progress }}"
                                 data-start-date="{{ $task->start_date?->format('Y-m-d') }}"
                                 data-due-date="{{ $task->due_date?->format('Y-m-d') }}"
-                                data-project-start="{{ $task->project->start_date->format('Y-m-d') }}"
-                                data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
+                                data-project-start="{{ $task->project?->start_date?->format('Y-m-d') }}"
+                                data-project-due="{{ $task->project?->due_date?->format('Y-m-d') }}">
                                 <i class="bi bi-arrow-repeat"></i>
                             </button>
                             @endif
@@ -284,10 +296,14 @@ $pageTitle = $isAdmin
                     </div>
 
                     <div class="small text-muted">
+                        @if($task->project)
                         <a href="{{ route('projects.show', ['project' => $task->project_id,'from' => 'tasks','scope' => request('scope')]) }}"
                             class="text-decoration-none text-muted fw-semibold link-hover">
                             {{ $task->project->name }}
                         </a>
+                        @else
+                        <span class="badge bg-secondary">Personal Custom Task</span>
+                        @endif
                     </div>
 
                     <div class="small text-muted mb-2">
@@ -336,7 +352,7 @@ $pageTitle = $isAdmin
                             </button>
                             @endif
 
-                            @if($task->assigned_user_id && (!$task->start_date || !$task->due_date))
+                            @if($task->project && $task->assigned_user_id && (!$task->start_date || !$task->due_date))
                             @if($isAdmin || $isAssignedUser)
                             <button class="btn btn-sm btn-light flex-fill"
                                 data-bs-toggle="modal"
@@ -358,8 +374,8 @@ $pageTitle = $isAdmin
                                 data-progress="{{ $task->progress }}"
                                 data-start-date="{{ $task->start_date?->format('Y-m-d') }}"
                                 data-due-date="{{ $task->due_date?->format('Y-m-d') }}"
-                                data-project-start="{{ $task->project->start_date->format('Y-m-d') }}"
-                                data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
+                                data-project-start="{{ $task->project?->start_date?->format('Y-m-d') }}"
+                                data-project-due="{{ $task->project?->due_date?->format('Y-m-d') }}">
                                 <i class="bi bi-arrow-repeat"></i>
                             </button>
                             @endif
@@ -401,6 +417,7 @@ $pageTitle = $isAdmin
     @include('tasks.partials.update-task-modal')
     @include('tasks.partials.assign-task-modal')
     @include('tasks.partials.set-task-date-modal')
+    @include('tasks.partials.add-personal-task-modal')
 
     @push('scripts')
 
