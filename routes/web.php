@@ -9,6 +9,7 @@ use \App\Http\Controllers\Admin\SlideController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\LogController;
+use App\Models\Slide;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,7 +18,11 @@ use App\Http\Controllers\LogController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    $slides = Slide::where('is_active', true)
+        ->orderBy('display_order')
+        ->get();
+
+    return view('welcome', compact('slides'));
 });
 
 /*
@@ -27,6 +32,9 @@ Route::get('/', function () {
 */
 
 Route::middleware(['auth', 'active'])->group(function () {
+
+    Route::post('/tasks', [TaskController::class, 'store'])
+        ->name('tasks.store');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
@@ -162,9 +170,6 @@ Route::middleware(['auth', 'active'])->group(function () {
         | TASK MANAGEMENT (ADMIN)
         |--------------------------------------------------------------------------
         */
-
-        Route::post('/tasks', [TaskController::class, 'store'])
-            ->name('tasks.store');
 
         Route::patch('/tasks/{task}/archive', [TaskController::class, 'archive'])
             ->name('tasks.archive');

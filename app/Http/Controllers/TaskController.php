@@ -40,10 +40,12 @@ class TaskController extends Controller
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+
         $project = null;
 
-        if (!empty($validated['project_id'])) {
-            $project = Project::findOrFail($validated['project_id']);
+        if (!empty($request->project_id)) {
+            $project = Project::findOrFail($request->project_id);
 
             if ($project->archived_at) {
                 abort(403, 'Cannot add tasks to an archived project.');
@@ -51,7 +53,6 @@ class TaskController extends Controller
         }
 
         $validated = $request->validate([
-            'form_context'      => ['required'],
             'project_id'        => 'nullable|exists:projects,id',
             'task_type_select'  => ['required', 'string'],
             'custom_task_name'  => [
@@ -60,41 +61,46 @@ class TaskController extends Controller
                 'string',
                 'max:255',
             ],
-            'assigned_user_id'   => ['required', 'exists:users,id'],
-            'start_date'         => ['nullable', 'date'],
-            'due_date'           => ['nullable', 'date', 'after_or_equal:start_date'],
+            'assigned_user_id'  => ['nullable', 'exists:users,id'],
+            'start_date'        => ['nullable', 'date'],
+            'due_date'          => ['nullable', 'date', 'after_or_equal:start_date'],
         ]);
-
-        // ENFORCE PROJECT DATE RANGE
-        if ($project && !empty($validated['start_date']) && $validated['start_date'] < $project->start_date) {
-            return back()
-                ->withErrors(['start_date' => 'Task start date cannot be before project start date.'])
-                ->withInput();
-        }
-
-        if ($project && !empty($validated['due_date']) && $validated['due_date'] > $project->due_date) {
-            return back()
-                ->withErrors(['due_date' => 'Task due date cannot exceed project due date.'])
-                ->withInput();
-        }
 
         $taskType = $validated['task_type_select'] === 'Custom'
             ? $validated['custom_task_name']
             : $validated['task_type_select'];
 
+        /*
+    |--------------------------------------------------------------------------
+    | Determine Assigned User
+    |--------------------------------------------------------------------------
+    */
+
+        if ($project) {
+            // Project task
+            if (!$user->isAdmin()) {
+                abort(403);
+            }
+
+            $assignedUserId = $validated['assigned_user_id'];
+        } else {
+            // Personal task
+            $assignedUserId = $user->id;
+        }
+
         $task = Task::create([
-            'project_id'        => $validated['project_id'],
+            'project_id'        => $project?->id,
             'task_type'         => $taskType,
-            'assigned_user_id'  => $validated['assigned_user_id'],
+            'assigned_user_id'  => $assignedUserId,
             'start_date'        => $validated['start_date'] ?? null,
             'due_date'          => $validated['due_date'] ?? null,
             'progress'          => 0,
-            'created_by'        => auth()->id(),
+            'created_by'        => $user->id,
         ]);
 
         TaskActivityLog::create([
             'task_id'   => $task->id,
-            'user_id'   => auth()->id(),
+            'user_id'   => $user->id,
             'action'    => 'created',
             'description' => 'Task created',
         ]);
@@ -407,7 +413,7 @@ class TaskController extends Controller
         TaskActivityLog::create([
             'task_id' => $task->id,
             'user_id' => auth()->id(),
-            'action'  => 'details_updated',
+            'action'  => 'updated',
             'description' => 'Task details updated',
             'changes' => $changes,
         ]);
@@ -677,7 +683,7 @@ class TaskController extends Controller
         $tasks = $query
             ->with(['project', 'assignedUser', 'activityLogs'])
             ->latest()
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         /*

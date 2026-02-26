@@ -138,19 +138,17 @@
         </div>
 
         {{-- ================= FOOTER ================= --}}
-        <div class="mt-4 d-flex flex-column flex-sm-row justify-content-end gap-2">
-
+        <div class="mt-4 d-flex justify-content-end gap-2 flex-wrap">
             <a href="{{ route('slides.index') }}"
-               class="btn btn-secondary w-100 w-sm-auto flex-fill">
+               class="btn btn-light">
                 Cancel
             </a>
 
             <button type="submit"
                     id="editSlideBtn"
-                    class="btn btn-primary w-100 w-sm-auto flex-fill">
+                    class="btn btn-primary px-4">
                 Update Slide
             </button>
-
         </div>
 
     </form>

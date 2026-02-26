@@ -6,28 +6,8 @@
 <x-page-wrapper
     title="Personnel List">
 
-    <x-slot name="actions">
-
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 w-100">
-
-            <div class="d-flex align-items-center gap-2 ms-auto">
-
-                {{-- ADD --}}
-                @if(auth()->user()->isAdmin())
-                <a href="{{ route('personnel.create') }}"
-                    class="btn btn-sm btn-success px-3 shadow-sm">
-                    <i class="bi bi-plus-lg"></i>
-                </a>
-                @endif
-
-            </div>
-
-        </div>
-
-    </x-slot>
-
+    {{-- ================= PERSONNEL LIST ================= --}}
     <div class="row g-4">
-
         @forelse($users as $user)
 
         <div class="col-12 col-lg-6">
@@ -145,8 +125,15 @@
         <div class="mt-4">
             {{ $users->links() }}
         </div>
-
     </div>
+
+    {{-- ADD --}}
+    @if(auth()->user()->isAdmin())
+    <a href="{{ route('personnel.create') }}"
+        class="btn btn-success rounded-circle shadow mobile-fab">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+    @endif
 
     @push('scripts')
     <script>

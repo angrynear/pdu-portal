@@ -5,13 +5,7 @@
 @section('content')
 <x-page-wrapper title="My Profile">
 
-    <x-slot name="actions">
-        <a href="{{ route('profile.edit') }}"
-           class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-pencil-square me-1"></i>
-            Edit Profile
-        </a>
-    </x-slot>
+
 
     <div class="row g-4">
 
@@ -34,9 +28,9 @@
             </div>
 
             @if($user->account_status === 'active')
-                <span class="badge bg-success">Active</span>
+            <span class="badge bg-success">Active</span>
             @else
-                <span class="badge bg-secondary">Inactive</span>
+            <span class="badge bg-secondary">Inactive</span>
             @endif
 
         </div>
@@ -128,6 +122,17 @@
 
         </div>
 
+
+
+    </div>
+
+    {{-- FOOTER --}}
+    <div class="mt-4 d-flex justify-content-end gap-2 flex-wrap">
+        <a href="{{ route('profile.edit') }}"
+            class="btn btn-primary px-2">
+            <i class="bi bi-pencil-square me-1"></i>
+            Edit Profile
+        </a>
     </div>
 
 </x-page-wrapper>

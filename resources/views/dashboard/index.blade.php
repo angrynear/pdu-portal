@@ -6,9 +6,6 @@
 
 <x-page-wrapper title="Dashboard">
 
-    {{-- ========================= --}}
-    {{-- Scope Toggle (Admin Only) --}}
-    {{-- ========================= --}}
     <x-slot name="actions">
         @if(auth()->user()->isAdmin())
         <div class="btn-group scope-toggle">
@@ -31,6 +28,7 @@
     {{-- ============================================= --}}
     {{-- SYSTEM DASHBOARD --}}
     {{-- ============================================= --}}
+
     @if($scope === 'all')
 
     @include('dashboard.partials.system')

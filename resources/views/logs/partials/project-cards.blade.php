@@ -36,8 +36,8 @@
                 </div>
 
                 {{-- Action Badge --}}
-                <span class="badge bg-secondary rounded-pill text-uppercase">
-                    {{ $log->action }}
+                <span class="badge bg-secondary rounded-pill">
+                    {{ ucfirst(str_replace('_', ' ', $log->action)) }}
                 </span>
 
             </div>

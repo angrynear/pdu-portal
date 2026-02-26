@@ -5,23 +5,21 @@
 @section('content')
 <x-page-wrapper title="Archives">
 
-<x-slot name="actions">
+    <x-slot name="actions">
 
-    {{-- ========================= --}}
-    {{-- DESKTOP: SEGMENTED TOGGLE --}}
-    {{-- ========================= --}}
-    <div class="d-none d-md-block">
-        <div class="btn-group scope-toggle">
+        {{-- DESKTOP: SEGMENTED TOGGLE --}}
+        <div class="d-none d-md-block">
+            <div class="btn-group scope-toggle">
 
-            @foreach ([
+                @foreach ([
                 'projects' => 'Projects',
                 'tasks' => 'Tasks',
                 'slides' => 'Slides',
                 'personnel' => 'Personnel'
-            ] as $key => $label)
+                ] as $key => $label)
 
                 <a href="{{ route('archives.index', ['scope' => $key]) }}"
-                   class="btn btn-sm d-flex align-items-center gap-2
+                    class="btn btn-sm d-flex align-items-center gap-2
                           {{ $scope === $key ? 'btn-dark active-scope' : 'btn-outline-secondary' }}">
 
                     <span>{{ $label }}</span>
@@ -33,41 +31,47 @@
 
                 </a>
 
-            @endforeach
+                @endforeach
 
+            </div>
         </div>
-    </div>
 
+        {{-- ================= MOBILE ================= --}}
+        <div class="d-md-none w-100 d-flex justify-content-center">
+            <div class="w-100" style="max-width: 420px;">
 
-    {{-- ========================= --}}
-    {{-- MOBILE: DROPDOWN SELECTOR --}}
-    {{-- ========================= --}}
-    <div class="d-md-none">
+                <div class="row g-2">
 
-        <select class="form-select form-select-sm shadow-sm"
-                onchange="if(this.value) window.location.href=this.value">
+                    @foreach ([
+                    'projects' => 'Projects',
+                    'tasks' => 'Tasks',
+                    'slides' => 'Slides',
+                    'personnel' => 'Personnel'
+                    ] as $key => $label)
 
-            @foreach ([
-                'projects' => 'Projects',
-                'tasks' => 'Tasks',
-                'slides' => 'Slides',
-                'personnel' => 'Personnel'
-            ] as $key => $label)
+                    <div class="col-6">
+                        <a href="{{ route('archives.index', ['scope' => $key]) }}"
+                            class="btn w-100 d-flex justify-content-between align-items-center shadow-sm
+                            {{ $scope === $key ? 'btn-dark text-white' : 'btn-light text-muted' }}">
 
-                <option value="{{ route('archives.index', ['scope' => $key]) }}"
-                    {{ $scope === $key ? 'selected' : '' }}>
+                            <span>{{ $label }}</span>
 
-                    {{ $label }} ({{ $counts[$key] }})
+                            <span class="badge rounded-pill
+                            {{ $scope === $key ? 'bg-light text-dark' : 'bg-secondary' }}">
+                                {{ $counts[$key] }}
+                            </span>
 
-                </option>
+                        </a>
+                    </div>
 
-            @endforeach
+                    @endforeach
 
-        </select>
+                </div>
 
-    </div>
+            </div>
+        </div>
 
-</x-slot>
+    </x-slot>
 
     @if ($data->isEmpty())
     <div class="text-center text-muted py-0">

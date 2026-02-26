@@ -34,7 +34,7 @@
                         ? asset('storage/' . $user->photo)
                         : asset('images/default-avatar.png') }}"
                      class="rounded-circle border mb-3"
-                     style="width: 180px; height: 180px; object-fit: cover;">
+                     style="width: 250px; height: 250px; object-fit: cover;">
 
                 <div>
                     <button type="button"
@@ -170,19 +170,17 @@
         </div>
 
         {{-- FOOTER --}}
-        <div class="mt-4 d-flex flex-column flex-sm-row justify-content-end gap-2">
-
+        <div class="mt-4 d-flex justify-content-end gap-2 flex-wrap">
             <a href="{{ route('personnel.index') }}"
-               class="btn btn-secondary w-100 w-sm-auto">
+               class="btn btn-light">
                 Cancel
             </a>
 
             <button type="submit"
                     id="editPersonnelBtn"
-                    class="btn btn-primary w-100 w-sm-auto">
+                    class="btn btn-primary px-4">
                 Update
             </button>
-
         </div>
 
     </form>

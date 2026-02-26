@@ -311,6 +311,7 @@ class ProjectController extends Controller
 
     private function buildProjectIndex($baseQuery, Request $request)
     {
+        $subSector = $request->get('sub_sector');
         $status = $request->get('filter', 'all');
         $search = $request->get('search');
 
@@ -332,10 +333,10 @@ class ProjectController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | STATUS COUNTS
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | STATUS COUNTS
+        |--------------------------------------------------------------------------
+         */
 
         $countQuery = clone $baseQuery;
 
@@ -347,6 +348,44 @@ class ProjectController extends Controller
             'not_started' => (clone $countQuery)->notStarted()->count(),
             'due_soon' => (clone $countQuery)->dueSoon()->count(),
         ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | SUB-SECTOR COUNTS
+        |--------------------------------------------------------------------------
+        */
+
+        // Clone base query AFTER search but BEFORE sub_sector filter
+        $subSectorCountQuery = clone $baseQuery;
+
+        // Apply status filter (so counts respect status)
+        if ($status === 'completed') {
+            $subSectorCountQuery->completed();
+        } elseif ($status === 'overdue') {
+            $subSectorCountQuery->overdue();
+        } elseif ($status === 'ongoing') {
+            $subSectorCountQuery->ongoing();
+        } elseif ($status === 'not_started') {
+            $subSectorCountQuery->notStarted();
+        } elseif ($status === 'due_soon') {
+            $subSectorCountQuery->dueSoon();
+        }
+
+        // Get grouped counts
+        $subSectorCounts = $subSectorCountQuery
+            ->select('sub_sector', DB::raw('count(*) as total'))
+            ->groupBy('sub_sector')
+            ->pluck('total', 'sub_sector');
+
+        /*
+        |--------------------------------------------------------------------------
+        | SUB-SECTOR FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($subSector)) {
+            $baseQuery->where('sub_sector', $subSector);
+        }
 
         /*
     |--------------------------------------------------------------------------
@@ -389,9 +428,19 @@ class ProjectController extends Controller
             return view('projects.partials.project-list', compact('projects'))->render();
         }
 
+        $subSectors = [
+            'basic_education' => 'Basic Education',
+            'higher_education' => 'Higher Education',
+            'madaris_education' => 'Madaris Education',
+            'technical_education' => 'Technical Education',
+            'others' => 'Others',
+        ];
+
         return view('projects.index', compact(
             'projects',
-            'statusCounts'
+            'statusCounts',
+            'subSectors',
+            'subSectorCounts'
         ));
     }
 }

@@ -181,11 +181,13 @@
         {{-- ACTION BUTTONS --}}
         {{-- ========================= --}}
         <div class="mt-4 d-flex justify-content-end gap-2 flex-wrap">
-            <a href="{{ route('projects.index', ['scope' => request('scope') ?? (auth()->user()->isAdmin() ? 'all' : 'my')]) }}" class="btn btn-light">
+            <a href="{{ route('projects.index', ['scope' => request('scope') ?? (auth()->user()->isAdmin() ? 'all' : 'my')]) }}"
+                class="btn btn-light">
                 Cancel
             </a>
 
-            <button type="submit" id="createProjectBtn" class="btn btn-primary px-4">
+            <button type="submit" id="createProjectBtn"
+                class="btn btn-primary px-4">
                 <i class="bi bi-check-circle me-1"></i>
                 Create Project
             </button>

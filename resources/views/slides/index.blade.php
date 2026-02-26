@@ -6,13 +6,7 @@
 
 <x-page-wrapper title="Slideshow Manager">
 
-    <x-slot name="actions">
-        <a href="{{ route('slides.create') }}"
-            class="btn btn-sm btn-primary">
-            + Add Slide
-        </a>
-    </x-slot>
-
+    {{-- ================= SLIDESHOW LIST ================= --}}
     <div class="row g-4">
 
         @forelse ($slides as $slide)
@@ -126,6 +120,15 @@
     <div class="mt-4">
         {{ $slides->links() }}
     </div>
+
+    {{-- ADD --}}
+    @if(auth()->user()->isAdmin())
+    <a href="{{ route('slides.create') }}"
+        class="btn btn-success rounded-circle shadow mobile-fab">
+        <i class="bi bi-plus-lg"></i>
+    </a>
+    @endif
+
 
     {{-- Image Preview Modal --}}
     <div class="modal fade" id="previewSlideModal" tabindex="-1">

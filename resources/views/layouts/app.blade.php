@@ -9,6 +9,7 @@
     {{-- Bootstrap --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    
 
     {{-- Custom styles --}}
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
@@ -293,12 +294,16 @@
 
     {{-- TOGGLE CUSTOM FIELD ON CHANGE --}}
     <script>
-        document.getElementById('editTaskTypeSelect')
-            .addEventListener('change', function() {
+        document.addEventListener('shown.bs.modal', function(event) {
+            if (event.target.id !== 'editTaskModal') return;
 
-                const wrapper = document.getElementById('editCustomTaskWrapper');
-                const input = document.getElementById('edit_custom_task_name');
+            const select = document.getElementById('editTaskTypeSelect');
+            const wrapper = document.getElementById('editCustomTaskWrapper');
+            const input = document.getElementById('edit_custom_task_name');
 
+            if (!select) return;
+
+            select.addEventListener('change', function() {
                 if (this.value === 'Custom') {
                     wrapper.classList.remove('d-none');
                     input.focus();
@@ -307,6 +312,7 @@
                     input.value = '';
                 }
             });
+        });
     </script>
 
     {{-- Toast Container Script --}}

@@ -124,19 +124,18 @@
         </div>
 
         {{-- ================= FOOTER ================= --}}
-        <div class="mt-4 d-flex flex-column flex-sm-row justify-content-end gap-2">
-
+        <div class="mt-4 d-flex justify-content-end gap-2 flex-wrap">
             <a href="{{ route('slides.index') }}"
-                class="btn btn-secondary w-100 w-sm-auto flex-fill">
+                class="btn btn-light">
                 Cancel
             </a>
 
             <button type="submit"
                 id="createSlideBtn"
-                class="btn btn-primary w-100 w-sm-auto flex-fill">
+                class="btn btn-primary px-4">
+                <i class="bi bi-images me-2"></i>
                 Create Slide
             </button>
-
         </div>
 
     </form>

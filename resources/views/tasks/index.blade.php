@@ -34,105 +34,163 @@ $pageTitle = $isAdmin
 
         <form method="GET"
             action="{{ route('tasks.index') }}"
-            class="w-100">
+            class="d-flex flex-column w-100 w-lg-auto">
 
             <input type="hidden" name="scope" value="{{ $scope }}">
 
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            {{-- ================= DESKTOP ================= --}}
+            <div class="d-none d-lg-flex flex-wrap align-items-center justify-content-between gap-3">
 
-                {{-- LEFT SIDE FILTERS --}}
+                {{-- LEFT SIDE (Filters) --}}
                 <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
 
-                    {{-- PERSONNEL (ADMIN ONLY, ALL SCOPE ONLY) --}}
+                    {{-- Personnel --}}
                     @if(auth()->user()->isAdmin() && $scope === 'all')
                     <select name="personnel"
                         class="form-select form-select-sm shadow-sm w-auto"
                         onchange="this.form.submit()">
-
-                        <option value="">
-                            All Personnel ({{ array_sum($personnelCounts ?? []) }})
-                        </option>
-
+                        <option value="">All Personnel</option>
                         @foreach($personnelList as $id => $name)
-                        @php $count = $personnelCounts[$id] ?? 0; @endphp
-                        @if($count > 0 || $personnel == $id)
-                        <option value="{{ $id }}"
-                            {{ $personnel == $id ? 'selected' : '' }}>
-                            {{ $name }} ({{ $count }})
+                        <option value="{{ $id }}" {{ $personnel == $id ? 'selected' : '' }}>
+                            {{ $name }}
                         </option>
-                        @endif
                         @endforeach
                     </select>
                     @endif
 
-                    {{-- STATUS --}}
+                    {{-- Status --}}
                     <select name="filter"
                         class="form-select form-select-sm shadow-sm w-auto"
                         onchange="this.form.submit()">
-
                         @foreach($statusLabels as $key => $label)
-                        @php
-                        $count = $statusCounts[$key] ?? 0;
-                        @endphp
-
-                        @if($count > 0 || $status === $key)
-                        <option value="{{ $key }}"
-                            {{ $status === $key ? 'selected' : '' }}>
-                            {{ $label }} ({{ $count }})
+                        <option value="{{ $key }}" {{ $status === $key ? 'selected' : '' }}>
+                            {{ $label }}
                         </option>
-                        @endif
                         @endforeach
-
                     </select>
 
-                    {{-- TYPE --}}
+                    {{-- Type --}}
                     <select name="type"
                         class="form-select form-select-sm shadow-sm w-auto"
                         onchange="this.form.submit()">
-
-                        <option value="">
-                            All Types ({{ $totalTasksCount ?? 0 }})
-                        </option>
-
+                        <option value="">All Types</option>
                         @foreach($taskTypes as $taskType => $count)
-                        <option value="{{ $taskType }}"
-                            {{ $type === $taskType ? 'selected' : '' }}>
-                            {{ $taskType }} ({{ $count }})
+                        <option value="{{ $taskType }}" {{ $type === $taskType ? 'selected' : '' }}>
+                            {{ $taskType }}
                         </option>
                         @endforeach
                     </select>
 
-                    {{-- RESET --}}
+                    {{-- Reset --}}
                     <a href="{{ route('tasks.index', ['scope' => $scope]) }}"
-                        class="btn btn-sm btn-outline-secondary px-3">
+                        class="btn btn-sm btn-outline-secondary">
                         Reset
                     </a>
 
-                    {{-- ADD --}}
-                    <button type="button"
-                        class="btn btn-sm btn-success px-3 shadow-sm"
-                        data-bs-toggle="modal"
-                        data-bs-target="#addPersonalTaskModal">
-                        <i class="bi bi-plus-lg"></i>
-                    </button>
-
                 </div>
 
-                {{-- RIGHT: SCOPE TOGGLE --}}
+                {{-- RIGHT SIDE (Scope Toggle) --}}
                 @if(auth()->user()->isAdmin())
                 <div class="btn-group scope-toggle">
                     <a href="{{ route('tasks.index', ['scope' => 'all']) }}"
-                        class="btn btn-sm {{ $scope === 'all' ? 'btn-dark active-scope' : 'btn-outline-secondary' }}">
+                        class="btn btn-sm {{ $scope === 'all' ? 'btn-dark' : 'btn-outline-secondary' }}">
                         All Tasks
                     </a>
 
                     <a href="{{ route('tasks.index', ['scope' => 'my']) }}"
-                        class="btn btn-sm {{ $scope === 'my' ? 'btn-dark active-scope' : 'btn-outline-secondary' }}">
+                        class="btn btn-sm {{ $scope === 'my' ? 'btn-dark' : 'btn-outline-secondary' }}">
                         My Tasks
                     </a>
                 </div>
                 @endif
 
+            </div>
+
+            {{-- ================= MOBILE ================= --}}
+            <div class="d-lg-none w-100 d-flex justify-content-center">
+                <div class="w-100" style="max-width: 420px;">
+
+                    {{-- Scope Toggle --}}
+                    @if(auth()->user()->isAdmin())
+                    <div class="btn-group w-100 overflow-hidden shadow-sm mb-3">
+                        <a href="{{ route('tasks.index', ['scope' => 'all']) }}"
+                            class="btn flex-fill border-0 {{ $scope === 'all' ? 'btn-dark text-white' : 'btn-light text-muted' }}">
+                            All Tasks
+                        </a>
+
+                        <a href="{{ route('tasks.index', ['scope' => 'my']) }}"
+                            class="btn flex-fill border-0 {{ $scope === 'my' ? 'btn-dark text-white' : 'btn-light text-muted' }}">
+                            My Tasks
+                        </a>
+                    </div>
+                    @endif
+
+                    {{-- Filter Toggle --}}
+                    <button class="btn btn-outline-secondary w-100 mb-2"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#mobileFilters">
+                        <i class="bi bi-funnel me-1"></i>
+                        Filters
+                    </button>
+
+                    {{-- Filters Panel --}}
+                    <div class="collapse {{ ($status !== 'all' || $type || $personnel) ? 'show' : '' }}" id="mobileFilters">
+
+                        <div class="card card-body shadow-sm border-0">
+
+                            @if(auth()->user()->isAdmin() && $scope === 'all')
+                            <div class="mb-3">
+                                <label class="form-label small text-muted">Personnel</label>
+                                <select name="personnel" class="form-select form-select-sm">
+                                    <option value="">All Personnel</option>
+                                    @foreach($personnelList as $id => $name)
+                                    <option value="{{ $id }}" {{ $personnel == $id ? 'selected' : '' }}>
+                                        {{ $name }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
+
+                            <div class="mb-3">
+                                <label class="form-label small text-muted">Status</label>
+                                <select name="filter" class="form-select form-select-sm">
+                                    @foreach($statusLabels as $key => $label)
+                                    <option value="{{ $key }}" {{ $status === $key ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small text-muted">Task Type</label>
+                                <select name="type" class="form-select form-select-sm">
+                                    <option value="">All Types</option>
+                                    @foreach($taskTypes as $taskType => $count)
+                                    <option value="{{ $taskType }}" {{ $type === $taskType ? 'selected' : '' }}>
+                                        {{ $taskType }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-dark btn-sm flex-fill">
+                                    Apply
+                                </button>
+
+                                <a href="{{ route('tasks.index', ['scope'=>$scope]) }}"
+                                    class="btn btn-outline-secondary btn-sm flex-fill">
+                                    Reset
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
         </form>
@@ -198,7 +256,7 @@ $pageTitle = $isAdmin
                             </span>
 
                             <a href="{{ route('tasks.show', [ 'task'  => $task->id, 'from'  => 'tasks', 'scope' => request('scope') ]) }}"
-                                class="btn btn-sm btn-light p-2">
+                                class="btn btn-sm btn-light p-2 flex-fill">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
 
@@ -211,7 +269,7 @@ $pageTitle = $isAdmin
                             </button>
                             @endif
 
-                            @if($task->project && $task->assigned_user_id && (!$task->start_date || !$task->due_date))
+                            @if($task->assigned_user_id && (!$task->start_date || !$task->due_date))
                             @if($isAdmin || $isAssignedUser)
                             <button class="btn btn-sm btn-light p-2"
                                 data-bs-toggle="modal"
@@ -241,7 +299,7 @@ $pageTitle = $isAdmin
                             @endif
 
                             @if($isAdmin)
-                            <button class="btn btn-sm btn-light p-2"
+                            <button class="btn btn-sm btn-light p-2 flex-fill"
                                 data-bs-toggle="modal"
                                 data-bs-target="#confirmActionModal"
                                 data-action="{{ route('tasks.archive', $task->id) }}"
@@ -339,7 +397,7 @@ $pageTitle = $isAdmin
                         <div class="d-flex gap-2">
 
                             <a href="{{ route('tasks.show', [ 'task'  => $task->id, 'from'  => 'tasks', 'scope' => request('scope') ]) }}"
-                                class="btn btn-sm btn-light p-2">
+                                class="btn btn-sm btn-light p-2 flex-fill">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
 
@@ -352,14 +410,14 @@ $pageTitle = $isAdmin
                             </button>
                             @endif
 
-                            @if($task->project && $task->assigned_user_id && (!$task->start_date || !$task->due_date))
+                            @if($task->assigned_user_id && (!$task->start_date || !$task->due_date))
                             @if($isAdmin || $isAssignedUser)
-                            <button class="btn btn-sm btn-light flex-fill"
+                            <button class="btn btn-sm btn-light p-2 flex-fill"
                                 data-bs-toggle="modal"
                                 data-bs-target="#setTaskDateModal"
                                 data-task-id="{{ $task->id }}"
-                                data-project-start="{{ $task->project->start_date->format('Y-m-d') }}"
-                                data-project-due="{{ $task->project->due_date->format('Y-m-d') }}">
+                                data-project-start="{{ $task->project?->start_date?->format('Y-m-d') }}"
+                                data-project-due="{{ $task->project?->due_date?->format('Y-m-d') }}">
                                 <i class="bi bi-calendar-plus"></i>
                             </button>
                             @endif
@@ -413,6 +471,14 @@ $pageTitle = $isAdmin
         </div>
 
     </div>
+
+    {{-- Floating Add Button --}}
+    <button type="button"
+        data-bs-toggle="modal"
+        data-bs-target="#addPersonalTaskModal"
+        class="btn btn-success rounded-circle shadow mobile-fab">
+        <i class="bi bi-plus-lg fs-5"></i>
+    </button>
 
     @include('tasks.partials.update-task-modal')
     @include('tasks.partials.assign-task-modal')
