@@ -8,9 +8,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->enum('account_status', ['active', 'inactive'])
-                  ->default('active')
-                  ->change();
+            $table->string('account_status')
+                ->default('active')
+                ->change();
         });
     }
 
@@ -21,4 +21,3 @@ return new class extends Migration {
         });
     }
 };
-
