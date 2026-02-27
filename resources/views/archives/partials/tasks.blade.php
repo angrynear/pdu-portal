@@ -22,6 +22,7 @@
                         </div>
 
                         <div class="small text-muted">
+                            <i class="bi bi-building"></i>
                             {{ $task->project->name ?? '—' }}
                         </div>
 

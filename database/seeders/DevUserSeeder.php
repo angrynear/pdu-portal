@@ -21,17 +21,6 @@ class DevUserSeeder extends Seeder
             ]
         );
 
-        // User
-        User::updateOrCreate(
-            ['email' => 'user@pdu.test'],
-            [
-                'name' => 'Test User',
-                'role' => 'user',
-                'password' => Hash::make('password'),
-                'account_status' => 'active',
-            ]
-        );
-
         $this->call(DevUserSeeder::class);
     }
 }

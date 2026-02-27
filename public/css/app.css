@@ -774,3 +774,53 @@ body.sidebar-collapsed .sidebar-desktop .sidebar .nav-link i {
     font-size: 0.85rem;
     color: #374151;
 }
+
+/* SLIDER PREVIEW */
+.slide-image-wrapper {
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.slide-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.slide-image-wrapper:hover .slide-overlay {
+    opacity: 1;
+}
+
+/* =====================================================
+   META PILL (Project / Task Meta Info)
+===================================================== */
+
+.meta-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 6px 14px;
+
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+
+    border-radius: 999px;
+
+    background: #e6f4ea;        /* Soft MBHTE green tint */
+    color: #146c43;             /* Primary brand green */
+
+    width: fit-content;
+    margin: 0 auto;
+
+    transition: all 0.2s ease;
+}
+
+.meta-pill:hover {
+    background: #d1fae5;
+    transform: translateY(-1px);
+}

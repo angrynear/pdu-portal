@@ -571,7 +571,7 @@ class TaskController extends Controller
         TaskActivityLog::create([
             'task_id' => $task->id,
             'user_id' => auth()->id(),
-            'action'  => 'dates_set',
+            'action'  => 'updated',
             'description' => 'Task dates updated',
             'changes' => [
                 'start_date' => [
@@ -627,6 +627,18 @@ class TaskController extends Controller
 
     private function buildTaskIndex($baseQuery, Request $request)
     {
+        $scope = $request->get('scope', 'all');
+        $isAdmin = auth()->user()->isAdmin();
+
+        $statusLabels = [
+            'all' => 'All Status',
+            'not_started' => 'Not Started',
+            'ongoing' => 'Ongoing',
+            'completed' => 'Completed',
+            'overdue' => 'Overdue',
+            'due_soon' => 'Due Soon',
+        ];
+
         $status     = $request->get('filter', 'all');
         $type       = $request->get('type');
         $personnel  = $request->get('personnel');
@@ -642,43 +654,13 @@ class TaskController extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | BASE QUERY WITH PERSONNEL FILTER (if selected)
+    | MAIN DATA QUERY (All Filters Applied)
     |--------------------------------------------------------------------------
     */
 
-        $filteredBase = clone $baseQuery;
+        $query = clone $baseQuery;
 
-        if (!empty($personnel)) {
-            $filteredBase->where('assigned_user_id', $personnel);
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | MAIN FILTERED QUERY (Personnel + Status + Type)
-    |--------------------------------------------------------------------------
-    */
-
-        $query = clone $filteredBase;
-
-        // STATUS FILTER
-        if ($status === 'completed') {
-            $query->completed();
-        } elseif ($status === 'overdue') {
-            $query->overdue();
-        } elseif ($status === 'not_started') {
-            $query->notStarted();
-        } elseif ($status === 'ongoing') {
-            $query->ongoing();
-        } elseif ($status === 'due_soon') {
-            $query->dueSoon();
-        }
-
-        // TYPE FILTER
-        if ($type === 'Custom') {
-            $query->whereNotIn('task_type', $predefined);
-        } elseif (!empty($type)) {
-            $query->where('task_type', $type);
-        }
+        $this->applyTaskFilters($query, $request, $predefined);
 
         $tasks = $query
             ->with(['project', 'assignedUser', 'activityLogs'])
@@ -707,62 +689,47 @@ class TaskController extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | STATUS COUNTS (Respect Personnel + Type)
+    | STATUS COUNTS (Ignore Status Filter)
     |--------------------------------------------------------------------------
     */
 
-        $statusCountQuery = clone $filteredBase;
+        $statusCounts = [];
 
-        if ($type === 'Custom') {
-            $statusCountQuery->whereNotIn('task_type', $predefined);
-        } elseif (!empty($type)) {
-            $statusCountQuery->where('task_type', $type);
+        foreach (array_keys($statusLabels) as $key) {
+
+            $statusQuery = clone $baseQuery;
+
+            $this->applyTaskFilters($statusQuery, $request, $predefined, 'status');
+
+            if ($key !== 'all') {
+                if ($key === 'completed') $statusQuery->completed();
+                elseif ($key === 'overdue') $statusQuery->overdue();
+                elseif ($key === 'not_started') $statusQuery->notStarted();
+                elseif ($key === 'ongoing') $statusQuery->ongoing();
+                elseif ($key === 'due_soon') $statusQuery->dueSoon();
+            }
+
+            $statusCounts[$key] = $statusQuery->count();
         }
-
-        $statusCounts = [
-            'all' => (clone $statusCountQuery)->count(),
-            'not_started' => (clone $statusCountQuery)->notStarted()->count(),
-            'ongoing' => (clone $statusCountQuery)->ongoing()->count(),
-            'completed' => (clone $statusCountQuery)->completed()->count(),
-            'overdue' => (clone $statusCountQuery)->overdue()->count(),
-            'due_soon' => (clone $statusCountQuery)->dueSoon()->count(),
-        ];
 
         /*
     |--------------------------------------------------------------------------
-    | TYPE COUNTS (Respect Personnel + Status)
+    | TYPE COUNTS (Ignore Type Filter)
     |--------------------------------------------------------------------------
     */
 
-        $typeCountQuery = clone $filteredBase;
+        $typeQuery = clone $baseQuery;
 
-        if ($status === 'completed') {
-            $typeCountQuery->where('progress', 100);
-        } elseif ($status === 'overdue') {
-            $typeCountQuery->where('progress', '<', 100)
-                ->whereDate('due_date', '<', today());
-        } elseif ($status === 'not_started') {
-            $typeCountQuery->where('progress', 0)
-                ->where(function ($q) {
-                    $q->whereNull('due_date')
-                        ->orWhereDate('due_date', '>=', today());
-                });
-        } elseif ($status === 'ongoing') {
-            $typeCountQuery->whereBetween('progress', [1, 99])
-                ->where(function ($q) {
-                    $q->whereNull('due_date')
-                        ->orWhereDate('due_date', '>=', today());
-                });
-        }
+        $this->applyTaskFilters($typeQuery, $request, $predefined, 'type');
 
-        $rawTypes = $typeCountQuery
+        $rawTypes = $typeQuery
             ->select('task_type')
             ->selectRaw('COUNT(*) as total')
             ->groupBy('task_type')
             ->pluck('total', 'task_type')
             ->toArray();
 
-        $taskTypes   = [];
+        $taskTypes = [];
         $customCount = 0;
 
         foreach ($rawTypes as $key => $value) {
@@ -779,40 +746,15 @@ class TaskController extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | PERSONNEL COUNTS (Respect Status + Type)
+    | PERSONNEL COUNTS (Ignore Personnel Filter)
     |--------------------------------------------------------------------------
     */
 
-        $personnelCountQuery = clone $baseQuery;
+        $personnelQuery = clone $baseQuery;
 
-        // apply status filter
-        if ($status === 'completed') {
-            $personnelCountQuery->where('progress', 100);
-        } elseif ($status === 'overdue') {
-            $personnelCountQuery->where('progress', '<', 100)
-                ->whereDate('due_date', '<', today());
-        } elseif ($status === 'not_started') {
-            $personnelCountQuery->where('progress', 0)
-                ->where(function ($q) {
-                    $q->whereNull('due_date')
-                        ->orWhereDate('due_date', '>=', today());
-                });
-        } elseif ($status === 'ongoing') {
-            $personnelCountQuery->whereBetween('progress', [1, 99])
-                ->where(function ($q) {
-                    $q->whereNull('due_date')
-                        ->orWhereDate('due_date', '>=', today());
-                });
-        }
+        $this->applyTaskFilters($personnelQuery, $request, $predefined, 'personnel');
 
-        // apply type filter
-        if ($type === 'Custom') {
-            $personnelCountQuery->whereNotIn('task_type', $predefined);
-        } elseif (!empty($type)) {
-            $personnelCountQuery->where('task_type', $type);
-        }
-
-        $personnelCounts = $personnelCountQuery
+        $personnelCounts = $personnelQuery
             ->select('assigned_user_id')
             ->selectRaw('COUNT(*) as total')
             ->groupBy('assigned_user_id')
@@ -827,6 +769,37 @@ class TaskController extends Controller
 
         $users = User::where('account_status', 'active')->get();
 
+        /*
+    |--------------------------------------------------------------------------
+    | AJAX RESPONSE
+    |--------------------------------------------------------------------------
+    */
+
+        if ($request->ajax()) {
+            return response()->json([
+                'mobileFilters' => view('tasks.partials.filters.mobile', compact(
+                    'statusCounts',
+                    'taskTypes',
+                    'personnelCounts',
+                    'personnelList',
+                    'status',
+                    'type',
+                    'personnel',
+                    'scope',
+                    'statusLabels'
+                ))->render(),
+
+                'tasks' => view('tasks.partials.task-list', compact('tasks', 'isAdmin'))
+                    ->render(),
+            ]);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | NORMAL RESPONSE
+    |--------------------------------------------------------------------------
+    */
+
         return view('tasks.index', [
             'tasks'            => $tasks,
             'statusCounts'     => $statusCounts,
@@ -835,6 +808,48 @@ class TaskController extends Controller
             'personnelList'    => $personnelList,
             'totalTasksCount'  => $totalTasksCount,
             'users'            => $users,
+            'status'           => $status,
+            'type'             => $type,
+            'personnel'        => $personnel,
+            'scope'            => $scope,
+            'statusLabels'     => $statusLabels,
         ]);
+    }
+
+    private function applyTaskFilters($query, $request, $predefined, $ignore = null)
+    {
+        $status    = $request->get('filter', 'all');
+        $type      = $request->get('type');
+        $personnel = $request->get('personnel');
+
+        if ($ignore !== 'personnel' && !empty($personnel)) {
+            $query->where('assigned_user_id', $personnel);
+        }
+
+        if ($ignore !== 'status') {
+
+            if ($status === 'completed') {
+                $query->completed();
+            } elseif ($status === 'overdue') {
+                $query->overdue();
+            } elseif ($status === 'not_started') {
+                $query->notStarted();
+            } elseif ($status === 'ongoing') {
+                $query->ongoing();
+            } elseif ($status === 'due_soon') {
+                $query->dueSoon();
+            }
+        }
+
+        if ($ignore !== 'type') {
+
+            if ($type === 'Custom') {
+                $query->whereNotIn('task_type', $predefined);
+            } elseif (!empty($type)) {
+                $query->where('task_type', $type);
+            }
+        }
+
+        return $query;
     }
 }

@@ -26,6 +26,7 @@
                             @if($log->task?->project)
                             <a href="{{ route('projects.show', ['project' => $log->task->project_id,'from' => 'logs','scope' => request('scope')]) }}"
                                 class="text-decoration-none text-muted">
+                                <i class="bi bi-building"></i>
                                 {{ $log->task->project->name }}
                             </a>
                             @else

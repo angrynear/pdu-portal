@@ -62,7 +62,7 @@
                     </div>
 
                     <div class="small text-muted mt-1">
-                        <i class="bi bi-folder me-1"></i>
+                        <i class="bi bi-building"></i>
                         @if($task->project)
                         {{ $task->project->name ?? '—' }}
                         @else

@@ -109,7 +109,7 @@
 
         @empty
         <div class="col-12">
-            <div class="text-center text-muted py-4">
+            <div class="text-center text-muted py-0">
                 No slides found.
             </div>
         </div>

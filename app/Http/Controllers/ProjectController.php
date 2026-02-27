@@ -9,6 +9,8 @@ use App\Support\FlashMessage;
 use App\Models\ProjectActivityLog;
 use App\Models\TaskActivityLog;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
 
 
 class ProjectController extends Controller
@@ -312,106 +314,35 @@ class ProjectController extends Controller
     private function buildProjectIndex($baseQuery, Request $request)
     {
         $subSector = $request->get('sub_sector');
-        $status = $request->get('filter', 'all');
-        $search = $request->get('search');
+        $status    = $request->get('filter', 'all');
+        $search    = $request->get('search');
 
-        /*
-    |--------------------------------------------------------------------------
-    | SEARCH
-    |--------------------------------------------------------------------------
-    */
+        $subSectors = [
+            'basic_education'      => 'Basic Education',
+            'higher_education'     => 'Higher Education',
+            'madaris_education'    => 'Madaris Education',
+            'technical_education'  => 'Technical Education',
+            'others'               => 'Others',
+        ];
 
-        if (!empty($search)) {
-            $baseQuery->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('location', 'like', "%{$search}%")
-                    ->orWhere('sub_sector', 'like', "%{$search}%")
-                    ->orWhere('source_of_fund', 'like', "%{$search}%")
-                    ->orWhere('funding_year', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | STATUS COUNTS
-        |--------------------------------------------------------------------------
-         */
-
-        $countQuery = clone $baseQuery;
-
-        $statusCounts = [
-            'all' => (clone $countQuery)->count(),
-            'completed' => (clone $countQuery)->completed()->count(),
-            'overdue' => (clone $countQuery)->overdue()->count(),
-            'ongoing' => (clone $countQuery)->ongoing()->count(),
-            'not_started' => (clone $countQuery)->notStarted()->count(),
-            'due_soon' => (clone $countQuery)->dueSoon()->count(),
+        $statusChips = [
+            'all'         => 'All Status',
+            'ongoing'     => 'Ongoing',
+            'completed'   => 'Completed',
+            'overdue'     => 'Overdue',
+            'not_started' => 'Not Started',
+            'due_soon'    => 'Due Soon',
         ];
 
         /*
-        |--------------------------------------------------------------------------
-        | SUB-SECTOR COUNTS
-        |--------------------------------------------------------------------------
-        */
-
-        // Clone base query AFTER search but BEFORE sub_sector filter
-        $subSectorCountQuery = clone $baseQuery;
-
-        // Apply status filter (so counts respect status)
-        if ($status === 'completed') {
-            $subSectorCountQuery->completed();
-        } elseif ($status === 'overdue') {
-            $subSectorCountQuery->overdue();
-        } elseif ($status === 'ongoing') {
-            $subSectorCountQuery->ongoing();
-        } elseif ($status === 'not_started') {
-            $subSectorCountQuery->notStarted();
-        } elseif ($status === 'due_soon') {
-            $subSectorCountQuery->dueSoon();
-        }
-
-        // Get grouped counts
-        $subSectorCounts = $subSectorCountQuery
-            ->select('sub_sector', DB::raw('count(*) as total'))
-            ->groupBy('sub_sector')
-            ->pluck('total', 'sub_sector');
-
-        /*
-        |--------------------------------------------------------------------------
-        | SUB-SECTOR FILTER
-        |--------------------------------------------------------------------------
-        */
-
-        if (!empty($subSector)) {
-            $baseQuery->where('sub_sector', $subSector);
-        }
-
-        /*
     |--------------------------------------------------------------------------
-    | APPLY STATUS FILTER
+    | MAIN PROJECT QUERY (ALL FILTERS)
     |--------------------------------------------------------------------------
     */
 
         $query = clone $baseQuery;
 
-        if ($status === 'completed') {
-            $query->completed();
-        } elseif ($status === 'overdue') {
-            $query->overdue();
-        } elseif ($status === 'ongoing') {
-            $query->ongoing();
-        } elseif ($status === 'not_started') {
-            $query->notStarted();
-        } elseif ($status === 'due_soon') {
-            $query->dueSoon();
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | FETCH PROJECTS
-    |--------------------------------------------------------------------------
-    */
+        $this->applyProjectFilters($query, $request);
 
         $projects = $query
             ->withCount([
@@ -424,23 +355,130 @@ class ProjectController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        if ($request->ajax()) {
-            return view('projects.partials.project-list', compact('projects'))->render();
+        /*
+    |--------------------------------------------------------------------------
+    | STATUS COUNTS (IGNORE STATUS)
+    |--------------------------------------------------------------------------
+    */
+
+        $statusCounts = [];
+
+        foreach ($statusChips as $key => $label) {
+
+            $statusQuery = clone $baseQuery;
+
+            $this->applyProjectFilters($statusQuery, $request, 'status');
+
+            if ($key !== 'all') {
+                $method = Str::camel($key);
+
+                if (method_exists($statusQuery->getModel(), 'scope' . ucfirst($method))) {
+                    $statusQuery->{$method}();
+                }
+            }
+
+            $statusCounts[$key] = $statusQuery->count();
         }
 
-        $subSectors = [
-            'basic_education' => 'Basic Education',
-            'higher_education' => 'Higher Education',
-            'madaris_education' => 'Madaris Education',
-            'technical_education' => 'Technical Education',
-            'others' => 'Others',
-        ];
+        /*
+    |--------------------------------------------------------------------------
+    | SUB-SECTOR COUNTS (IGNORE SUB-SECTOR)
+    |--------------------------------------------------------------------------
+    */
+
+        $subSectorQuery = clone $baseQuery;
+
+        $this->applyProjectFilters($subSectorQuery, $request, 'sub_sector');
+
+        $subSectorCounts = $subSectorQuery
+            ->select('sub_sector', DB::raw('count(*) as total'))
+            ->groupBy('sub_sector')
+            ->pluck('total', 'sub_sector');
+
+        /*
+    |--------------------------------------------------------------------------
+    | AJAX RESPONSE
+    |--------------------------------------------------------------------------
+    */
+
+        $scope = request('scope', 'all');
+
+        if ($request->ajax()) {
+            return response()->json([
+                'desktopFilters' => view('projects.partials.filters.desktop', compact(
+                    'statusCounts',
+                    'subSectorCounts',
+                    'subSectors',
+                    'statusChips',
+                    'status',
+                    'search',
+                    'subSector',
+                    'scope'
+                ))->render(),
+
+                'mobileFilters' => view('projects.partials.filters.mobile', compact(
+                    'statusCounts',
+                    'subSectorCounts',
+                    'subSectors',
+                    'statusChips',
+                    'status',
+                    'search',
+                    'subSector',
+                    'scope'
+                ))->render(),
+
+                'projects' => view('projects.partials.project-list', compact('projects'))->render(),
+            ]);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | NORMAL RESPONSE
+    |--------------------------------------------------------------------------
+    */
 
         return view('projects.index', compact(
             'projects',
             'statusCounts',
             'subSectors',
-            'subSectorCounts'
+            'subSectorCounts',
+            'statusChips',
+            'status',
+            'search',
+            'subSector'
         ));
+    }
+
+    private function applyProjectFilters($query, $request, $ignore = null)
+    {
+        $subSector = $request->get('sub_sector');
+        $status    = $request->get('filter', 'all');
+        $search    = $request->get('search');
+
+        if ($ignore !== 'search' && !empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('location', 'like', "%{$search}%")
+                    ->orWhere('sub_sector', 'like', "%{$search}%")
+                    ->orWhere('source_of_fund', 'like', "%{$search}%")
+                    ->orWhere('funding_year', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        if ($ignore !== 'sub_sector' && !empty($subSector)) {
+            $query->where('sub_sector', $subSector);
+        }
+
+        if ($ignore !== 'status' && $status !== 'all') {
+
+            $method = Str::camel($status);
+
+            if (method_exists($query->getModel(), 'scope' . ucfirst($method))) {
+                $query->{$method}();
+            }
+        }
+
+        return $query;
     }
 }

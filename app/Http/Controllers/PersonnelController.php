@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use App\Support\FlashMessage;
 use Illuminate\Support\Facades\DB;
+use App\Support\FlashMessage;
+use App\Models\User;
 use App\Models\Task;
+use Carbon\Carbon;
 
 
 class PersonnelController extends Controller
@@ -153,19 +154,18 @@ class PersonnelController extends Controller
 
             $currentUser = auth()->user();
 
-            // If admin is editing themselves
+            // Prevent admin from removing own admin role
             if ($user->id === $currentUser->id && $validated['role'] !== 'admin') {
-
                 return back()->with(
                     'error',
                     'You cannot change your own admin role.'
                 );
             }
 
-            // Prevent removing last admin in system
+            // Prevent removing last active admin
             if ($user->role === 'admin' && $validated['role'] !== 'admin') {
 
-                $adminCount = \App\Models\User::where('role', 'admin')
+                $adminCount = User::where('role', 'admin')
                     ->where('account_status', 'active')
                     ->count();
 
@@ -181,22 +181,22 @@ class PersonnelController extends Controller
         $changes = [];
 
         // ===============================
-        // NORMAL FIELD COMPARISON
+        // TRACK FIELD CHANGES
         // ===============================
 
         foreach ($validated as $field => $value) {
 
-            if ($field === 'password') {
+            if (in_array($field, ['password', 'photo'])) {
                 continue;
             }
 
             $old = $user->$field ?? null;
 
             if ($field === 'employment_started') {
-                $old = $old ? \Carbon\Carbon::parse($old)->format('Y-m-d') : null;
+                $old = $old ? Carbon::parse($old)->format('Y-m-d') : null;
             }
 
-            if ((string)$old !== (string)$value) {
+            if ((string) $old !== (string) $value) {
                 $changes[$field] = [
                     'old' => $old,
                     'new' => $value,
@@ -204,24 +204,16 @@ class PersonnelController extends Controller
             }
         }
 
-        // ===============================
-        // ADMIN PASSWORD RESET
-        // ===============================
-
+        // Password reset tracking (admin only)
         if (auth()->user()->isAdmin() && !empty($validated['password'])) {
-
             $changes['password_reset'] = [
                 'old' => '********',
                 'new' => 'Temporary password set',
             ];
         }
 
-        // ===============================
-        // PHOTO CHANGE
-        // ===============================
-
+        // Photo change tracking
         if ($request->hasFile('photo')) {
-
             $changes['photo'] = [
                 'old' => $user->photo,
                 'new' => 'Photo updated',
@@ -235,27 +227,29 @@ class PersonnelController extends Controller
         }
 
         // ===============================
-        // OPTIONAL PASSWORD RESET
-        // ===============================
-
-        if (!empty($request->password)) {
-            $validated['password'] = \Hash::make($request->password);
-        } else {
-            unset($validated['password']); // prevent null overwrite
-        }
-
-        // ===============================
-        // APPLY UPDATE
+        // APPLY NORMAL FIELD UPDATES
         // ===============================
 
         foreach ($validated as $field => $value) {
 
-            if ($field === 'password' && !empty($value)) {
-                $user->password = Hash::make($value);
-            } elseif ($field !== 'photo') {
-                $user->$field = $value;
+            if (in_array($field, ['password', 'photo'])) {
+                continue;
             }
+
+            $user->$field = $value;
         }
+
+        // ===============================
+        // APPLY PASSWORD (HASH ONLY ONCE)
+        // ===============================
+
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        // ===============================
+        // APPLY PHOTO
+        // ===============================
 
         if ($request->hasFile('photo')) {
             $user->photo = $request->file('photo')->store('personnel', 'public');

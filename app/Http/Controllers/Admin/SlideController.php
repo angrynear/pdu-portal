@@ -30,7 +30,7 @@ class SlideController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'image' => 'required|image|max:2048',
+            'image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'display_order' => 'required|integer',
@@ -62,7 +62,7 @@ class SlideController extends Controller
     public function update(Request $request, Slide $slide)
     {
         $request->validate([
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'display_order' => 'required|integer',
