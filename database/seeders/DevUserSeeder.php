@@ -20,7 +20,5 @@ class DevUserSeeder extends Seeder
                 'account_status' => 'active',
             ]
         );
-
-        $this->call(DevUserSeeder::class);
     }
 }
