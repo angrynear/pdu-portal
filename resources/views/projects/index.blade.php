@@ -73,7 +73,6 @@ $pageTitle = $isAdmin
     </a>
     @endif
 
-
     @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
