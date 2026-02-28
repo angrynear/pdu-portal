@@ -1,0 +1,16 @@
+CREATE DATABASE pdu_portal;
+
+CREATE USER 'pdu_user'@'localhost' IDENTIFIED BY '@PDUadmin2026';
+
+GRANT ALL PRIVILEGES ON pdu_portal.* TO 'pdu_user'@'localhost';
+
+FLUSH PRIVILEGES;
+
+EXIT;
+
+
+157.245.58.207
+root
+Password: angry23Near
+
+mysql password: @Maliit777
