@@ -151,7 +151,6 @@
                 <ul class="list-unstyled footer-links">
                     <li><a href="https://bangsamoro.gov.ph/" target="_blank">BARMM Official Website</a></li>
                     <li><a href="https://mbhte.bangsamoro.gov.ph/" target="_blank">MBHTE Official Website</a></li>
-                    <li><a href="{{ route('login') }}">Login Portal</a></li>
                 </ul>
             </div>
 
@@ -160,6 +159,9 @@
                 <h6 class="footer-title">Contact Information</h6>
                 <p class="footer-text mb-1">
                     Ministry of Basic, Higher and Technical Education
+                </p>
+                <p class="footer-text mb-1">
+                    Education Support Division - Education Facilities Section
                 </p>
                 <p class="footer-text">
                     Bangsamoro Autonomous Region in Muslim Mindanao
@@ -171,9 +173,9 @@
     </div>
 
     {{-- Bottom Bar --}}
-    <div class="footer-bottom text-center py-3">
+    <div class="footer-bottom text-center py-2">
         <small>
-            © {{ date('Y') }} MBHTE – BARMM. All rights reserved.
+            © {{ date('Y') }} ESD – EFS. All rights reserved.
         </small>
     </div>
 

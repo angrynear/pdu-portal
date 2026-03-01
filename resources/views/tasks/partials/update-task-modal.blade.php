@@ -2,9 +2,9 @@
     <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
 
         <form method="POST"
-              action="{{ route('tasks.updateProgress') }}"
-              enctype="multipart/form-data"
-              class="modal-content border-0 shadow">
+            action="{{ route('tasks.updateProgress') }}"
+            enctype="multipart/form-data"
+            class="modal-content border-0 shadow">
             @csrf
             @method('PATCH')
 
@@ -22,8 +22,8 @@
                 </div>
 
                 <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"></button>
+                    class="btn-close"
+                    data-bs-dismiss="modal"></button>
             </div>
 
             {{-- BODY --}}
@@ -40,13 +40,13 @@
                     </label>
 
                     <input type="range"
-                           name="progress"
-                           id="task_progress"
-                           class="form-range"
-                           min="0"
-                           max="100"
-                           step="1"
-                           value="0">
+                        name="progress"
+                        id="task_progress"
+                        class="form-range"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value="0">
 
                 </div>
 
@@ -65,9 +65,9 @@
                             </label>
 
                             <input type="date"
-                                   name="start_date"
-                                   id="update_start_date"
-                                   class="form-control">
+                                name="start_date"
+                                id="update_start_date"
+                                class="form-control">
                         </div>
 
                         <div class="col-12 col-md-6">
@@ -76,9 +76,9 @@
                             </label>
 
                             <input type="date"
-                                   name="due_date"
-                                   id="update_due_date"
-                                   class="form-control">
+                                name="due_date"
+                                id="update_due_date"
+                                class="form-control">
                         </div>
 
                     </div>
@@ -93,10 +93,10 @@
                     </label>
 
                     <textarea name="remark"
-                              id="remarkField"
-                              class="form-control"
-                              rows="3"
-                              placeholder="Add remarks if necessary…"></textarea>
+                        id="remarkField"
+                        class="form-control"
+                        rows="3"
+                        placeholder="Add remarks if necessary…"></textarea>
 
                 </div>
 
@@ -108,9 +108,9 @@
                     </label>
 
                     <input type="file"
-                           name="attachments[]"
-                           class="form-control"
-                           multiple>
+                        name="attachments[]"
+                        class="form-control"
+                        multiple>
 
                     <div class="form-text">
                         Max 5MB per file.
@@ -128,14 +128,15 @@
                 </small>
 
                 <button type="button"
-                        class="btn btn-outline-secondary w-100 w-sm-auto"
-                        data-bs-dismiss="modal">
+                    class="btn btn-outline-secondary w-100 w-sm-auto"
+                    data-bs-dismiss="modal">
                     Cancel
                 </button>
 
                 <button type="submit"
-                        id="updateProgressBtn"
-                        class="btn btn-primary w-100 w-sm-auto">
+                    id="updateProgressBtn"
+                    class="btn btn-primary w-100 w-sm-auto">
+                    <i class="bi bi-check-circle me-1"></i>
                     Save Update
                 </button>
 
@@ -147,31 +148,41 @@
 </div>
 
 
-
 {{-- Update Task Modal Script for Protect...--}}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
 
-    const taskForm = document.querySelector('#updateTaskProgressModal form');
-    const submitBtn = document.getElementById('updateProgressBtn');
-    const slider = document.getElementById('task_progress');
-    const progressText = document.getElementById('progressValue');
+        const taskForm = document.querySelector('#updateTaskProgressModal form');
+        const submitBtn = document.getElementById('updateProgressBtn');
+        const slider = document.getElementById('task_progress');
+        const progressText = document.getElementById('progressValue');
 
-    // Sync slider value
-    if (slider && progressText) {
-        slider.addEventListener('input', function () {
-            progressText.innerText = this.value;
-        });
-    }
+        // Sync slider value
+        if (slider && progressText) {
+            slider.addEventListener('input', function() {
+                progressText.innerText = this.value;
+            });
+        }
 
-    // Prevent double submit
-    if (taskForm && submitBtn) {
-        taskForm.addEventListener('submit', function () {
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Updating...";
-        });
-    }
-
-});
+    });
 </script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const modal = document.getElementById('updateTaskProgressModal');
+        const form = modal?.querySelector('form');
+        const submitBtn = document.getElementById('updateProgressBtn');
+
+        if (form && submitBtn) {
+            form.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-1"></span>
+                Saving Update...
+            `;
+            });
+        }
+
+    });
+</script>

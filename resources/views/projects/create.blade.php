@@ -186,29 +186,21 @@
                 Cancel
             </a>
 
-            <button type="submit" id="createProjectBtn"
-                class="btn btn-primary px-4">
-                <i class="bi bi-check-circle me-1"></i>
-                Create Project
+            <button
+                type="submit"
+                id="createProjectBtn"
+                class="btn btn-primary px-4 btn-auto-loading"
+                data-loading-text="Creating Project...">
+
+                <span class="btn-content">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Create Project
+                </span>
+
             </button>
         </div>
 
     </form>
-
-    {{-- Prevent Double Submit --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('createProjectForm');
-            const button = document.getElementById('createProjectBtn');
-
-            if (form && button) {
-                form.addEventListener('submit', function() {
-                    button.disabled = true;
-                    button.innerText = "Creating...";
-                });
-            }
-        });
-    </script>
 
 </x-page-wrapper>
 @endsection

@@ -68,6 +68,18 @@
                     </a>
                 </li>
 
+                @auth
+                <li class="nav-item">
+                    <a href="{{ route('dashboard') }}"
+                        class="btn btn-success btn-sm px-3 ms-md-3">
+                        <strong>
+                            Dashboard
+                        </strong>
+                    </a>
+                </li>
+                @endauth
+
+                @guest
                 <li class="nav-item">
                     <a href="{{ route('login') }}"
                         class="btn btn-success btn-sm px-3 ms-md-3">
@@ -76,6 +88,7 @@
                         </strong>
                     </a>
                 </li>
+                @endguest
 
             </ul>
 

@@ -10,7 +10,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    
+
 
     {{-- Custom styles --}}
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
@@ -197,6 +197,43 @@
             `;
                 });
             }
+
+        });
+    </script>
+
+    {{-- Button Spinner--}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            document.querySelectorAll('form').forEach(function(form) {
+
+                form.addEventListener('submit', function() {
+
+                    // Skip confirmation modal (already handled separately)
+                    if (form.id === 'confirmActionForm') return;
+
+                    const button = form.querySelector('.btn-auto-loading');
+                    if (!button || button.disabled) return;
+
+                    const loadingText = button.getAttribute('data-loading-text') || 'Processing...';
+
+                    const originalContent = button.querySelector('.btn-content');
+                    if (originalContent) {
+                        originalContent.classList.add('d-none');
+                    }
+
+                    button.disabled = true;
+
+                    button.insertAdjacentHTML('beforeend', `
+                <span class="btn-spinner">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    ${loadingText}
+                </span>
+            `);
+
+                });
+
+            });
 
         });
     </script>

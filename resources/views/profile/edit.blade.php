@@ -152,10 +152,16 @@
                         Cancel
                     </a>
 
-                    <button type="submit"
+                    <button
+                        type="submit"
                         id="editProfileBtn"
-                        class="btn btn-primary px-4">
-                        Save Changes
+                        class="btn btn-primary px-4 btn-auto-loading"
+                        data-loading-text="Saving Changes...">
+
+                        <span class="btn-content">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Save Changes
+                        </span>
                     </button>
                 </div>
 
@@ -180,20 +186,6 @@
         };
         reader.readAsDataURL(file);
     }
-
-    document.addEventListener('DOMContentLoaded', function() {
-
-        const profileForm = document.getElementById('editProfileForm');
-        const submitBtn = document.getElementById('editProfileBtn');
-
-        if (profileForm && submitBtn) {
-            profileForm.addEventListener('submit', function() {
-                submitBtn.disabled = true;
-                submitBtn.innerText = "Saving...";
-            });
-        }
-
-    });
 </script>
 
 @endsection

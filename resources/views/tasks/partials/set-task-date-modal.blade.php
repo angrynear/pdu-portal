@@ -74,8 +74,10 @@
                 <button type="submit"
                     id="setDateBtn"
                     class="btn btn-primary w-100 w-sm-auto">
-                    Set Dates
+                    <i class="bi bi-calendar3 me-1"></i>
+                    Save Dates
                 </button>
+
 
             </div>
 
@@ -85,20 +87,22 @@
 </div>
 
 
-
-{{-- Set Task Date Modal Script for Protect...--}}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
 
-    const taskForm = document.querySelector('#setTaskDateModal form');
-    const submitBtn = document.getElementById('setDateBtn');
+        const modal = document.getElementById('setTaskDateModal');
+        const form = modal?.querySelector('form');
+        const submitBtn = document.getElementById('setDateBtn');
 
-    if (taskForm && submitBtn) {
-        taskForm.addEventListener('submit', function() {
-            submitBtn.disabled = true;
-            submitBtn.innerText = "Setting Dates...";
-        });
-    }
+        if (form && submitBtn) {
+            form.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-1"></span>
+                Saving Dates...
+            `;
+            });
+        }
 
-});
+    });
 </script>

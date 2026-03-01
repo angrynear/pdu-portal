@@ -130,12 +130,16 @@
                 Cancel
             </a>
 
-            <button type="submit"
+            <button
+                type="submit"
                 id="createSlideBtn"
-                class="btn btn-primary px-4">
-                <i class="bi bi-images me-2"></i>
-                Create Slide
-            </button>
+                class="btn btn-primary px-4 btn-auto-loading"
+                data-loading-text="Creating Slide...">
+
+                <span class="btn-content">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Create Slide
+                </span>
         </div>
 
     </form>
@@ -163,13 +167,6 @@
                         };
                         reader.readAsDataURL(file);
                     }
-                });
-            }
-
-            if (form && submitBtn) {
-                form.addEventListener('submit', function() {
-                    submitBtn.disabled = true;
-                    submitBtn.innerText = "Creating...";
                 });
             }
 

@@ -107,16 +107,18 @@
                 <hr class="mb-0">
 
                 {{-- FOOTER --}}
-                <div class="modal-footer border-0 pt-3">
+                <div class="modal-footer border-0 pt-0 flex-column flex-sm-row gap-2">
+
                     <button type="button"
-                        class="btn btn-light"
+                        class="btn btn-light w-100 w-sm-auto"
                         data-bs-dismiss="modal">
                         Cancel
                     </button>
 
                     <button type="submit"
                         id="createTaskBtn"
-                        class="btn btn-success px-4">
+                        class="btn btn-primary w-100 w-sm-auto">
+                        <i class="bi bi-list-task me-1"></i>
                         Create Task
                     </button>
                 </div>
@@ -132,13 +134,6 @@
         const form = document.getElementById('addTaskForm');
         const button = document.getElementById('createTaskBtn');
 
-        if (form && button) {
-            form.addEventListener('submit', function() {
-                button.disabled = true;
-                button.innerText = "Creating...";
-            });
-        }
-
         const startInput = document.getElementById('add_start_date');
         const dueInput = document.getElementById('add_due_date');
 
@@ -151,6 +146,26 @@
 
             dueInput.min = projectStart;
             dueInput.max = projectDue;
+        }
+
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const modal = document.getElementById('addTaskModal');
+        const form = modal?.querySelector('form');
+        const submitBtn = document.getElementById('createTaskBtn');
+
+        if (form && submitBtn) {
+            form.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-1"></span>
+                Creating Task...
+            `;
+            });
         }
 
     });

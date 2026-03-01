@@ -127,7 +127,9 @@ class ProfileController extends Controller
 
         // NO CHANGES
         if (empty($changes)) {
-            return back()->with('warning', FlashMessage::warning('profile_updated'));
+            return redirect()
+                ->route('profile.show')
+                ->with('warning', FlashMessage::warning('profile_updated'));
         }
 
         // ==========================

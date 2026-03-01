@@ -22,7 +22,7 @@
     <form id="editProjectForm" action="{{ route('projects.update', ['project' => $project->id,'scope' => request('scope')]) }}" method="POST">
 
         <input type="hidden" name="scope" value="{{ request('scope') }}">
-        
+
         @csrf
         @method('PUT')
 
@@ -225,35 +225,27 @@
         {{-- ========================= --}}
         <div class="mt-4 d-flex justify-content-end gap-2 flex-wrap">
 
-            <a href="{{ route('projects.index', ['scope' => request('scope') ?? (auth()->user()->isAdmin() ? 'all' : 'my')]) }}" class="btn btn-light">
+            <a href="{{ route('projects.index', ['scope' => request('scope') ?? (auth()->user()->isAdmin() ? 'all' : 'my')]) }}"
+                class="btn btn-light">
                 Cancel
             </a>
 
-            <button type="submit" id="editProjectBtn" class="btn btn-primary px-4">
-                <i class="bi bi-check2-circle me-1"></i>
-                Update Project
+            <button
+                type="submit"
+                id="editProjectBtn"
+                class="btn btn-primary px-4 btn-auto-loading"
+                data-loading-text="Updating Project...">
+
+                <span class="btn-content">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Update Project
+                </span>
+
             </button>
 
         </div>
 
     </form>
-
-    {{-- Prevent Double Submit --}}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-
-            const form = document.getElementById('editProjectForm');
-            const button = document.getElementById('editProjectBtn');
-
-            if (form && button) {
-                form.addEventListener('submit', function() {
-                    button.disabled = true;
-                    button.innerText = "Updating...";
-                });
-            }
-
-        });
-    </script>
 
 </x-page-wrapper>
 @endsection

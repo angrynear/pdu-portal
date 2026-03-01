@@ -174,12 +174,18 @@
                 Cancel
             </a>
 
-            <button type="submit"
+            <button
+                type="submit"
                 id="createPersonnelBtn"
-                class="btn btn-primary px-4">
-                <i class="bi bi-people me-2"></i>
-                Create Personnel
+                class="btn btn-primary px-4 btn-auto-loading"
+                data-loading-text="Creating Personnel...">
+
+                <span class="btn-content">
+                    <i class="bi bi-people me-2"></i>
+                    Create Personnel
+                </span>
             </button>
+
         </div>
 
     </form>
@@ -198,23 +204,6 @@
             reader.readAsDataURL(input.files[0]);
         }
     }
-</script>
-
-{{-- SAFE SUBMIT SCRIPT --}}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-        const form = document.getElementById('createPersonnelForm');
-        const submitBtn = document.getElementById('createPersonnelBtn');
-
-        if (form && submitBtn) {
-            form.addEventListener('submit', function() {
-                submitBtn.disabled = true;
-                submitBtn.innerText = "Creating...";
-            });
-        }
-
-    });
 </script>
 
 @endsection
