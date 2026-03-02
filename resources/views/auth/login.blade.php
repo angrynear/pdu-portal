@@ -73,14 +73,14 @@
                 id="loginButton"
                 class="btn login-btn w-100 d-flex align-items-center justify-content-center gap-2">
 
-                <span id="loginButtonText">
-                    Login
-                </span>
-
                 <span id="loginSpinner"
                     class="spinner-border spinner-border-sm d-none"
                     role="status"
                     aria-hidden="true">
+                </span>
+
+                <span id="loginButtonText">
+                    Login
                 </span>
 
             </button>

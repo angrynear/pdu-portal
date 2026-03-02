@@ -364,25 +364,30 @@
         });
     </script>
 
+    {{-- Show password--}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
-            const toggleBtn = document.getElementById('sidebarToggle');
+            document.querySelectorAll('.password-toggle').forEach(function(toggle) {
 
-            if (!toggleBtn) return;
+                toggle.addEventListener('click', function() {
 
-            toggleBtn.addEventListener('click', function() {
-                document.body.classList.toggle('sidebar-hidden');
-                localStorage.setItem(
-                    'sidebarHidden',
-                    document.body.classList.contains('sidebar-hidden')
-                );
+                    const input = toggle.closest('.position-relative')
+                        .querySelector('.password-field');
+
+                    const icon = toggle.querySelector('i');
+
+                    if (input.type === "password") {
+                        input.type = "text";
+                        icon.classList.replace("bi-eye", "bi-eye-slash");
+                    } else {
+                        input.type = "password";
+                        icon.classList.replace("bi-eye-slash", "bi-eye");
+                    }
+
+                });
+
             });
-
-            // Restore state
-            if (localStorage.getItem('sidebarHidden') === 'true') {
-                document.body.classList.add('sidebar-hidden');
-            }
 
         });
     </script>

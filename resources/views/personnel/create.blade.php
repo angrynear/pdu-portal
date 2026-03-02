@@ -147,24 +147,40 @@
                 <label class="form-label fw-semibold">
                     Temporary Password <span class="text-danger">*</span>
                 </label>
-                <input type="password"
-                    name="password"
-                    class="form-control @error('password') is-invalid @enderror"
-                    required>
-                @error('password') <div class="invalid-feedback">{{ $message }}</div> @enderror
-            </div>
 
+                <div class="position-relative">
+                    <input type="password"
+                        name="password"
+                        class="form-control pe-5 password-field @error('password') is-invalid @enderror"
+                        required>
+
+                    <span class="password-toggle">
+                        <i class="bi bi-eye"></i>
+                    </span>
+
+                    @error('password')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+            
             {{-- CONFIRM PASSWORD --}}
             <div class="col-12 col-md-6">
                 <label class="form-label fw-semibold">
                     Confirm Temporary Password <span class="text-danger">*</span>
                 </label>
-                <input type="password"
-                    name="password_confirmation"
-                    class="form-control"
-                    required>
-            </div>
 
+                <div class="position-relative">
+                    <input type="password"
+                        name="password_confirmation"
+                        class="form-control pe-5 password-field"
+                        required>
+
+                    <span class="password-toggle">
+                        <i class="bi bi-eye"></i>
+                    </span>
+                </div>
+            </div>
         </div>
 
         {{-- FOOTER BUTTONS --}}

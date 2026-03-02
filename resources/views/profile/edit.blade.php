@@ -114,35 +114,58 @@
 
                     <div class="col-12 col-md-4">
                         <label class="form-label">Current Password</label>
-                        <input type="password"
-                            name="current_password"
-                            class="form-control @error('current_password') is-invalid @enderror">
-                        @error('current_password')
-                        <div class="invalid-feedback">
-                            {{ $message }}
+
+                        <div class="position-relative">
+                            <input type="password"
+                                name="current_password"
+                                class="form-control pe-5 password-field @error('current_password') is-invalid @enderror">
+
+                            <span class="password-toggle">
+                                <i class="bi bi-eye"></i>
+                            </span>
+
+                            @error('current_password')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                            @enderror
                         </div>
-                        @enderror
                     </div>
 
                     <div class="col-12 col-md-4">
                         <label class="form-label">New Password</label>
-                        <input type="password"
-                            name="password"
-                            class="form-control @error('password') is-invalid @enderror">
-                        @error('password')
-                        <div class="invalid-feedback">
-                            {{ $message }}
+
+                        <div class="position-relative">
+                            <input type="password"
+                                name="password"
+                                class="form-control pe-5 password-field @error('password') is-invalid @enderror">
+
+                            <span class="password-toggle">
+                                <i class="bi bi-eye"></i>
+                            </span>
+
+                            @error('password')
+                            <div class="invalid-feedback">
+                                {{ $message }}
+                            </div>
+                            @enderror
                         </div>
-                        @enderror
                     </div>
 
                     <div class="col-12 col-md-4">
                         <label class="form-label">Confirm New Password</label>
-                        <input type="password"
-                            name="password_confirmation"
-                            class="form-control">
-                    </div>
 
+                        <div class="position-relative">
+                            <input type="password"
+                                name="password_confirmation"
+                                class="form-control pe-5 password-field">
+
+                            <span class="password-toggle">
+                                <i class="bi bi-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+                    
                 </div>
 
                 {{-- ACTION BUTTONS --}}
