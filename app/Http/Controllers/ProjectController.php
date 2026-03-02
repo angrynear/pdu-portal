@@ -278,18 +278,22 @@ class ProjectController extends Controller
         $project = Project::whereNotNull('archived_at')
             ->findOrFail($id);
 
-        $project->update([
-            'archived_at' => null,
-        ]);
+        DB::transaction(function () use ($project) {
 
-        ProjectActivityLog::create([
-            'project_id' => $project->id,
-            'user_id' => auth()->id(),
-            'action' => 'restored',
-            'description' => 'Project restored',
-        ]);
+            $project->update([
+                'archived_at' => null,
+            ]);
 
+            $project->recalculateProgress();
 
+            ProjectActivityLog::create([
+                'project_id' => $project->id,
+                'user_id' => auth()->id(),
+                'action' => 'restored',
+                'description' => 'Project restored',
+            ]);
+        });
+        
         return redirect()
             ->route('archives.index', ['scope' => 'projects'])
             ->with('success', FlashMessage::success('project_restored'));

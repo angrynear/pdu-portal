@@ -175,33 +175,4 @@
         </li>
     </ul>
 
-    {{-- ACCOUNT --}}
-    <h6 class="text-uppercase text-muted">
-        Account
-    </h6>
-
-    <ul class="nav flex-column">
-
-        {{-- My Profile --}}
-        <li class="nav-item">
-            <a href="{{ route('profile.show') }}"
-                class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                <i class="bi bi-person-circle me-2"></i>
-                <span>My Profile</span>
-            </a>
-        </li>
-
-        {{-- Logout --}}
-        <li class="nav-item">
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit"
-                    class="nav-link btn btn-link text-start text-danger w-100">
-                    <i class="bi bi-box-arrow-right me-2"></i>
-                    <span>Logout</span>
-                </button>
-            </form>
-        </li>
-    </ul>
-
 </aside>

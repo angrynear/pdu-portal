@@ -62,7 +62,6 @@
 
     </div>
 
-
     {{-- ================= CONFIRMATION MODAL (UPGRADED) ================= --}}
     <div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">

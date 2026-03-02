@@ -41,18 +41,52 @@
         {{-- RIGHT SIDE --}}
         <div class="d-flex align-items-center gap-3">
 
-            {{-- Hide welcome text on extra small --}}
+            {{-- Welcome text --}}
             <span class="text-muted small d-none d-md-inline">
                 Hi, <strong>{{ Str::before(auth()->user()->name, ' ') }}</strong>
             </span>
 
-            {{-- Avatar --}}
-            <img
-                src="{{ auth()->user()->photo
-                    ? asset('storage/' . auth()->user()->photo)
-                    : asset('images/default-avatar.png') }}"
-                alt="User Avatar"
-                class="rounded-circle border navbar-avatar">
+            <div class="dropdown">
+
+                <button class="btn p-0 border-0 bg-transparent"
+                    type="button"
+                    id="userDropdown"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
+
+                    <img
+                        src="{{ auth()->user()->photo
+                ? asset('storage/' . auth()->user()->photo)
+                : asset('images/default-avatar.png') }}"
+                        alt="User Avatar"
+                        class="rounded-circle border navbar-avatar">
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm"
+                    aria-labelledby="userDropdown">
+
+                    <li>
+                        <a class="dropdown-item small"
+                            href="{{ route('profile.show') }}">
+                            <i class="bi bi-person-circle me-2"></i>
+                            My Profile
+                        </a>
+                    </li>
+
+                    <li>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit"
+                                class="dropdown-item small text-danger">
+                                <i class="bi bi-box-arrow-right me-2"></i>
+                                Logout
+                            </button>
+                        </form>
+                    </li>
+
+                </ul>
+
+            </div>
 
         </div>
 

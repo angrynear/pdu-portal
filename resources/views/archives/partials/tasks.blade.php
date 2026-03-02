@@ -22,8 +22,15 @@
                         </div>
 
                         <div class="small text-muted">
-                            <i class="bi bi-building"></i>
-                            {{ $task->project->name ?? '—' }}
+                            @if($task->project)
+                            <a href="{{ route('projects.show', ['project' => $task->project_id,'from' => 'tasks','scope' => request('scope')]) }}"
+                                class="text-decoration-none text-muted fw-semibold link-hover">
+                                <i class="bi bi-building"></i>
+                                {{ $task->project->name }}
+                            </a>
+                            @else
+                            <span class="badge bg-secondary">Personal Custom Task</span>
+                            @endif
                         </div>
 
                         <div class="small text-secondary mt-1">
@@ -72,7 +79,10 @@
                 {{-- FOOTER ACTION --}}
                 <div class="mt-auto pt-3">
 
-                    @if ($task->project && is_null($task->project->archived_at))
+                    @if (
+                    is_null($task->project)
+                    || is_null($task->project->archived_at)
+                    )
                     <button
                         type="button"
                         class="btn btn-sm btn-success w-100"
