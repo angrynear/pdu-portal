@@ -10,7 +10,8 @@
     {{-- SLIDESHOW IMAGE --}}
     <div id="heroCarousel"
         class="carousel slide carousel-fade"
-        data-bs-ride="carousel">
+        data-bs-ride="carousel"
+        data-bs-interval="5000">
 
         <div class="carousel-inner">
 
@@ -18,9 +19,16 @@
 
             <div class="carousel-item {{ $index === 0 ? 'active' : '' }} hero-slide">
 
-                <img src="{{ asset('storage/' . $slide->image_path) }}"
-                    class="d-block w-100 hero-bg">
+                {{-- Blurred Background --}}
+                <div class="hero-bg-blur"
+                    style="background-image: url('{{ asset('storage/'.$slide->image_path) }}');">
+                </div>
 
+                {{-- Main Image --}}
+                <img src="{{ asset('storage/'.$slide->image_path) }}"
+                    class="hero-main-img">
+
+                {{-- Overlay --}}
                 <div class="hero-overlay">
 
                     <div class="hero-bottom-content container text-center">
@@ -28,12 +36,6 @@
                         <h1 class="hero-main-title">
                             {{ $slide->title ?? 'Planning & Design Unit Portal' }}
                         </h1>
-
-                        @if($slide->description)
-                        <p class="hero-subtitle">
-                            {{ \Illuminate\Support\Str::limit($slide->description, 200) }}
-                        </p>
-                        @endif
 
                     </div>
 
@@ -73,7 +75,7 @@
 @endif
 
 {{-- ABOUT SECTION --}}
-<section class="container py-0">
+<section class="container py-5">
 
     <h2 class="section-title">About the Portal</h2>
 

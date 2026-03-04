@@ -43,7 +43,7 @@
 
             {{-- Welcome Text --}}
             <span class="text-muted small d-none d-md-inline">
-                Hi, <strong>{{ Str::before(auth()->user()->name, ' ') }}</strong>
+                Hi, <strong>{{ auth()->user()->name, ' ' }}</strong>
             </span>
 
             {{-- 👤 Avatar Dropdown --}}
