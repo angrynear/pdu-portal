@@ -5,7 +5,7 @@ use App\Http\Controllers\PersonnelController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
-use \App\Http\Controllers\Admin\SlideController;
+use App\Http\Controllers\Admin\SlideController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ArchiveController;
 use App\Http\Controllers\LogController;
@@ -13,7 +13,7 @@ use App\Models\Slide;
 
 /*
 |--------------------------------------------------------------------------
-| Public
+| PUBLIC ROUTES
 |--------------------------------------------------------------------------
 */
 
@@ -25,19 +25,24 @@ Route::get('/', function () {
     return view('welcome', compact('slides'));
 });
 
+
 /*
 |--------------------------------------------------------------------------
-| Authenticated + Active Users
+| AUTHENTICATED + ACTIVE USERS
 |--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth', 'active'])->group(function () {
 
-    Route::post('/tasks', [TaskController::class, 'store'])
-        ->name('tasks.store');
+    /*
+    |--------------------------------------------------------------------------
+    | DASHBOARD
+    |--------------------------------------------------------------------------
+    */
 
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
+
 
     /*
     |--------------------------------------------------------------------------
@@ -45,13 +50,9 @@ Route::middleware(['auth', 'active'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    // List
     Route::get('/projects', [ProjectController::class, 'index'])
         ->name('projects.index');
 
-    // All projects (admin sees all, user filtered inside controller)
-    Route::get('/projects', [ProjectController::class, 'index'])
-        ->name('projects.index');
 
     /*
     |--------------------------------------------------------------------------
@@ -59,26 +60,46 @@ Route::middleware(['auth', 'active'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    // List
     Route::get('/tasks', [TaskController::class, 'index'])
         ->name('tasks.index');
 
-    // Progress & Date update (user can update assigned tasks)
+    Route::post('/tasks', [TaskController::class, 'store'])
+        ->name('tasks.store');
+
     Route::patch('/tasks/update-progress', [TaskController::class, 'updateProgress'])
         ->name('tasks.updateProgress');
 
     Route::patch('/tasks/set-dates', [TaskController::class, 'setDates'])
         ->name('tasks.setDates');
 
-    // All tasks (admin sees all, user filtered inside controller)
-    Route::get('/tasks', [TaskController::class, 'index'])
-        ->name('tasks.index');
+    Route::patch('/tasks/{task}/archive', [TaskController::class, 'archive'])
+        ->name('tasks.archive');
+
+    Route::patch('/archives/tasks/{task}/restore', [TaskController::class, 'restore'])
+        ->name('tasks.restore');
+
 
     /*
     |--------------------------------------------------------------------------
-    | LOGS (Admin + User — filtered inside controller)
+    | ARCHIVES (Admin + User Access Controlled in Controller)
     |--------------------------------------------------------------------------
     */
+
+    Route::get('/archives', [ArchiveController::class, 'index'])
+        ->name('archives.index');
+
+    Route::get('/archives/tasks', [TaskController::class, 'archived'])
+        ->name('tasks.archived');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOGS (Filtered inside controllers)
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/logs', [LogController::class, 'index'])
+        ->name('logs.index');
 
     Route::get('/logs/projects', [ProjectController::class, 'activityLogs'])
         ->name('logs.projects');
@@ -86,12 +107,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/logs/tasks', [TaskController::class, 'taskLogs'])
         ->name('logs.tasks');
 
-    Route::get('/logs', [LogController::class, 'index'])
-        ->name('logs.index');
 
     /*
     |--------------------------------------------------------------------------
-    | PROFILE (Admin + User)
+    | PROFILE
     |--------------------------------------------------------------------------
     */
 
@@ -106,9 +125,10 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     Route::delete('/profile', [ProfileController::class, 'destroy']);
 
+
     /*
     |--------------------------------------------------------------------------
-    | ADMIN ONLY (Active)
+    | ADMIN ONLY
     |--------------------------------------------------------------------------
     */
 
@@ -116,7 +136,7 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         /*
         |--------------------------------------------------------------------------
-        | PERSONNEL
+        | PERSONNEL MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -144,9 +164,10 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/personnel/{user}', [PersonnelController::class, 'show'])
             ->name('personnel.show');
 
+
         /*
         |--------------------------------------------------------------------------
-        | PROJECT MANAGEMENT (ADMIN)
+        | PROJECT MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -165,14 +186,12 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::patch('/projects/{project}/archive', [ProjectController::class, 'archive'])
             ->name('projects.archive');
 
+
         /*
         |--------------------------------------------------------------------------
-        | TASK MANAGEMENT (ADMIN)
+        | TASK MANAGEMENT
         |--------------------------------------------------------------------------
         */
-
-        Route::patch('/tasks/{task}/archive', [TaskController::class, 'archive'])
-            ->name('tasks.archive');
 
         Route::patch('/tasks/assign', [TaskController::class, 'assign'])
             ->name('tasks.assign');
@@ -180,9 +199,10 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::put('/tasks/update', [TaskController::class, 'update'])
             ->name('tasks.update');
 
+
         /*
         |--------------------------------------------------------------------------
-        | SLIDESHOW MANAGEMENT (ADMIN)
+        | SLIDES MANAGEMENT
         |--------------------------------------------------------------------------
         */
 
@@ -203,35 +223,26 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         Route::patch('/slides/{slide}/archive', [SlideController::class, 'archive'])
             ->name('slides.archive');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | ALL ARCHIVE ROUTES (ADMIN)
-        |--------------------------------------------------------------------------
-        */
-        Route::get('/archives', [ArchiveController::class, 'index'])
-            ->name('archives.index');
     });
+
 
     /*
     |--------------------------------------------------------------------------
-    | SHOW ROUTES (MUST BE LAST TO AVOID CONFLICT)
+    | SHOW ROUTES (LAST TO AVOID CONFLICT)
     |--------------------------------------------------------------------------
     */
 
-    // Project show
     Route::get('/projects/{project}', [ProjectController::class, 'show'])
         ->name('projects.show');
 
-    // Task show
     Route::get('/tasks/{task}', [TaskController::class, 'show'])
         ->name('tasks.show');
 });
 
+
 /*
 |--------------------------------------------------------------------------
-| ARCHIVES (Auth + Admin ONLY)
+| ARCHIVES (ADMIN ONLY)
 |--------------------------------------------------------------------------
 */
 
@@ -243,12 +254,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::patch('/archives/projects/{project}/restore', [ProjectController::class, 'restore'])
         ->name('projects.restore');
 
-    Route::get('/archives/tasks', [TaskController::class, 'archived'])
-        ->name('tasks.archived');
-
-    Route::patch('/archives/tasks/{task}/restore', [TaskController::class, 'restore'])
-        ->name('tasks.restore');
-
     Route::get('/archives/personnel', [PersonnelController::class, 'archived'])
         ->name('personnel.archived');
 
@@ -259,13 +264,14 @@ Route::middleware(['auth', 'admin'])->group(function () {
         ->name('slides.restore');
 });
 
+
 /*
 |--------------------------------------------------------------------------
-| Backward Friendly URLs
+| BACKWARD FRIENDLY URLS
 |--------------------------------------------------------------------------
 */
 
 Route::redirect('/my-profile', '/profile');
 Route::redirect('/my-profile/edit', '/profile/edit');
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

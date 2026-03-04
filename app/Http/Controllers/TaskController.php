@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use App\Models\Project;
-use App\Models\TaskRemark;
-use App\Models\TaskFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Support\FlashMessage;
@@ -32,7 +30,14 @@ class TaskController extends Controller
     */
 
         if (!$user->isAdmin() || $scope === 'my') {
-            $baseQuery->assignedTo($user->id);
+            $baseQuery->where(function ($q) use ($user) {
+
+                $q->where('assigned_user_id', $user->id)
+                    ->orWhere(function ($q2) use ($user) {
+                        $q2->whereNull('project_id')
+                            ->where('created_by', $user->id);
+                    });
+            });
         }
 
         return $this->buildTaskIndex($baseQuery, $request);
@@ -116,19 +121,23 @@ class TaskController extends Controller
     public function archive(Task $task)
     {
 
-        if (!auth()->user()->isAdmin()) {
-            abort(403);
+        $user = auth()->user();
+
+        $isAdmin = $user->isAdmin();
+        $isPersonalTask = is_null($task->project_id);
+        $isOwner = $task->assigned_user_id === $user->id || $task->created_by === $user->id;
+
+        if (!$isAdmin && !($isPersonalTask && $isOwner)) {
+            abort(403, 'Unauthorized access.');
         }
 
-        if ($task->project && $task->project->archived_at !== null) {
-            abort(403, 'Cannot archive task under an archived project.');
-        }
-
-        $task->update(['archived_at' => now()]);
+        $task->update([
+            'archived_at' => now()
+        ]);
 
         TaskActivityLog::create([
             'task_id' => $task->id,
-            'user_id' => auth()->id(),
+            'user_id' => $user->id,
             'action'  => 'archived',
             'description' => 'Task archived',
         ]);
@@ -142,17 +151,40 @@ class TaskController extends Controller
 
     public function archived()
     {
-        $tasks = Task::with(['project', 'assignedUser'])
+        $user = auth()->user();
+
+        $query = Task::query()
             ->whereNotNull('archived_at')
-            ->latest('archived_at')
-            ->paginate(20)
-            ->withQueryString();
+            ->with(['project', 'assignedUser']);
+
+        if (!$user->isAdmin()) {
+
+            $query->where(function ($q) use ($user) {
+                $q->whereNull('project_id')
+                    ->where(function ($sub) use ($user) {
+                        $sub->where('assigned_user_id', $user->id)
+                            ->orWhere('created_by', $user->id);
+                    });
+            });
+        }
+
+        $tasks = $query->latest()->paginate(10);
 
         return view('archives.tasks', compact('tasks'));
     }
 
     public function restore(Task $task)
     {
+        $user = auth()->user();
+
+        $isAdmin = $user->isAdmin();
+        $isPersonalTask = is_null($task->project_id);
+        $isOwner = $task->assigned_user_id === $user->id || $task->created_by === $user->id;
+
+        if (!$isAdmin && !($isPersonalTask && $isOwner)) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if ($task->project && $task->project->archived_at) {
             abort(403, 'Cannot restore task while its project is archived.');
         }
@@ -161,7 +193,7 @@ class TaskController extends Controller
 
         TaskActivityLog::create([
             'task_id' => $task->id,
-            'user_id' => auth()->id(),
+            'user_id' => $user->id,
             'action'  => 'restored',
             'description' => 'Task restored',
         ]);
@@ -177,10 +209,10 @@ class TaskController extends Controller
 
     public function updateProgress(Request $request)
     {
-
         $request->validate([
             'task_id'   => ['required', 'exists:tasks,id'],
             'progress'  => ['required', 'integer', 'min:0', 'max:100'],
+            'task_type' => ['nullable', 'string', 'max:255'],
             'remark'    => ['nullable', 'string'],
             'attachments.*' => ['nullable', 'file', 'max:5120'],
             'start_date' => ['nullable', 'date'],
@@ -226,7 +258,36 @@ class TaskController extends Controller
         $dateChanged     = ($oldStart !== $newStart) || ($oldDue !== $newDue);
         $hasFiles        = $request->hasFile('attachments');
 
-        if (!$progressChanged && !$remarkChanged && !$dateChanged && !$hasFiles) {
+        /*
+    |--------------------------------------------------------------------------
+    | Detect Personal Task Name Change
+    |--------------------------------------------------------------------------
+    */
+
+        $taskTypeChanged = false;
+
+        if ($task->project_id === null && $request->filled('task_type')) {
+
+            $newTaskType = trim($request->task_type);
+
+            if ($newTaskType !== trim($task->task_type)) {
+                $taskTypeChanged = true;
+            }
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | If Nothing Changed
+    |--------------------------------------------------------------------------
+    */
+
+        if (
+            !$progressChanged &&
+            !$remarkChanged &&
+            !$dateChanged &&
+            !$hasFiles &&
+            !$taskTypeChanged
+        ) {
             return back()->with(
                 'warning',
                 FlashMessage::warning('task_progress_updated')
@@ -246,12 +307,36 @@ class TaskController extends Controller
             $hasFiles,
             $request,
             $oldStart,
-            $oldDue
+            $oldDue,
+            $taskTypeChanged
         ) {
 
             $changes = [];
 
-            // ===== PROGRESS =====
+            /*
+        |--------------------------------------------------------------------------
+        | TASK NAME (PERSONAL TASK ONLY)
+        |--------------------------------------------------------------------------
+        */
+
+            if ($taskTypeChanged) {
+
+                $newTaskType = trim($request->task_type);
+
+                $changes['task_type'] = [
+                    'old' => $task->task_type,
+                    'new' => $newTaskType
+                ];
+
+                $task->task_type = $newTaskType;
+            }
+
+            /*
+        |--------------------------------------------------------------------------
+        | PROGRESS
+        |--------------------------------------------------------------------------
+        */
+
             if ($progressChanged) {
                 $changes['progress'] = [
                     'old' => $task->progress,
@@ -260,7 +345,12 @@ class TaskController extends Controller
                 $task->progress = $newProgress;
             }
 
-            // ===== DATES =====
+            /*
+        |--------------------------------------------------------------------------
+        | DATES
+        |--------------------------------------------------------------------------
+        */
+
             if ($dateChanged) {
 
                 if ($oldStart !== $newStart) {
@@ -280,15 +370,26 @@ class TaskController extends Controller
                 }
             }
 
-            // not sure //
-            if ($progressChanged || $dateChanged) {
+            /*
+        |--------------------------------------------------------------------------
+        | SAVE TASK
+        |--------------------------------------------------------------------------
+        */
+
+            if ($progressChanged || $dateChanged || $taskTypeChanged) {
                 $task->save();
+
                 if ($project) {
                     $project->recalculateProgress();
                 }
             }
 
-            // ===== REMARK =====
+            /*
+        |--------------------------------------------------------------------------
+        | REMARK
+        |--------------------------------------------------------------------------
+        */
+
             if ($remarkChanged) {
                 $changes['remark'] = [
                     'old' => null,
@@ -296,7 +397,12 @@ class TaskController extends Controller
                 ];
             }
 
-            // ===== CREATE ACTIVITY LOG FIRST =====
+            /*
+        |--------------------------------------------------------------------------
+        | CREATE ACTIVITY LOG
+        |--------------------------------------------------------------------------
+        */
+
             $log = TaskActivityLog::create([
                 'task_id' => $task->id,
                 'user_id' => auth()->id(),
@@ -305,7 +411,12 @@ class TaskController extends Controller
                 'changes' => $changes,
             ]);
 
-            // ===== FILES =====
+            /*
+        |--------------------------------------------------------------------------
+        | FILE ATTACHMENTS
+        |--------------------------------------------------------------------------
+        */
+
             if ($hasFiles) {
 
                 foreach ($request->file('attachments') as $file) {

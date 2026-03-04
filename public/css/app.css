@@ -77,10 +77,31 @@ body {
 .dropdown-menu {
     min-width: 180px;
     border-radius: 8px;
+    overflow: hidden;
+    word-break: break-word;s
 }
 
 .dropdown-item {
     padding: 0.5rem 0.9rem;
+}
+
+.notification-item {
+    white-space: normal;
+}
+
+/* =====================================================
+   NOTIFICATION BELL
+===================================================== */
+.bi-bell {
+    transition: 0.2s ease;
+}
+
+.bi-bell:hover {
+    transform: scale(1.1);
+}
+
+.dropdown-menu {
+    border-radius: 10px;
 }
 
 /* Mobile collapse */

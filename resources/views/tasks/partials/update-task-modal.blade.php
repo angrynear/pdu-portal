@@ -29,6 +29,21 @@
             {{-- BODY --}}
             <div class="modal-body pt-3">
 
+                {{-- ================= TASK NAME (PERSONAL TASK ONLY) ================= --}}
+                <div id="taskNameWrapper" class="p-3 rounded-3 bg-light mb-4 d-none">
+
+                    <label class="form-label fw-semibold small text-uppercase text-muted">
+                        Task Name
+                    </label>
+
+                    <input type="text"
+                        name="task_type"
+                        id="task_type_input"
+                        class="form-control"
+                        maxlength="255">
+
+                </div>
+
                 {{-- ================= PROGRESS SECTION ================= --}}
                 <div class="p-3 rounded-3 bg-light mb-4">
 

@@ -135,6 +135,27 @@
                     </small>
                 </div>
 
+                {{-- ACTION EVENTS (ARCHIVE / RESTORE) --}}
+                @if(in_array($log->action, ['archived','restored']) && empty($log->changes))
+                <div class="small mb-2">
+
+                    @if($log->action === 'archived')
+                    <span class="text-danger">
+                        <i class="bi bi-archive-fill me-1"></i>
+                        Task archived
+                    </span>
+                    @endif
+
+                    @if($log->action === 'restored')
+                    <span class="text-success">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>
+                        Task restored
+                    </span>
+                    @endif
+
+                </div>
+                @endif
+
                 {{-- CHANGES --}}
                 <div class="mt-2">
 
@@ -179,6 +200,10 @@
                     $old = $values['old'] ?? null;
                     $new = $values['new'] ?? null;
                     $label = ucwords(str_replace('_', ' ', $field));
+
+                    if ($field === 'task_type') {
+                    $label = !$task->project_id ? 'Task Name' : 'Task Type';
+                    }
 
                     if (in_array($field, ['start_date','due_date'])) {
                     $old = $old ? \Carbon\Carbon::parse($old)->format('M d, Y') : '—';

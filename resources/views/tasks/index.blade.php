@@ -254,7 +254,48 @@ $pageTitle = $isAdmin
             }
 
         });
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const modal = document.getElementById('updateTaskProgressModal');
+
+            modal.addEventListener('show.bs.modal', function(event) {
+
+                const button = event.relatedTarget;
+
+                const taskId = button.getAttribute('data-task-id');
+                const progress = button.getAttribute('data-progress');
+                const taskType = button.getAttribute('data-task-type');
+                const isPersonal = button.getAttribute('data-personal');
+
+                document.getElementById('task_id').value = taskId;
+
+                const slider = document.getElementById('task_progress');
+                const progressText = document.getElementById('progressValue');
+
+                slider.value = progress;
+                progressText.innerText = progress;
+
+                const wrapper = document.getElementById('taskNameWrapper');
+                const input = document.getElementById('task_type_input');
+
+                if (isPersonal === "1") {
+
+                    wrapper.classList.remove('d-none');
+                    input.value = taskType;
+
+                } else {
+
+                    wrapper.classList.add('d-none');
+                    input.value = '';
+                }
+
+            });
+
+        });
     </script>
+
+
 
     @endpush
 

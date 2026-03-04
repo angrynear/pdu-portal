@@ -1,7 +1,7 @@
 <nav class="navbar bg-white border-bottom sticky-top px-3 px-md-4 py-2">
     <div class="container-fluid p-0 d-flex align-items-center justify-content-between">
 
-        {{-- LEFT SIDE --}}
+        {{-- ================= LEFT SIDE ================= --}}
         <div class="d-flex align-items-center gap-3">
 
             {{-- Mobile Sidebar Toggle --}}
@@ -18,14 +18,14 @@
                 alt="MBHTE Logo"
                 class="navbar-logo">
 
-            {{-- Mobile Short Title --}}
+            {{-- Mobile Title --}}
             <div class="d-flex d-sm-none flex-column">
                 <span class="fw-bold text-success navbar-title-mobile">
                     EFS - PDU Portal
                 </span>
             </div>
 
-            {{-- Desktop / Tablet Full Title --}}
+            {{-- Desktop Title --}}
             <div class="d-none d-sm-flex flex-column">
                 <span class="fw-bold text-success navbar-title">
                     EFS - Planning and Design Unit Portal
@@ -38,32 +38,30 @@
         </div>
 
 
-        {{-- RIGHT SIDE --}}
+        {{-- ================= RIGHT SIDE ================= --}}
         <div class="d-flex align-items-center gap-3">
 
-            {{-- Welcome text --}}
+            {{-- Welcome Text --}}
             <span class="text-muted small d-none d-md-inline">
                 Hi, <strong>{{ Str::before(auth()->user()->name, ' ') }}</strong>
             </span>
 
+            {{-- 👤 Avatar Dropdown --}}
             <div class="dropdown">
 
                 <button class="btn p-0 border-0 bg-transparent"
                     type="button"
-                    id="userDropdown"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false">
+                    data-bs-toggle="dropdown">
 
                     <img
                         src="{{ auth()->user()->photo
-                ? asset('storage/' . auth()->user()->photo)
-                : asset('images/default-avatar.png') }}"
+                            ? asset('storage/' . auth()->user()->photo)
+                            : asset('images/default-avatar.png') }}"
                         alt="User Avatar"
                         class="rounded-circle border navbar-avatar">
                 </button>
 
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm"
-                    aria-labelledby="userDropdown">
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
 
                     <li>
                         <a class="dropdown-item small"
@@ -85,10 +83,8 @@
                     </li>
 
                 </ul>
-
             </div>
 
         </div>
-
     </div>
 </nav>

@@ -143,6 +143,8 @@
         </li>
     </ul>
 
+    @endif
+
     {{-- ARCHIVES --}}
     <h6 class="text-uppercase text-muted">
         Archives
@@ -157,8 +159,6 @@
             </a>
         </li>
     </ul>
-
-    @endif
 
     {{-- LOGS --}}
     <h6 class="text-uppercase text-muted">

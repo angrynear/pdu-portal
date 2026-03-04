@@ -3,7 +3,12 @@
         @forelse($tasks as $task)
 
         @php
-        $isAssignedUser = auth()->id() === $task->assigned_user_id;
+        $user = auth()->user();
+
+        $isAdmin = $user->isAdmin();
+        $isPersonalTask = !$task->project_id;
+        $isAssignedUser = $user->id === $task->assigned_user_id || $user->id === $task->created_by;
+
         $remark = $task->latest_remark;
         @endphp
 
@@ -56,11 +61,13 @@
                                 {{ $task->status_label }}
                             </span>
 
+                            {{-- View Task--}}
                             <a href="{{ route('tasks.show', [ 'task'  => $task->id, 'from'  => 'tasks', 'scope' => request('scope') ]) }}"
                                 class="btn btn-sm btn-light p-2 flex-fill">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
 
+                            {{-- Assign Task--}}
                             @if($isAdmin && !$task->assigned_user_id)
                             <button class="btn btn-sm btn-light p-2"
                                 data-bs-toggle="modal"
@@ -70,6 +77,7 @@
                             </button>
                             @endif
 
+                            {{-- Set Task Date--}}
                             @if($task->assigned_user_id && (!$task->start_date || !$task->due_date))
                             @if($isAdmin || $isAssignedUser)
                             <button class="btn btn-sm btn-light p-2"
@@ -83,12 +91,15 @@
                             @endif
                             @endif
 
+                            {{-- Update--}}
                             @if($task->assigned_user_id && $task->start_date && $task->due_date)
                             @if($isAdmin || $isAssignedUser)
                             <button class="btn btn-sm btn-light p-2"
                                 data-bs-toggle="modal"
                                 data-bs-target="#updateTaskProgressModal"
                                 data-task-id="{{ $task->id }}"
+                                data-task-type="{{ $task->task_type }}"
+                                data-personal="{{ $task->project_id ? '0' : '1' }}"
                                 data-progress="{{ $task->progress }}"
                                 data-start-date="{{ $task->start_date?->format('Y-m-d') }}"
                                 data-due-date="{{ $task->due_date?->format('Y-m-d') }}"
@@ -99,8 +110,10 @@
                             @endif
                             @endif
 
-                            @if($isAdmin)
-                            <button class="btn btn-sm btn-light p-2 flex-fill"
+                            {{-- Archive --}}
+                            @if($isAdmin || ($isPersonalTask && $isAssignedUser))
+                            <button type="button"
+                                class="btn btn-sm btn-light p-2 flex-fill"
                                 data-bs-toggle="modal"
                                 data-bs-target="#confirmActionModal"
                                 data-action="{{ route('tasks.archive', $task->id) }}"
@@ -198,11 +211,13 @@
 
                         <div class="d-flex gap-2">
 
+                            {{-- View --}}
                             <a href="{{ route('tasks.show', [ 'task'  => $task->id, 'from'  => 'tasks', 'scope' => request('scope') ]) }}"
                                 class="btn btn-sm btn-light p-2 flex-fill">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
 
+                            {{-- Assign Task--}}
                             @if($isAdmin && !$task->assigned_user_id)
                             <button class="btn btn-sm btn-light flex-fill"
                                 data-bs-toggle="modal"
@@ -212,6 +227,7 @@
                             </button>
                             @endif
 
+                            {{-- Set Date--}}
                             @if($task->assigned_user_id && (!$task->start_date || !$task->due_date))
                             @if($isAdmin || $isAssignedUser)
                             <button class="btn btn-sm btn-light p-2 flex-fill"
@@ -225,12 +241,15 @@
                             @endif
                             @endif
 
+                            {{-- Update --}}
                             @if($task->assigned_user_id && $task->start_date && $task->due_date)
                             @if($isAdmin || $isAssignedUser)
                             <button class="btn btn-sm btn-light flex-fill"
                                 data-bs-toggle="modal"
                                 data-bs-target="#updateTaskProgressModal"
                                 data-task-id="{{ $task->id }}"
+                                data-task-type="{{ $task->task_type }}"
+                                data-personal="{{ $task->project_id ? '0' : '1' }}"
                                 data-progress="{{ $task->progress }}"
                                 data-start-date="{{ $task->start_date?->format('Y-m-d') }}"
                                 data-due-date="{{ $task->due_date?->format('Y-m-d') }}"
@@ -241,8 +260,10 @@
                             @endif
                             @endif
 
-                            @if($isAdmin)
-                            <button class="btn btn-sm btn-light flex-fill"
+                            {{-- Archive --}}
+                            @if($isAdmin || ($isPersonalTask && $isAssignedUser))
+                            <button type="button"
+                                class="btn btn-sm btn-light flex-fill"
                                 data-bs-toggle="modal"
                                 data-bs-target="#confirmActionModal"
                                 data-action="{{ route('tasks.archive', $task->id) }}"

@@ -79,10 +79,17 @@
                 {{-- FOOTER ACTION --}}
                 <div class="mt-auto pt-3">
 
-                    @if (
-                    is_null($task->project)
-                    || is_null($task->project->archived_at)
-                    )
+                    @php
+                    $user = auth()->user();
+
+                    $isAdmin = $user->isAdmin();
+                    $isPersonalTask = is_null($task->project_id);
+                    $isOwner = $task->assigned_user_id === $user->id || $task->created_by === $user->id;
+
+                    $canRestore = $isAdmin || ($isPersonalTask && $isOwner);
+                    @endphp
+
+                    @if($canRestore && (!$task->project || !$task->project->archived_at))
                     <button
                         type="button"
                         class="btn btn-sm btn-success w-100"

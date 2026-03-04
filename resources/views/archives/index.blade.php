@@ -18,6 +18,8 @@
                 'personnel' => 'Personnel'
                 ] as $key => $label)
 
+                @if(auth()->user()->isAdmin() || $key === 'tasks')
+
                 <a href="{{ route('archives.index', ['scope' => $key]) }}"
                     class="btn btn-sm d-flex align-items-center gap-2
                           {{ $scope === $key ? 'btn-dark active-scope' : 'btn-outline-secondary' }}">
@@ -30,6 +32,7 @@
                     </span>
 
                 </a>
+                @endif
 
                 @endforeach
 
@@ -49,6 +52,8 @@
                     'personnel' => 'Personnel'
                     ] as $key => $label)
 
+                    @if(auth()->user()->isAdmin() || $key === 'tasks')
+
                     <div class="col-6">
                         <a href="{{ route('archives.index', ['scope' => $key]) }}"
                             class="btn w-100 d-flex justify-content-between align-items-center shadow-sm
@@ -63,6 +68,7 @@
 
                         </a>
                     </div>
+                    @endif
 
                     @endforeach
 

@@ -54,11 +54,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function isActive(): bool
     {
-        return $this->account_status === 'active';
-
-        return is_null($this->deactivated_at);
+        return $this->account_status === 'active'
+            && is_null($this->deactivated_at);
     }
-
     public function tasks()
     {
         return $this->hasMany(\App\Models\Task::class, 'assigned_user_id');
